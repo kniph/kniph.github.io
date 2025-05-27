@@ -490,6 +490,7 @@
                         <div id="cameraInput" class="input-mode">
                             <div class="camera-container">
                                 <video id="cameraPreview" autoplay playsinline style="display: none;"></video>
+                                <button type="button" class="btn btn-primary" onclick="capturePhoto()" id="captureBtn" style="display: none;">📸 拍照</button>
                                 <canvas id="photoCanvas" style="display: none;"></canvas>
                                 <div id="photoPreview" class="photo-preview" style="display: none;">
                                     <img id="capturedImage" alt="拍攝的照片">
@@ -504,7 +505,6 @@
                                     </div>
                                     <div class="camera-controls">
                                         <button type="button" class="btn btn-primary" onclick="startCamera()">📷 開啟相機</button>
-                                        <button type="button" class="btn btn-primary" onclick="capturePhoto()" id="captureBtn" style="display: none;">📸 拍照</button>
                                         <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
                                         <button type="button" class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">📁 選擇照片</button>
                                     </div>
