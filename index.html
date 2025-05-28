@@ -490,7 +490,6 @@
                         <div id="cameraInput" class="input-mode">
                             <div class="camera-container">
                                 <video id="cameraPreview" autoplay playsinline style="display: none;"></video>
-                                <button type="button" class="btn btn-primary" onclick="capturePhoto()" id="captureBtn" style="display: none;">📸 拍照</button>
                                 <canvas id="photoCanvas" style="display: none;"></canvas>
                                 <div id="photoPreview" class="photo-preview" style="display: none;">
                                     <img id="capturedImage" alt="拍攝的照片">
@@ -504,10 +503,11 @@
                                         <p>📷 點擊下方按鈕開啟相機</p>
                                     </div>
                                     <div class="camera-controls">
-                                        <button type="button" class="btn btn-primary" onclick="startCamera()">📷 開啟相機</button>
+                                        <button type="button" class="btn" onclick="startCamera()">📷 開啟相機</button>
                                         <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
                                         <button type="button" class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">📁 選擇照片</button>
                                     </div>
+                                    <button type="button" class="btn" onclick="capturePhoto()" id="captureBtn" style="display: none;">📸 拍照</button>
                                 </div>
                             </div>
                             
@@ -515,8 +515,9 @@
                                 <h4>📝 識別結果：</h4>
                                 <div class="ocr-text" id="recognizedText"></div>
                                 <div class="ocr-actions">
-                                    <button type="button" class="btn btn-primary" onclick="useOcrText()">✅ 使用此文字</button>
+                                    <button type="button" class="btn" onclick="useOcrText()">✅ 使用此文字</button>
                                     <button type="button" class="btn btn-secondary" onclick="editOcrText()">✏️ 手動編輯</button>
+                                    <button type="button" class="btn btn-secondary" onclick="skipOcrManualInput()">📝 跳過識別，手動輸入</button>
                                 </div>
                             </div>
                             
@@ -658,12 +659,15 @@
                 video.srcObject = currentStream;
                 video.style.display = 'block';
                 
-                document.getElementById('cameraInterface').style.display = 'none';
-                document.getElementById('captureBtn').style.display = 'inline-block';
+                // 等待視頻載入後再顯示拍照按鈕
+                video.onloadedmetadata = function() {
+                    document.getElementById('cameraInterface').style.display = 'none';
+                    document.getElementById('captureBtn').style.display = 'inline-block';
+                };
                 
             } catch (error) {
                 console.error('無法訪問相機:', error);
-                alert('無法開啟相機，請檢查設備權限或選擇上傳照片。');
+                alert('無法開啟相機，請檢查設備權限或選擇上傳照片。錯誤：' + error.message);
             }
         }
 
@@ -755,33 +759,115 @@
             }
         }
 
-        // OCR識別函數（使用Tesseract.js）
+        // Google Vision API設定 - 請替換為您的API金鑰
+        const GOOGLE_VISION_API_KEY = 'AIzaSyC_aGiEVd9oYiDZcQMXavb9kXYmnNHljdk'; // 請替換為您的實際API金鑰
+        
+        // OCR識別函數（使用Google Vision API）
         async function performOCR(imageData) {
+            // 檢查API金鑰是否設定
+            if (GOOGLE_VISION_API_KEY === 'YOUR_API_KEY_HERE') {
+                alert('請先設定Google Vision API金鑰！\n\n請將程式碼中的 YOUR_API_KEY_HERE 替換為您的實際API金鑰。');
+                return showManualInputFallback();
+            }
+            
             try {
-                const { data: { text } } = await Tesseract.recognize(
-                    imageData,
-                    'eng',
-                    {
-                        logger: m => {
-                            if (m.status === 'recognizing text') {
-                                console.log(`OCR進度: ${Math.round(m.progress * 100)}%`);
-                            }
-                        }
-                    }
-                );
+                // 使用Google Vision API進行OCR識別
+                const visionResult = await callGoogleVisionAPI(imageData);
+                if (visionResult && visionResult.trim()) {
+                    return visionResult;
+                }
+                
+                // 如果Google Vision失敗，回退到Tesseract.js
+                console.log('Google Vision API無結果，嘗試使用Tesseract.js...');
+                return await fallbackToTesseract(imageData);
+                
+            } catch (error) {
+                console.error('Google Vision API錯誤:', error);
+                
+                // 錯誤處理：嘗試Tesseract.js作為備用
+                try {
+                    console.log('回退到Tesseract.js...');
+                    return await fallbackToTesseract(imageData);
+                } catch (tesseractError) {
+                    console.error('Tesseract.js也失敗:', tesseractError);
+                    return showManualInputFallback();
+                }
+            }
+        }
+
+        // Google Vision API調用
+        async function callGoogleVisionAPI(imageData) {
+            // 將base64圖片轉換為Google Vision API需要的格式
+            const base64Image = imageData.split(',')[1]; // 移除data:image/jpeg;base64,前綴
+            
+            const requestBody = {
+                requests: [{
+                    image: {
+                        content: base64Image
+                    },
+                    features: [{
+                        type: 'TEXT_DETECTION',
+                        maxResults: 1
+                    }]
+                }]
+            };
+
+            const response = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_VISION_API_KEY}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`Google Vision API錯誤: ${response.status} - ${errorData.error?.message || '未知錯誤'}`);
+            }
+
+            const data = await response.json();
+            
+            // 檢查是否有識別結果
+            if (data.responses && data.responses[0] && data.responses[0].textAnnotations) {
+                const detectedText = data.responses[0].textAnnotations[0].description;
                 
                 // 清理識別結果
-                const cleanedText = text
-                    .replace(/\n\s*\n/g, '\n\n') // 處理多餘空行
+                const cleanedText = detectedText
+                    .replace(/\n+/g, ' ') // 將換行轉為空格
                     .replace(/\s+/g, ' ') // 處理多餘空格
                     .trim();
                 
-                return cleanedText || '未能識別到文字內容，請重新拍攝或手動輸入。';
-                
-            } catch (error) {
-                console.error('OCR識別錯誤:', error);
-                throw new Error('文字識別失敗');
+                return cleanedText;
             }
+            
+            return null; // 沒有識別到文字
+        }
+
+        // Tesseract.js備用方案
+        async function fallbackToTesseract(imageData) {
+            const { data: { text } } = await Tesseract.recognize(
+                imageData,
+                'eng',
+                {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            console.log(`備用OCR進度: ${Math.round(m.progress * 100)}%`);
+                        }
+                    },
+                    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!?;:\'" \n'
+                }
+            );
+            
+            return text.replace(/\s+/g, ' ').trim() || '未能識別到文字內容。';
+        }
+
+        // 備用方案：當OCR失敗時提供手動輸入
+        function showManualInputFallback() {
+            const manualText = prompt(
+                'OCR識別失敗。請手動輸入您看到的英文內容：\n\n(提示: 可以只輸入前幾句，之後再手動補完)', 
+                ''
+            );
+            return manualText || '請手動輸入文字內容。';
         }
 
         // 使用OCR文字
@@ -790,22 +876,45 @@
             document.getElementById('essayContent').value = recognizedText;
             
             // 切換回文字輸入模式
-            switchInputMode('text');
-            document.querySelector('.tab-btn').click();
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.tab-btn[onclick*="text"]').classList.add('active');
+            
+            document.querySelectorAll('.input-mode').forEach(input => input.classList.remove('active'));
+            document.getElementById('textInput').classList.add('active');
             
             alert('文字已成功導入！您可以進一步編輯後開始批改。');
         }
 
-        // 編輯OCR文字
+        // 跳過OCR，直接手動輸入
+        function skipOcrManualInput() {
+            document.getElementById('essayContent').value = '';
+            
+            // 切換到文字輸入模式
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.tab-btn[onclick*="text"]').classList.add('active');
+            
+            document.querySelectorAll('.input-mode').forEach(input => input.classList.remove('active'));
+            document.getElementById('textInput').classList.add('active');
+            
+            alert('已切換到文字輸入模式，請直接在文字框中輸入內容。');
+        }
+
+        // 改進的手動編輯功能
         function editOcrText() {
             const recognizedText = document.getElementById('recognizedText').textContent;
-            const editedText = prompt('請編輯識別的文字：', recognizedText);
+            const editedText = prompt('請編輯或重新輸入文字內容：\n\n(提示: 如果識別錯誤太多，可以重新輸入)', recognizedText);
             
             if (editedText !== null) {
                 document.getElementById('essayContent').value = editedText;
-                switchInputMode('text');
-                document.querySelector('.tab-btn').click();
-                alert('文字已更新！您可以開始批改。');
+                
+                // 切換到文字輸入模式
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelector('.tab-btn[onclick*="text"]').classList.add('active');
+                
+                document.querySelectorAll('.input-mode').forEach(input => input.classList.remove('active'));
+                document.getElementById('textInput').classList.add('active');
+                
+                alert('文字已更新！您可以繼續編輯或開始批改。');
             }
         }
 
