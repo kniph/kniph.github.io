@@ -491,6 +491,7 @@
                             <div class="camera-container">
                                 <video id="cameraPreview" autoplay playsinline style="display: none;"></video>
                                 <canvas id="photoCanvas" style="display: none;"></canvas>
+                                <button type="button" class="btn" onclick="capturePhoto()" id="captureBtn" style="display: none;">📸 拍照</button>
                                 <div id="photoPreview" class="photo-preview" style="display: none;">
                                     <img id="capturedImage" alt="拍攝的照片">
                                     <div class="photo-actions">
@@ -507,7 +508,6 @@
                                         <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
                                         <button type="button" class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">📁 選擇照片</button>
                                     </div>
-                                    <button type="button" class="btn" onclick="capturePhoto()" id="captureBtn" style="display: none;">📸 拍照</button>
                                 </div>
                             </div>
                             
@@ -765,7 +765,7 @@
         // OCR識別函數（使用Google Vision API）
         async function performOCR(imageData) {
             // 檢查API金鑰是否設定
-            if (GOOGLE_VISION_API_KEY === 'AIzaSyC_aGiEVd9oYiDZcQMXavb9kXYmnNHljdk') {
+            if (GOOGLE_VISION_API_KEY === 'YOUR_API_KEY_HERE') {
                 alert('請先設定Google Vision API金鑰！\n\n請將程式碼中的 YOUR_API_KEY_HERE 替換為您的實際API金鑰。');
                 return showManualInputFallback();
             }
