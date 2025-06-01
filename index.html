@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>學生作文評分系統</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -70,6 +69,32 @@
             line-height: 1.6;
         }
         
+        .demo-section {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border: 2px solid #22c55e;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .demo-button {
+            background: linear-gradient(45deg, #22c55e, #16a34a);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+        
         .upload-section {
             background: linear-gradient(135deg, #f8fafc, #e2e8f0);
             border: 3px dashed #cbd5e1;
@@ -122,6 +147,38 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
         
+        .manual-input {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border: 2px solid #f59e0b;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .manual-input h3 {
+            color: #92400e;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .manual-input textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 1px solid #d97706;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+        }
+        
+        .manual-input textarea:focus {
+            outline: none;
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+        
         .action-buttons {
             display: flex;
             gap: 15px;
@@ -172,62 +229,23 @@
             transform: none !important;
         }
         
-        .manual-input {
-            background: linear-gradient(135deg, #fffbeb, #fef3c7);
-            border: 2px solid #f59e0b;
+        .instruction-box {
+            background: linear-gradient(135deg, #fef7ff, #f3e8ff);
+            border: 2px solid #a855f7;
             border-radius: 15px;
             padding: 20px;
             margin: 20px 0;
+            display: none;
         }
         
-        .manual-input h3 {
-            color: #92400e;
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-        }
-        
-        .manual-input textarea {
-            width: 100%;
-            min-height: 120px;
-            padding: 15px;
-            border: 1px solid #d97706;
-            border-radius: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.6;
-            resize: vertical;
-        }
-        
-        .manual-input textarea:focus {
-            outline: none;
-            border-color: #f59e0b;
-            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
-        }
-        
-        .demo-section {
-            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-            border: 2px solid #22c55e;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .demo-button {
-            background: linear-gradient(45deg, #22c55e, #16a34a);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            margin-right: 10px;
+        .instruction-box h3 {
+            color: #7c2d12;
             margin-bottom: 10px;
         }
         
-        .demo-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        .instruction-box p {
+            color: #6b21a8;
+            line-height: 1.6;
         }
         
         .results {
@@ -340,24 +358,6 @@
             font-weight: 600;
         }
         
-        .instruction-box {
-            background: linear-gradient(135deg, #fef7ff, #f3e8ff);
-            border: 2px solid #a855f7;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        
-        .instruction-box h3 {
-            color: #7c2d12;
-            margin-bottom: 10px;
-        }
-        
-        .instruction-box p {
-            color: #6b21a8;
-            line-height: 1.6;
-        }
-        
         @media (max-width: 768px) {
             .main-content {
                 padding: 20px;
@@ -388,8 +388,8 @@
         <div class="main-content">
             <div class="ai-notice">
                 <h3>🚀 升級版AI辨識技術</h3>
-                <p>本系統使用先進的AI視覺技術進行文字辨識，相比傳統OCR有更高的準確率，特別適合手寫文字分析。<br>
-                為獲得最佳效果，請上傳圖片後將圖片和內容一起發送給AI進行分析。</p>
+                <p>本系統結合AI助手的視覺分析能力，提供高準確度的文字辨識和專業評分。<br>
+                上傳圖片後，可直接在對話中請AI助手分析，或使用文字輸入框進行快速評分。</p>
             </div>
             
             <div class="demo-section">
@@ -400,18 +400,20 @@
                 <button class="demo-button" onclick="useDemoText('poor')">📄 示範作文(需改進)</button>
             </div>
             
-            <div class="upload-section" onclick="document.getElementById('imageInput').click()">
+            <div class="upload-section" onclick="triggerFileInput()">
                 <div class="upload-icon">📸</div>
                 <div class="upload-text">點擊上傳作文照片</div>
                 <div class="upload-hint">支援 JPG、PNG 格式</div>
-                <input type="file" id="imageInput" accept="image/*">
+                <input type="file" id="imageInput" accept="image/*" style="display: none;">
             </div>
             
             <div class="preview-container" id="previewContainer"></div>
             
-            <div class="instruction-box" id="instructionBox" style="display: none;">
+            <div class="instruction-box" id="instructionBox">
                 <h3>📋 接下來的步驟</h3>
-                <p>圖片已上傳！請點擊下方的「發送給AI分析」按鈕，讓AI助手分析圖片中的文字並進行評分。</p>
+                <p>圖片已上傳！現在您可以：<br>
+                1. 在下方對話框中發送圖片，並請AI助手分析<br>
+                2. 或者將辨識出的文字貼到下方文字框中進行分析</p>
             </div>
             
             <div class="manual-input">
@@ -420,11 +422,8 @@
             </div>
             
             <div class="action-buttons">
-                <button class="btn btn-primary" id="analyzeBtn" onclick="analyzeEssay()">
+                <button class="btn btn-primary" onclick="analyzeEssay()">
                     🔍 分析文字內容
-                </button>
-                <button class="btn btn-primary" id="sendToAI" onclick="sendToAI()" style="display: none;">
-                    🤖 發送給AI分析
                 </button>
                 <button class="btn btn-secondary" id="downloadBtn" onclick="downloadPDF()" disabled>
                     📄 下載PDF報告
@@ -469,6 +468,7 @@
     </div>
 
     <script>
+        // 全域變數
         let currentImage = null;
         let analysisResult = null;
         
@@ -479,57 +479,98 @@
             poor: "Today morning, my mom call me get up, my ded want take our to zoo, we see a lot of animos, like.... elephants, monkey, big ber..... we have fun today, and night we go to the bergerking to eat handberger. We are so hungry and happy. I have a wenderful day."
         };
         
+        // 觸發檔案輸入
+        function triggerFileInput() {
+            const input = document.getElementById('imageInput');
+            if (input) {
+                input.click();
+            }
+        }
+        
         // 使用示範文字
         function useDemoText(type) {
-            const text = demoTexts[type];
-            document.getElementById('manualText').value = text;
-            analyzeEssay();
+            try {
+                const text = demoTexts[type];
+                const textArea = document.getElementById('manualText');
+                if (textArea && text) {
+                    textArea.value = text;
+                    analyzeEssay();
+                }
+            } catch (error) {
+                console.error('示範文字錯誤:', error);
+                alert('載入示範文字時發生錯誤，請重試');
+            }
         }
         
         // 處理圖片上傳
-        document.getElementById('imageInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                currentImage = file;
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const previewContainer = document.getElementById('previewContainer');
-                    previewContainer.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="上傳的作文照片">`;
-                    document.getElementById('instructionBox').style.display = 'block';
-                    document.getElementById('sendToAI').style.display = 'inline-block';
-                };
-                reader.readAsDataURL(file);
+        function handleImageUpload() {
+            const input = document.getElementById('imageInput');
+            if (input) {
+                input.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        currentImage = file;
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            try {
+                                const previewContainer = document.getElementById('previewContainer');
+                                const instructionBox = document.getElementById('instructionBox');
+                                
+                                if (previewContainer) {
+                                    previewContainer.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="上傳的作文照片">`;
+                                }
+                                if (instructionBox) {
+                                    instructionBox.style.display = 'block';
+                                }
+                            } catch (error) {
+                                console.error('圖片預覽錯誤:', error);
+                                alert('圖片預覽失敗，請重試');
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
             }
-        });
-        
-        // 發送給AI分析
-        function sendToAI() {
-            if (!currentImage) return;
-            
-            alert('請在下方對話框中發送以下訊息給AI：\n\n"請幫我分析這張作文照片，進行文字辨識並評分，包含：\n1. 辨識出的文字\n2. 錯誤分析\n3. 改寫後版本\n4. 評級\n5. 改進建議\n6. 錯誤類型"');
         }
         
         // 分析文字內容
         function analyzeEssay() {
-            const manualText = document.getElementById('manualText').value.trim();
-            
-            if (!manualText) {
-                alert('請輸入作文內容或上傳照片');
-                return;
+            try {
+                const textArea = document.getElementById('manualText');
+                if (!textArea) {
+                    alert('找不到文字輸入區域');
+                    return;
+                }
+                
+                const manualText = textArea.value.trim();
+                
+                if (!manualText) {
+                    alert('請輸入作文內容或上傳照片');
+                    return;
+                }
+                
+                // 分析結果
+                analysisResult = analyzeText(manualText);
+                
+                // 顯示結果
+                displayResults(analysisResult);
+                
+                const results = document.getElementById('results');
+                const downloadBtn = document.getElementById('downloadBtn');
+                
+                if (results) {
+                    results.style.display = 'block';
+                    results.scrollIntoView({ behavior: 'smooth' });
+                }
+                
+                if (downloadBtn) {
+                    downloadBtn.disabled = false;
+                }
+                
+            } catch (error) {
+                console.error('分析錯誤:', error);
+                alert('分析過程中發生錯誤，請重試');
             }
-            
-            // 分析結果
-            analysisResult = analyzeText(manualText);
-            
-            // 顯示結果
-            displayResults(analysisResult);
-            
-            const results = document.getElementById('results');
-            results.style.display = 'block';
-            document.getElementById('downloadBtn').disabled = false;
-            
-            // 滾動到結果區域
-            results.scrollIntoView({ behavior: 'smooth' });
         }
         
         // 文字分析邏輯
@@ -542,25 +583,17 @@
             
             // 常見錯誤檢測規則
             const errorRules = [
-                // 拼寫錯誤
                 { pattern: /\bded\b/gi, correct: 'dad', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
                 { pattern: /\banimos\b/gi, correct: 'animals', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
                 { pattern: /\bber\b/gi, correct: 'bear', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
                 { pattern: /\bhandberger\b/gi, correct: 'hamburger', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
                 { pattern: /\bbergerking\b/gi, correct: 'Burger King', type: '拼寫錯誤', explanation: '品牌名稱拼寫錯誤' },
                 { pattern: /\bwenderful\b/gi, correct: 'wonderful', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
-                
-                // 動詞錯誤
                 { pattern: /\bmom call\b/gi, correct: 'mom calls', type: '動詞變化錯誤', explanation: '第三人稱單數動詞需加s' },
                 { pattern: /\bwant take our\b/gi, correct: 'wants to take us', type: '動詞錯誤', explanation: '動詞時態和不定詞用法錯誤' },
-                
-                // 句型錯誤
                 { pattern: /\bToday morning\b/gi, correct: 'This morning', type: '句型錯誤', explanation: '時間表達方式錯誤' },
                 { pattern: /\band night we\b/gi, correct: 'and at night we', type: '句型錯誤', explanation: '缺少介詞' },
-                
-                // 標點和大小寫
-                { pattern: /\.\.\.\./g, correct: '...', type: '標點錯誤', explanation: '過多的省略號' },
-                { pattern: /\bmom\b/g, correct: 'Mom', type: '大小寫錯誤', explanation: '稱呼家人時需大寫' }
+                { pattern: /\.{4,}/g, correct: '...', type: '標點錯誤', explanation: '過多的省略號' }
             ];
             
             // 檢測錯誤
@@ -579,7 +612,7 @@
                 }
             });
             
-            // 評分邏輯（根據評分標準）
+            // 評分邏輯
             let grade = 5;
             let gradeDescription = '';
             
@@ -624,7 +657,7 @@
             if (errorTypes.includes('拼寫錯誤')) {
                 suggestions.push('建議加強基礎單字的拼寫練習，可以使用字典或拼字練習軟體。');
             }
-            if (errorTypes.includes('動詞變化錯誤')) {
+            if (errorTypes.includes('動詞變化錯誤') || errorTypes.includes('動詞錯誤')) {
                 suggestions.push('需要加強動詞時態和人稱的概念，特別是第三人稱單數的用法。');
             }
             if (errorTypes.includes('句型錯誤')) {
@@ -632,9 +665,6 @@
             }
             if (errorTypes.includes('標點錯誤')) {
                 suggestions.push('需要注意標點符號的正確使用方法。');
-            }
-            if (errorTypes.includes('大小寫錯誤')) {
-                suggestions.push('需要注意英文大小寫的規則，特別是專有名詞和句首。');
             }
             
             // 根據錯誤數量給予整體建議
@@ -653,153 +683,168 @@
         
         // 顯示結果
         function displayResults(result) {
-            document.getElementById('recognizedText').textContent = result.originalText;
-            
-            const errorList = document.getElementById('errorList');
-            errorList.innerHTML = '';
-            
-            if (result.errors.length === 0) {
-                const li = document.createElement('li');
-                li.style.cssText = 'background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-left: 4px solid #10b981; padding: 15px; border-radius: 8px; color: #065f46;';
-                li.innerHTML = '🎉 恭喜！未發現明顯錯誤。';
-                errorList.appendChild(li);
-            } else {
-                result.errors.forEach((error, index) => {
-                    const li = document.createElement('li');
-                    li.className = 'error-item';
-                    li.innerHTML = `
-                        <div class="error-original">錯誤 ${index + 1}：${error.original}</div>
-                        <div class="error-correct">正確：${error.correct}</div>
-                        <div style="color: #6b7280; font-size: 0.9rem; margin-top: 5px;">${error.type} - ${error.explanation}</div>
-                    `;
-                    errorList.appendChild(li);
-                });
-            }
-            
-            document.getElementById('improvedText').textContent = result.improvedText;
-            document.getElementById('gradeNumber').textContent = result.grade;
-            document.getElementById('gradeText').textContent = `${result.grade}級分 - ${result.gradeDescription}`;
-            
-            const suggestions = document.getElementById('suggestions');
-            suggestions.innerHTML = result.suggestions.map(s => `<p style="margin-bottom: 10px;">• ${s}</p>`).join('');
-            
-            const errorTypes = document.getElementById('errorTypes');
-            if (result.errorTypes.length === 0) {
-                errorTypes.innerHTML = '<span style="color: #059669; font-weight: 600;">未發現主要錯誤類型</span>';
-            } else {
-                errorTypes.innerHTML = result.errorTypes.map(type => 
-                    `<span class="error-tag">${type}</span>`
-                ).join('');
+            try {
+                const recognizedText = document.getElementById('recognizedText');
+                const errorList = document.getElementById('errorList');
+                const improvedText = document.getElementById('improvedText');
+                const gradeNumber = document.getElementById('gradeNumber');
+                const gradeText = document.getElementById('gradeText');
+                const suggestions = document.getElementById('suggestions');
+                const errorTypes = document.getElementById('errorTypes');
+                
+                if (recognizedText) {
+                    recognizedText.textContent = result.originalText;
+                }
+                
+                if (errorList) {
+                    errorList.innerHTML = '';
+                    
+                    if (result.errors.length === 0) {
+                        const li = document.createElement('li');
+                        li.style.cssText = 'background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-left: 4px solid #10b981; padding: 15px; border-radius: 8px; color: #065f46;';
+                        li.innerHTML = '🎉 恭喜！未發現明顯錯誤。';
+                        errorList.appendChild(li);
+                    } else {
+                        result.errors.forEach((error, index) => {
+                            const li = document.createElement('li');
+                            li.className = 'error-item';
+                            li.innerHTML = `
+                                <div class="error-original">錯誤 ${index + 1}：${error.original}</div>
+                                <div class="error-correct">正確：${error.correct}</div>
+                                <div style="color: #6b7280; font-size: 0.9rem; margin-top: 5px;">${error.type} - ${error.explanation}</div>
+                            `;
+                            errorList.appendChild(li);
+                        });
+                    }
+                }
+                
+                if (improvedText) {
+                    improvedText.textContent = result.improvedText;
+                }
+                
+                if (gradeNumber) {
+                    gradeNumber.textContent = result.grade;
+                }
+                
+                if (gradeText) {
+                    gradeText.textContent = `${result.grade}級分 - ${result.gradeDescription}`;
+                }
+                
+                if (suggestions) {
+                    suggestions.innerHTML = result.suggestions.map(s => `<p style="margin-bottom: 10px;">• ${s}</p>`).join('');
+                }
+                
+                if (errorTypes) {
+                    if (result.errorTypes.length === 0) {
+                        errorTypes.innerHTML = '<span style="color: #059669; font-weight: 600;">未發現主要錯誤類型</span>';
+                    } else {
+                        errorTypes.innerHTML = result.errorTypes.map(type => 
+                            `<span class="error-tag">${type}</span>`
+                        ).join('');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('顯示結果錯誤:', error);
+                alert('顯示結果時發生錯誤');
             }
         }
         
-        // 下載PDF
+        // 下載PDF - 簡化版本，避免外部依賴
         function downloadPDF() {
-            if (!analysisResult) return;
+            if (!analysisResult) {
+                alert('沒有分析結果可以下載');
+                return;
+            }
             
             try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
+                // 創建報告內容
+                const reportContent = generateReport();
                 
-                // 設定字體
-                doc.setFont('helvetica');
-                
-                // 標題
-                doc.setFontSize(18);
-                doc.text('Student Essay Grading Report', 20, 25);
-                doc.text('學生作文評分報告', 20, 35);
-                
-                let yPosition = 50;
-                const lineHeight = 6;
-                const pageHeight = 280;
-                
-                // 1. 辨識文字
-                doc.setFontSize(14);
-                doc.text('1. Recognized Text (辨識文字):', 20, yPosition);
-                yPosition += 8;
-                
-                doc.setFontSize(10);
-                const textLines = doc.splitTextToSize(analysisResult.originalText, 170);
-                doc.text(textLines, 20, yPosition);
-                yPosition += textLines.length * lineHeight + 10;
-                
-                // 檢查是否需要換頁
-                if (yPosition > pageHeight - 50) {
-                    doc.addPage();
-                    yPosition = 20;
-                }
-                
-                // 2. 錯誤分析
-                doc.setFontSize(14);
-                doc.text('2. Error Analysis (錯誤分析):', 20, yPosition);
-                yPosition += 8;
-                
-                doc.setFontSize(10);
-                if (analysisResult.errors.length === 0) {
-                    doc.text('No errors found (未發現錯誤)', 20, yPosition);
-                    yPosition += lineHeight + 5;
-                } else {
-                    analysisResult.errors.forEach((error, index) => {
-                        if (yPosition > pageHeight - 20) {
-                            doc.addPage();
-                            yPosition = 20;
-                        }
-                        doc.text(`${index + 1}. Error: ${error.original}`, 20, yPosition);
-                        yPosition += lineHeight;
-                        doc.text(`   Correct: ${error.correct}`, 20, yPosition);
-                        yPosition += lineHeight;
-                        doc.text(`   Type: ${error.type}`, 20, yPosition);
-                        yPosition += lineHeight + 3;
-                    });
-                }
-                
-                // 3. 評級
-                if (yPosition > pageHeight - 30) {
-                    doc.addPage();
-                    yPosition = 20;
-                }
-                
-                doc.setFontSize(14);
-                doc.text('3. Grade (評級):', 20, yPosition);
-                yPosition += 8;
-                
-                doc.setFontSize(12);
-                doc.text(`Grade: ${analysisResult.grade}/5`, 20, yPosition);
-                yPosition += 8;
-                
-                doc.setFontSize(10);
-                const gradeLines = doc.splitTextToSize(analysisResult.gradeDescription, 170);
-                doc.text(gradeLines, 20, yPosition);
-                yPosition += gradeLines.length * lineHeight + 10;
-                
-                // 4. 建議
-                if (yPosition > pageHeight - 40) {
-                    doc.addPage();
-                    yPosition = 20;
-                }
-                
-                doc.setFontSize(14);
-                doc.text('4. Suggestions (建議):', 20, yPosition);
-                yPosition += 8;
-                
-                doc.setFontSize(10);
-                analysisResult.suggestions.forEach((suggestion, index) => {
-                    if (yPosition > pageHeight - 15) {
-                        doc.addPage();
-                        yPosition = 20;
-                    }
-                    const suggestionLines = doc.splitTextToSize(`${index + 1}. ${suggestion}`, 170);
-                    doc.text(suggestionLines, 20, yPosition);
-                    yPosition += suggestionLines.length * lineHeight + 5;
-                });
-                
-                // 保存PDF
-                doc.save('essay-grading-report.pdf');
+                // 創建並下載文字報告
+                const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'essay-grading-report.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
                 
             } catch (error) {
-                console.error('PDF生成錯誤:', error);
-                alert('PDF生成過程中發生錯誤，請重試');
+                console.error('下載報告錯誤:', error);
+                alert('下載報告時發生錯誤，請重試');
             }
+        }
+        
+        // 生成報告內容
+        function generateReport() {
+            if (!analysisResult) return '';
+            
+            let report = '學生作文評分報告\n';
+            report += '==========================================\n\n';
+            
+            report += '1. 辨識文字\n';
+            report += '----------\n';
+            report += analysisResult.originalText + '\n\n';
+            
+            report += '2. 錯誤分析\n';
+            report += '----------\n';
+            if (analysisResult.errors.length === 0) {
+                report += '未發現明顯錯誤\n\n';
+            } else {
+                analysisResult.errors.forEach((error, index) => {
+                    report += `${index + 1}. 錯誤：${error.original}\n`;
+                    report += `   正確：${error.correct}\n`;
+                    report += `   類型：${error.type} - ${error.explanation}\n\n`;
+                });
+            }
+            
+            report += '3. 改寫後版本\n';
+            report += '------------\n';
+            report += analysisResult.improvedText + '\n\n';
+            
+            report += '4. 整題評級\n';
+            report += '----------\n';
+            report += `評級：${analysisResult.grade}級分\n`;
+            report += `說明：${analysisResult.gradeDescription}\n\n`;
+            
+            report += '5. 建議改進方式\n';
+            report += '--------------\n';
+            analysisResult.suggestions.forEach((suggestion, index) => {
+                report += `${index + 1}. ${suggestion}\n`;
+            });
+            report += '\n';
+            
+            report += '6. 學生主要錯誤類型\n';
+            report += '------------------\n';
+            if (analysisResult.errorTypes.length === 0) {
+                report += '未發現主要錯誤類型\n';
+            } else {
+                report += analysisResult.errorTypes.join('、') + '\n';
+            }
+            
+            report += '\n\n生成時間：' + new Date().toLocaleString('zh-TW');
+            
+            return report;
+        }
+        
+        // 初始化事件監聽器
+        function initializeEventListeners() {
+            try {
+                handleImageUpload();
+                console.log('事件監聽器初始化完成');
+            } catch (error) {
+                console.error('初始化錯誤:', error);
+            }
+        }
+        
+        // 頁面載入完成後初始化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeEventListeners);
+        } else {
+            initializeEventListeners();
         }
     </script>
 </body>
