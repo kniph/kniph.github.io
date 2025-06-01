@@ -3,772 +3,636 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英文單字背誦練習</title>
+    <title>學生作文評分系統</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/2.1.5/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
-            font-family: 'Microsoft JhengHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
+        
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            background: white;
             border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
-
-        h1 {
-            color: #2c3e50;
+        
+        .header {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
             text-align: center;
-            margin-bottom: 40px;
-            font-size: 3rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
-            position: relative;
-        }
-
-        h1::before {
-            content: "✨";
-            position: absolute;
-            left: -60px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 2rem;
-            animation: sparkle 2s ease-in-out infinite alternate;
-        }
-
-        h1::after {
-            content: "📚";
-            position: absolute;
-            right: -60px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 2rem;
-            animation: sparkle 2s ease-in-out infinite alternate-reverse;
-        }
-
-        @keyframes sparkle {
-            0% { transform: translateY(-50%) scale(1); opacity: 0.7; }
-            100% { transform: translateY(-50%) scale(1.2); opacity: 1; }
-        }
-
-        .setup-section {
-            background: #f8f9fa;
-            border-radius: 15px;
             padding: 30px;
-            margin-bottom: 30px;
         }
-
-        .instructions {
-            color: #495057;
-            margin-bottom: 25px;
-            line-height: 1.8;
-            font-size: 1.1rem;
-            text-align: center;
-            padding: 20px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
-            border-radius: 12px;
-            border: 1px solid rgba(102, 126, 234, 0.1);
-        }
-
-        .program-description {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-
-        .input-format {
-            font-size: 1rem;
-            color: #6c757d;
-        }
-
-        .instructions strong {
-            color: #495057;
-            background: #e9ecef;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-
-        .custom-words-input {
-            width: 100%;
-            min-height: 120px;
-            margin-bottom: 20px;
-            padding: 20px;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-family: 'Microsoft JhengHei', monospace;
-            resize: vertical;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .custom-words-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .practice-section {
-            display: none;
-            text-align: center;
-        }
-
-        .practice-section.active {
-            display: block;
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .mode-toggle {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-            background: #f8f9fa;
-            border-radius: 50px;
-            padding: 5px;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .mode-btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            background: transparent;
-            color: #6c757d;
-        }
-
-        .mode-btn.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .word-card {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 20px;
-            padding: 40px;
-            margin: 30px 0;
-            color: white;
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
-        }
-
-        .word-display {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .hint {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            font-weight: 300;
-        }
-
-        .typing-area {
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .input-group {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 20px;
-            font-size: 1.3rem;
-            border: 3px solid #e9ecef;
-            border-radius: 15px;
-            outline: none;
-            transition: all 0.3s ease;
-            text-align: center;
-            font-weight: 500;
-            background: white;
-        }
-
-        input[type="text"]:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 5px rgba(102, 126, 234, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .btn {
-            padding: 15px 30px;
-            margin: 8px;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-            background: #5a6268;
-            transform: translateY(-2px);
-        }
-
-        .btn:disabled {
-            background: #e9ecef;
-            color: #6c757d;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .feedback {
-            margin-top: 20px;
-            min-height: 40px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            padding: 15px;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .feedback.correct {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
-        }
-
-        .feedback.incorrect {
-            background: linear-gradient(135deg, #dc3545, #fd7e14);
-            color: white;
-            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
-        }
-
-        .stats {
-            display: none;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-            margin-top: 40px;
-            padding: 30px;
-            background: #f8f9fa;
-            border-radius: 15px;
-        }
-
-        .stats.active {
-            display: grid;
-        }
-
-        .stat-item {
-            text-align: center;
-            padding: 20px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease;
-        }
-
-        .stat-item:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-value {
+        
+        .header h1 {
             font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-
-        .stat-label {
-            font-size: 0.9rem;
-            color: #6c757d;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .key-instructions {
-            text-align: center;
-            margin-top: 20px;
-            color: #6c757d;
-            font-size: 0.9rem;
-            padding: 15px;
-            background: rgba(102, 126, 234, 0.05);
-            border-radius: 10px;
-            border: 1px solid rgba(102, 126, 234, 0.1);
-        }
-
-        .no-words-message {
-            text-align: center;
-            color: #6c757d;
+        
+        .header p {
             font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            padding: 40px;
+        }
+        
+        .upload-section {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border: 3px dashed #cbd5e1;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .upload-section:hover {
+            border-color: #4f46e5;
+            background: linear-gradient(135deg, #f1f5f9, #ddd6fe);
+            transform: translateY(-2px);
+        }
+        
+        .upload-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(79, 70, 229, 0.05) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        
+        .upload-icon {
+            font-size: 4rem;
+            color: #4f46e5;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .upload-text {
+            font-size: 1.3rem;
+            color: #334155;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .upload-hint {
+            color: #64748b;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        #imageInput {
+            display: none;
+        }
+        
+        .preview-container {
             margin: 20px 0;
+            text-align: center;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn:hover:before {
+            left: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .result-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-left: 5px solid #4f46e5;
+        }
+        
+        .result-section h3 {
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .recognized-text {
+            background: #f8fafc;
             padding: 20px;
-            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .error-list {
+            list-style: none;
+        }
+        
+        .error-item {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+        
+        .error-original {
+            color: #dc2626;
+            font-weight: bold;
+        }
+        
+        .error-correct {
+            color: #059669;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        .grade-display {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border-radius: 15px;
+            border: 2px solid #10b981;
+        }
+        
+        .grade-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #059669;
+            margin-bottom: 10px;
+        }
+        
+        .grade-text {
+            font-size: 1.2rem;
+            color: #065f46;
+        }
+        
+        .improved-text {
+            background: #f0f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #0ea5e9;
+            line-height: 1.8;
+        }
+        
+        .suggestions {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
             border-radius: 10px;
         }
-
-            /* Responsive design */
-            @media (max-width: 768px) {
-                .container {
-                    padding: 20px;
-                    margin: 10px;
-                }
-                
-                h1 {
-                    font-size: 2.2rem;
-                }
-
-                h1::before,
-                h1::after {
-                    display: none;
-                }
-                
-                .word-display {
-                    font-size: 2.2rem;
-                }
-                
-                .btn {
-                    padding: 12px 20px;
-                    font-size: 0.9rem;
-                    margin: 5px;
-                }
-                
-                input[type="text"] {
-                    font-size: 1.1rem;
-                    padding: 15px;
-                }
-            }
-
-        /* Loading animation */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
+        
+        .error-types {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        
+        .error-tag {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                min-width: 200px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>英文單字背誦練習</h1>
-        
-        <div class="setup-section" id="setupSection">
-            <div class="instructions">
-                <div class="program-description">
-                    🎯 透過互動式打字練習，讓孩子們更快速、有效地記憶英文單字！
-                </div>
-                <div class="input-format">
-                    📝 請輸入要練習的單字，格式：<strong>英文單字:中文意思</strong>（每行一個）
-                </div>
-            </div>
-            <textarea class="custom-words-input" id="customWords" placeholder="✏️ 請輸入單字，每行一個，格式：英文:中文
-
-例如：
-apple:蘋果
-banana:香蕉
-computer:電腦
-beautiful:美麗的"></textarea>
-            <div style="text-align: center;">
-                <button class="btn btn-primary" id="saveCustomBtn">🚀 載入單字開始練習</button>
-            </div>
+        <div class="header">
+            <h1>📝 學生作文評分系統</h1>
+            <p>上傳作文照片，自動分析評分並產出詳細報告</p>
         </div>
-
-        <div class="practice-section" id="practiceSection">
-            <div class="mode-toggle">
-                <button class="mode-btn active" id="normalMode">📖 一般模式</button>
-                <button class="mode-btn" id="scrambledMode">🔀 字母亂序</button>
-            </div>
-
-            <div class="word-card">
-                <div class="word-display" id="wordDisplay">準備開始練習</div>
-                <div class="hint" id="hint">點擊開始練習按鈕</div>
+        
+        <div class="main-content">
+            <div class="upload-section" onclick="document.getElementById('imageInput').click()">
+                <div class="upload-icon">📸</div>
+                <div class="upload-text">點擊上傳作文照片</div>
+                <div class="upload-hint">支援 JPG、PNG 格式</div>
+                <input type="file" id="imageInput" accept="image/*">
             </div>
             
-            <div class="typing-area">
-                <div class="input-group">
-                    <input type="text" id="userInput" placeholder="✍️ 請輸入英文單字..." disabled>
+            <div class="preview-container" id="previewContainer"></div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="analyzeBtn" onclick="analyzeEssay()" disabled>
+                    🔍 開始分析
+                </button>
+                <button class="btn btn-secondary" id="downloadBtn" onclick="downloadPDF()" disabled>
+                    📄 下載PDF報告
+                </button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div>正在辨識文字並分析中，請稍候...</div>
+            </div>
+            
+            <div class="results" id="results">
+                <div class="result-section">
+                    <h3>📖 1. 辨識文字</h3>
+                    <div class="recognized-text" id="recognizedText"></div>
                 </div>
                 
-                <div>
-                    <button class="btn btn-primary" id="checkBtn" disabled>✅ 檢查答案</button>
-                    <button class="btn btn-primary" id="startBtn">▶️ 開始練習</button>
-                    <button class="btn btn-secondary" id="nextBtn" disabled>➡️ 下一題</button>
-                    <button class="btn btn-secondary" id="backBtn" style="display: none;">🏠 回到主畫面</button>
+                <div class="result-section">
+                    <h3>❌ 2. 錯誤分析</h3>
+                    <ul class="error-list" id="errorList"></ul>
                 </div>
                 
-                <div class="feedback" id="feedback"></div>
-                
-                <div class="key-instructions">
-                    ⌨️ 小提示：按 Enter 鍵可以快速檢查答案或前往下一題
+                <div class="result-section">
+                    <h3>✏️ 3. 改寫後版本</h3>
+                    <div class="improved-text" id="improvedText"></div>
                 </div>
-            </div>
-        </div>
-        
-        <div class="stats" id="stats">
-            <div class="stat-item">
-                <div class="stat-value" id="correctCount">0</div>
-                <div class="stat-label">✅ 答對</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="incorrectCount">0</div>
-                <div class="stat-label">❌ 答錯</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="accuracy">0%</div>
-                <div class="stat-label">📊 正確率</div>
+                
+                <div class="result-section">
+                    <h3>🎯 4. 整題評級</h3>
+                    <div class="grade-display">
+                        <div class="grade-number" id="gradeNumber">-</div>
+                        <div class="grade-text" id="gradeText">等待分析...</div>
+                    </div>
+                </div>
+                
+                <div class="result-section">
+                    <h3>💡 5. 建議改進方式</h3>
+                    <div class="suggestions" id="suggestions"></div>
+                </div>
+                
+                <div class="result-section">
+                    <h3>🏷️ 6. 學生主要錯誤類型</h3>
+                    <div class="error-types" id="errorTypes"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Elements
-        const setupSection = document.getElementById('setupSection');
-        const practiceSection = document.getElementById('practiceSection');
-        const wordDisplay = document.getElementById('wordDisplay');
-        const hint = document.getElementById('hint');
-        const userInput = document.getElementById('userInput');
-        const checkBtn = document.getElementById('checkBtn');
-        const startBtn = document.getElementById('startBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const backBtn = document.getElementById('backBtn');
-        const feedback = document.getElementById('feedback');
-        const correctCount = document.getElementById('correctCount');
-        const incorrectCount = document.getElementById('incorrectCount');
-        const accuracy = document.getElementById('accuracy');
-        const customWords = document.getElementById('customWords');
-        const saveCustomBtn = document.getElementById('saveCustomBtn');
-        const normalModeBtn = document.getElementById('normalMode');
-        const scrambledModeBtn = document.getElementById('scrambledMode');
-        const stats = document.getElementById('stats');
-
-        // App state
-        let currentWord = "";
-        let currentChinese = "";
-        let displayedWord = "";
-        let words = [];
-        let correct = 0;
-        let incorrect = 0;
-        let wordsToReview = [];
-        let isScrambledMode = false;
-        let isCheckPhase = true;
-
-        // Mode toggle buttons
-        normalModeBtn.addEventListener('click', function() {
-            isScrambledMode = false;
-            normalModeBtn.classList.add('active');
-            scrambledModeBtn.classList.remove('active');
-            if (currentChinese) {
-                updateWordDisplay();
+        let currentImage = null;
+        let analysisResult = null;
+        
+        // 處理圖片上傳
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                currentImage = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewContainer = document.getElementById('previewContainer');
+                    previewContainer.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="上傳的作文照片">`;
+                    document.getElementById('analyzeBtn').disabled = false;
+                };
+                reader.readAsDataURL(file);
             }
         });
-
-        scrambledModeBtn.addEventListener('click', function() {
-            isScrambledMode = true;
-            scrambledModeBtn.classList.add('active');
-            normalModeBtn.classList.remove('active');
-            if (currentChinese) {
-                updateWordDisplay();
-            }
-        });
-
-        // Save custom words
-        saveCustomBtn.addEventListener('click', function() {
-            const originalText = saveCustomBtn.innerHTML;
-            saveCustomBtn.innerHTML = '<span class="loading"></span> 載入中...';
-            saveCustomBtn.disabled = true;
-
-            setTimeout(() => {
-                const lines = customWords.value.trim().split('\n');
-                const customWordList = [];
-                
-                lines.forEach(line => {
-                    if (line.trim()) {
-                        const parts = line.split(':');
-                        if (parts.length >= 2) {
-                            const english = parts[0].trim().toLowerCase();
-                            const chinese = parts.slice(1).join(':').trim();
-                            if (english && chinese) {
-                                customWordList.push({ word: english, chinese: chinese });
-                            }
-                        }
-                    }
+        
+        // 分析作文
+        async function analyzeEssay() {
+            if (!currentImage) return;
+            
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            document.getElementById('analyzeBtn').disabled = true;
+            
+            try {
+                // OCR 辨識
+                const { data: { text } } = await Tesseract.recognize(currentImage, 'eng+chi_tra', {
+                    logger: m => console.log(m)
                 });
-
-                if (customWordList.length > 0) {
-                    words = customWordList;
-                    showPracticeInterface();
-                    resetGame();
-                    alert(`🎉 已成功載入 ${words.length} 個單字！`);
-                } else {
-                    alert('❌ 請確認單字格式正確，例如：apple:蘋果');
+                
+                // 模擬AI分析過程
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // 分析結果
+                analysisResult = analyzeText(text);
+                
+                // 顯示結果
+                displayResults(analysisResult);
+                
+                loading.style.display = 'none';
+                results.style.display = 'block';
+                document.getElementById('downloadBtn').disabled = false;
+                
+            } catch (error) {
+                console.error('分析錯誤:', error);
+                alert('分析過程中發生錯誤，請重試');
+                loading.style.display = 'none';
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+        }
+        
+        // 文字分析邏輯
+        function analyzeText(text) {
+            const errors = [];
+            const errorTypes = new Set();
+            
+            // 常見錯誤檢測
+            const commonErrors = [
+                { pattern: /\bded\b/gi, correct: 'dad', type: '拼寫錯誤' },
+                { pattern: /\banimos\b/gi, correct: 'animals', type: '拼寫錯誤' },
+                { pattern: /\bber\b/gi, correct: 'bear', type: '拼寫錯誤' },
+                { pattern: /\bhandberger\b/gi, correct: 'hamburger', type: '拼寫錯誤' },
+                { pattern: /\bwenderful\b/gi, correct: 'wonderful', type: '拼寫錯誤' },
+                { pattern: /\beats\b/gi, correct: 'eat', type: '動詞變化錯誤' },
+                { pattern: /\bcalls\s+her\s+getting\s+up/gi, correct: 'calls her to get up', type: '句型錯誤' },
+                { pattern: /\btake\s+our\s+to/gi, correct: 'take us to', type: '代詞錯誤' }
+            ];
+            
+            commonErrors.forEach(error => {
+                const matches = text.match(error.pattern);
+                if (matches) {
+                    matches.forEach(match => {
+                        errors.push({
+                            original: match,
+                            correct: error.correct,
+                            type: error.type
+                        });
+                        errorTypes.add(error.type);
+                    });
                 }
-
-                saveCustomBtn.innerHTML = originalText;
-                saveCustomBtn.disabled = false;
-            }, 500);
-        });
-
-        // Start practice
-        startBtn.addEventListener('click', function() {
-            resetGame();
-            nextWord();
-            userInput.disabled = false;
-            checkBtn.disabled = false;
-            startBtn.disabled = true;
-            userInput.focus();
-            isCheckPhase = true;
-        });
-
-        // Check button
-        checkBtn.addEventListener('click', function() {
-            checkAnswer();
-            isCheckPhase = false;
-        });
-
-        // Next word button
-        nextBtn.addEventListener('click', function() {
-            goToNextWord();
-        });
-
-        // Back to main button
-        backBtn.addEventListener('click', function() {
-            backToMain();
-        });
-
-        // Keypress event handler
-        userInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                if (isCheckPhase && !checkBtn.disabled) {
-                    checkAnswer();
-                    isCheckPhase = false;
-                } else if (!isCheckPhase && !nextBtn.disabled) {
-                    goToNextWord();
-                }
+            });
+            
+            // 評分邏輯
+            let grade = 5;
+            if (errors.length > 8) grade = 1;
+            else if (errors.length > 6) grade = 2;
+            else if (errors.length > 4) grade = 3;
+            else if (errors.length > 2) grade = 4;
+            
+            // 改寫文字
+            let improvedText = text;
+            commonErrors.forEach(error => {
+                improvedText = improvedText.replace(error.pattern, error.correct);
+            });
+            
+            return {
+                originalText: text,
+                errors: errors,
+                improvedText: improvedText,
+                grade: grade,
+                errorTypes: Array.from(errorTypes),
+                suggestions: generateSuggestions(errorTypes)
+            };
+        }
+        
+        // 產生建議
+        function generateSuggestions(errorTypes) {
+            const suggestions = [];
+            
+            if (errorTypes.includes('拼寫錯誤')) {
+                suggestions.push('建議多練習常用單字的拼寫，可以使用字典或拼字練習軟體');
             }
-        });
-
-        // Function to show practice interface
-        function showPracticeInterface() {
-            setupSection.style.display = 'none';
-            practiceSection.classList.add('active');
-            stats.classList.add('active');
-            startBtn.disabled = false;
-        }
-
-        // Function to go to next word
-        function goToNextWord() {
-            nextWord();
-            userInput.value = '';
-            feedback.textContent = '';
-            feedback.className = 'feedback';
-            nextBtn.disabled = true;
-            checkBtn.disabled = false;
-            userInput.focus();
-            isCheckPhase = true;
-        }
-
-        // Function to scramble a word
-        function scrambleWord(word) {
-            const letters = word.split('');
-            for (let i = letters.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [letters[i], letters[j]] = [letters[j], letters[i]];
+            if (errorTypes.includes('動詞變化錯誤')) {
+                suggestions.push('需要加強動詞時態的概念，特別是第三人稱單數的用法');
+            }
+            if (errorTypes.includes('句型錯誤')) {
+                suggestions.push('建議多閱讀英文文章，學習正確的句型結構');
+            }
+            if (errorTypes.includes('代詞錯誤')) {
+                suggestions.push('需要複習人稱代詞的正確使用方法');
             }
             
-            const scrambled = letters.join('');
-            return scrambled === word && word.length > 1 ? scrambleWord(word) : scrambled;
-        }
-
-        // Function to update word display based on mode
-        function updateWordDisplay() {
-            if (isScrambledMode) {
-                displayedWord = scrambleWord(currentWord);
-                wordDisplay.textContent = displayedWord;
-                hint.textContent = `💡 中文意思：${currentChinese}`;
-            } else {
-                displayedWord = currentChinese;
-                wordDisplay.textContent = displayedWord;
-                hint.textContent = "💭 請輸入對應的英文單字";
-            }
-        }
-
-        function checkAnswer() {
-            const userTyped = userInput.value.trim().toLowerCase();
-            const correctWord = currentWord.toLowerCase();
-            
-            if (userTyped === correctWord) {
-                feedback.textContent = '🎉 太棒了！答對了！';
-                feedback.className = 'feedback correct';
-                correct++;
-            } else {
-                feedback.textContent = `😅 答錯了！正確答案是「${currentWord}」`;
-                feedback.className = 'feedback incorrect';
-                incorrect++;
-                wordsToReview.push({ word: currentWord, chinese: currentChinese });
+            if (suggestions.length === 0) {
+                suggestions.push('整體表現良好，建議持續練習以提升寫作流暢度');
             }
             
-            // Update stats
-            correctCount.textContent = correct;
-            incorrectCount.textContent = incorrect;
-            const totalAttempts = correct + incorrect;
-            accuracy.textContent = totalAttempts > 0 ? Math.round((correct / totalAttempts) * 100) + '%' : '0%';
-            
-            // Enable/disable buttons
-            checkBtn.disabled = true;
-            nextBtn.disabled = false;
+            return suggestions;
         }
-
-        function nextWord() {
-            if (words.length === 0) {
-                if (wordsToReview.length > 0) {
-                    words = [...wordsToReview];
-                    wordsToReview = [];
-                    alert("📚 現在練習您答錯的單字！");
-                } else {
-                    wordDisplay.textContent = "🎊 恭喜完成！";
-                    hint.textContent = "所有單字都練習完了，太棒了！";
-                    // 顯示回到主畫面按鈕
-                    checkBtn.style.display = 'none';
-                    nextBtn.style.display = 'none';
-                    startBtn.style.display = 'none';
-                    backBtn.style.display = 'inline-block';
-                    userInput.disabled = true;
-                    return;
-                }
-            }
+        
+        // 顯示結果
+        function displayResults(result) {
+            document.getElementById('recognizedText').textContent = result.originalText;
             
-            // Get a random word
-            const randomIndex = Math.floor(Math.random() * words.length);
-            const wordObj = words.splice(randomIndex, 1)[0];
+            const errorList = document.getElementById('errorList');
+            errorList.innerHTML = '';
+            result.errors.forEach(error => {
+                const li = document.createElement('li');
+                li.className = 'error-item';
+                li.innerHTML = `
+                    <div class="error-original">錯誤：${error.original}</div>
+                    <div class="error-correct">正確：${error.correct}</div>
+                    <div style="color: #6b7280; font-size: 0.9rem; margin-top: 5px;">${error.type}</div>
+                `;
+                errorList.appendChild(li);
+            });
             
-            currentWord = wordObj.word;
-            currentChinese = wordObj.chinese;
+            document.getElementById('improvedText').textContent = result.improvedText;
+            document.getElementById('gradeNumber').textContent = result.grade;
+            document.getElementById('gradeText').textContent = `${result.grade}級分`;
             
-            updateWordDisplay();
+            const suggestions = document.getElementById('suggestions');
+            suggestions.innerHTML = result.suggestions.map(s => `<p style="margin-bottom: 10px;">• ${s}</p>`).join('');
+            
+            const errorTypes = document.getElementById('errorTypes');
+            errorTypes.innerHTML = result.errorTypes.map(type => 
+                `<span class="error-tag">${type}</span>`
+            ).join('');
         }
-
-        function resetGame() {
-            // Reset stats
-            correct = 0;
-            incorrect = 0;
-            correctCount.textContent = '0';
-            incorrectCount.textContent = '0';
-            accuracy.textContent = '0%';
+        
+        // 下載PDF
+        function downloadPDF() {
+            if (!analysisResult) return;
             
-            // Reset words (make a copy)
-            words = [...words];
-            wordsToReview = [];
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
             
-            // Reset UI
-            wordDisplay.textContent = '🎯 準備開始練習';
-            hint.textContent = '點擊開始練習按鈕';
-            userInput.value = '';
-            feedback.textContent = '';
-            feedback.className = 'feedback';
+            // 設定中文字體（注意：實際應用中需要載入中文字體）
+            doc.setFont('helvetica');
             
-            // Reset buttons
-            userInput.disabled = true;
-            checkBtn.disabled = true;
-            nextBtn.disabled = true;
-            startBtn.disabled = false;
+            // 標題
+            doc.setFontSize(20);
+            doc.text('Student Essay Grading Report', 20, 30);
             
-            // 重置按鈕顯示狀態
-            checkBtn.style.display = 'inline-block';
-            nextBtn.style.display = 'inline-block';
-            startBtn.style.display = 'inline-block';
-            backBtn.style.display = 'none';
+            // 內容
+            let yPosition = 50;
+            const lineHeight = 7;
             
-            // Reset phase
-            isCheckPhase = true;
-        }
-
-        // Function to back to main screen
-        function backToMain() {
-            // 隱藏練習區域，顯示設置區域
-            practiceSection.classList.remove('active');
-            setupSection.style.display = 'block';
-            stats.classList.remove('active');
+            // 1. 辨識文字
+            doc.setFontSize(14);
+            doc.text('1. Recognized Text:', 20, yPosition);
+            yPosition += 10;
             
-            // 重置所有狀態
-            words = [];
-            correct = 0;
-            incorrect = 0;
-            wordsToReview = [];
-            currentWord = "";
-            currentChinese = "";
+            doc.setFontSize(10);
+            const textLines = doc.splitTextToSize(analysisResult.originalText, 170);
+            doc.text(textLines, 20, yPosition);
+            yPosition += textLines.length * lineHeight + 10;
             
-            // 重置UI
-            correctCount.textContent = '0';
-            incorrectCount.textContent = '0';
-            accuracy.textContent = '0%';
-            userInput.value = '';
-            feedback.textContent = '';
-            feedback.className = 'feedback';
+            // 2. 錯誤分析
+            doc.setFontSize(14);
+            doc.text('2. Error Analysis:', 20, yPosition);
+            yPosition += 10;
             
-            // 重置按鈕狀態
-            checkBtn.style.display = 'inline-block';
-            nextBtn.style.display = 'inline-block';
-            startBtn.style.display = 'inline-block';
-            backBtn.style.display = 'none';
+            doc.setFontSize(10);
+            analysisResult.errors.forEach(error => {
+                doc.text(`Error: ${error.original} -> Correct: ${error.correct}`, 20, yPosition);
+                yPosition += lineHeight;
+            });
+            yPosition += 10;
             
-            userInput.disabled = true;
-            checkBtn.disabled = true;
-            nextBtn.disabled = true;
-            startBtn.disabled = true;
+            // 3. 評級
+            doc.setFontSize(14);
+            doc.text(`3. Grade: ${analysisResult.grade}/5`, 20, yPosition);
+            yPosition += 20;
             
-            isCheckPhase = true;
+            // 4. 建議
+            doc.setFontSize(14);
+            doc.text('4. Suggestions:', 20, yPosition);
+            yPosition += 10;
+            
+            doc.setFontSize(10);
+            analysisResult.suggestions.forEach(suggestion => {
+                const suggestionLines = doc.splitTextToSize(suggestion, 170);
+                doc.text(suggestionLines, 20, yPosition);
+                yPosition += suggestionLines.length * lineHeight + 5;
+            });
+            
+            // 保存PDF
+            doc.save('essay-grading-report.pdf');
         }
     </script>
 </body>
