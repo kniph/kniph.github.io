@@ -479,8 +479,8 @@
                     <label for="essayContent">寫作內容：</label>
                     <div class="input-options">
                         <div class="input-tabs">
-                            <button type="button" class="tab-btn active" onclick="switchInputMode('text')">📝 文字輸入</button>
-                            <button type="button" class="tab-btn" onclick="switchInputMode('camera')">📷 拍照上傳</button>
+                            <button type="button" class="tab-btn active" onclick="switchInputMode(this, 'text')">📝 文字輸入</button>
+                            <button type="button" class="tab-btn" onclick="switchInputMode(this, 'camera')">📷 拍照上傳</button>
                         </div>
                         
                         <div id="textInput" class="input-mode active">
@@ -588,7 +588,7 @@
             tenseErrors: [
                 {pattern: /\bToday morning\b/gi, message: "時間表達錯誤：應該使用 'This morning'", severity: 'high', correction: (match) => match.replace(/Today morning/gi, 'This morning')},
                 {pattern: /\bhas hand hurt\b/gi, message: "動詞形式錯誤：應該使用 'hurt her hand' 或 'has a hurt hand'", severity: 'high', correction: (match) => match.replace(/has hand hurt/gi, 'hurt her hand')},
-                {pattern: /\bshe can't do\b/gi, message: "時態一致性：過去時態應該使用 'she couldn't do'", severity: 'medium', correction: (match) => match.replace(/she can't do/gi, 'she couldn\\'t do')},
+                {pattern: /\bshe can't do\b/gi, message: "時態一致性：過去時態應該使用 'she couldn\'t do'", severity: 'medium', correction: (match) => match.replace(/she can't do/gi, "she couldn't do")},
                 {pattern: /\busually cooking\b/gi, message: "動詞形式錯誤：習慣性動作應該使用 'usually cooks'", severity: 'high', correction: (match) => match.replace(/usually cooking/gi, 'usually cooks')}
             ],
             
@@ -632,10 +632,10 @@
         let capturedImageData = null;
 
         // 輸入模式切換
-        function switchInputMode(mode) {
+        function switchInputMode(clickedButton, mode) {
             // 切換標籤激活狀態
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            clickedButton.classList.add('active');
             
             // 切換輸入區域
             document.querySelectorAll('.input-mode').forEach(input => input.classList.remove('active'));
@@ -928,6 +928,11 @@
                 
                 // 檢查當前輸入模式
                 const activeMode = document.querySelector('.input-mode.active');
+                if (!activeMode) {
+                    alert('錯誤：找不到有效的輸入模式。請刷新頁面。');
+                    document.getElementById('loading').style.display = 'none'; // Hide loading indicator
+                    return;
+                }
                 if (activeMode.id === 'textInput') {
                     content = document.getElementById('essayContent').value.trim();
                 } else {
@@ -959,6 +964,7 @@
             } catch (error) {
                 console.error('分析過程出錯:', error);
                 alert('批改過程中發生錯誤，請重試。');
+                document.getElementById('loading').style.display = 'none'; // Ensure loading is hidden on error
             }
         }
 
@@ -1625,9 +1631,12 @@ In conclusion, an optimistic, considerate, and generous person can easily get al
                     }
                 }
                 
-                if (gradeSelect) {
+                if (gradeSelect && essayTextarea) {
                     gradeSelect.addEventListener('change', updateExample);
                     updateExample(); // 初始化顯示
+                } else {
+                    if (!gradeSelect) console.error("Error: Could not find element with ID 'gradeLevel'.");
+                    if (!essayTextarea) console.error("Error: Could not find element with ID 'essayContent'.");
                 }
             } catch (error) {
                 console.error('window.onload 錯誤:', error);
