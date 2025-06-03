@@ -794,7 +794,7 @@
         // ==========================================
         // 🔑 在此處設定您的 Google Cloud Vision API 金鑰
         // ==========================================
-        const GOOGLE_CLOUD_VISION_API_KEY = 'AIzaSyC_aGiEVd9oYiDZcQMXavb9kXYmnNHljdk';
+        const GOOGLE_CLOUD_VISION_API_KEY = 'YOUR_API_KEY_HERE';
         // ==========================================
         
         // 全域變數
@@ -1123,22 +1123,47 @@
             
             text = text.trim();
             
+            // 更全面的錯誤檢測規則
             const errorRules = [
+                // 拼寫錯誤
+                { pattern: /\bvaction\b/gi, correct: 'vacation', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
+                { pattern: /\btyphon\b/gi, correct: 'typhoon', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
+                { pattern: /\barouna\b/gi, correct: 'around', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
                 { pattern: /\bded\b/gi, correct: 'dad', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
                 { pattern: /\banimos\b/gi, correct: 'animals', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
                 { pattern: /\bber\b/gi, correct: 'bear', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
                 { pattern: /\bhandberger\b/gi, correct: 'hamburger', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
                 { pattern: /\bbergerking\b/gi, correct: 'Burger King', type: '拼寫錯誤', explanation: '品牌名稱拼寫錯誤' },
                 { pattern: /\bwenderful\b/gi, correct: 'wonderful', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
+                
+                // 動詞時態錯誤
+                { pattern: /\bwas changing\b/gi, correct: 'changed', type: '動詞時態錯誤', explanation: '應使用過去式而非過去進行式' },
+                { pattern: /\bwas attack\b/gi, correct: 'was attacked', type: '被動語態錯誤', explanation: '被動語態缺少過去分詞' },
+                { pattern: /\bneed to a lot of money\b/gi, correct: 'needed a lot of money', type: '動詞時態錯誤', explanation: '時態錯誤且介詞使用錯誤' },
                 { pattern: /\bmom call\b/gi, correct: 'mom calls', type: '動詞變化錯誤', explanation: '第三人稱單數動詞需加s' },
                 { pattern: /\bwant take our\b/gi, correct: 'wants to take us', type: '動詞錯誤', explanation: '動詞時態和不定詞用法錯誤' },
+                { pattern: /\bDad decides\b/gi, correct: 'Dad decided', type: '動詞時態錯誤', explanation: '時態不一致，應使用過去式' },
+                
+                // 主謂一致錯誤
+                { pattern: /\broofs was\b/gi, correct: 'roofs were', type: '主謂一致錯誤', explanation: '複數主詞應搭配複數動詞' },
+                
+                // 冠詞錯誤
+                { pattern: /\bOne of a Bed and Breakfast\b/gi, correct: 'One of the Bed and Breakfasts', type: '冠詞錯誤', explanation: 'one of 後面應接定冠詞和複數名詞' },
+                { pattern: /\btake all family\b/gi, correct: 'take the whole family', type: '冠詞錯誤', explanation: 'family前需要定冠詞' },
+                
+                // 句型錯誤
                 { pattern: /\bToday morning\b/gi, correct: 'This morning', type: '句型錯誤', explanation: '時間表達方式錯誤' },
                 { pattern: /\band night we\b/gi, correct: 'and at night we', type: '句型錯誤', explanation: '缺少介詞' },
-                { pattern: /\btake all family\b/gi, correct: 'take the whole family', type: '冠詞錯誤', explanation: 'family前需要定冠詞' },
-                { pattern: /\bDad decides\b/gi, correct: 'Dad decided', type: '動詞時態錯誤', explanation: '時態不一致，應使用過去式' },
+                { pattern: /\bwas blowing\b/gi, correct: 'were blown away', type: '語態錯誤', explanation: '應使用被動語態' },
+                
+                // 語法結構錯誤
+                { pattern: /\bIt was a big typhon arouna\b/gi, correct: 'There was a big typhoon around', type: '句型錯誤', explanation: '句型結構錯誤' },
+                
+                // 標點錯誤
                 { pattern: /\.{4,}/g, correct: '...', type: '標點錯誤', explanation: '過多的省略號' }
             ];
             
+            // 檢測錯誤
             errorRules.forEach(rule => {
                 const matches = text.match(rule.pattern);
                 if (matches) {
@@ -1154,6 +1179,7 @@
                 }
             });
             
+            // 更嚴格的評分邏輯
             let grade = 5;
             let gradeDescription = '';
             
@@ -1166,7 +1192,7 @@
             } else if (errors.length <= 4) {
                 grade = 3;
                 gradeDescription = '大致回答題目之要求，但未能完全達意；文法、用字等有誤，稍影響讀者之理解。';
-            } else if (errors.length <= 6) {
+            } else if (errors.length <= 7) {
                 grade = 2;
                 gradeDescription = '部分回答題目之要求，表達上有令人不解/誤解之處；文法、用字等皆有誤，讀者須耐心解讀。';
             } else {
@@ -1174,6 +1200,7 @@
                 gradeDescription = '僅回答1個問題或重點；文法、用字等錯誤過多，嚴重影響讀者之理解。';
             }
             
+            // 改寫文字
             let improvedText = text;
             errorRules.forEach(rule => {
                 improvedText = improvedText.replace(rule.pattern, rule.correct);
@@ -1196,29 +1223,38 @@
             const errorTypesArray = Array.isArray(errorTypes) ? errorTypes : Array.from(errorTypes || []);
             
             if (errorTypesArray.includes('拼寫錯誤')) {
-                suggestions.push('建議加強基礎單字的拼寫練習，可以使用字典或拼字練習軟體。');
+                suggestions.push('建議加強基礎單字的拼寫練習，特別是常用單字如 vacation、typhoon、around 等。');
             }
             if (errorTypesArray.includes('動詞變化錯誤') || errorTypesArray.includes('動詞錯誤') || errorTypesArray.includes('動詞時態錯誤')) {
-                suggestions.push('需要加強動詞時態和人稱的概念，特別是第三人稱單數的用法和時態一致性。');
+                suggestions.push('需要加強動詞時態的概念，注意過去式的正確使用和時態一致性。');
             }
-            if (errorTypesArray.includes('句型錯誤')) {
-                suggestions.push('建議多閱讀英文文章，學習完整的句型結構和表達方式。');
+            if (errorTypesArray.includes('被動語態錯誤')) {
+                suggestions.push('需要學習被動語態的正確結構，特別是 be + 過去分詞的形式。');
+            }
+            if (errorTypesArray.includes('主謂一致錯誤')) {
+                suggestions.push('需要注意主謂一致的文法規則，複數主詞應搭配複數動詞。');
+            }
+            if (errorTypesArray.includes('句型錯誤') || errorTypesArray.includes('語態錯誤')) {
+                suggestions.push('建議多閱讀英文文章，學習完整的句型結構和正確的語態使用。');
             }
             if (errorTypesArray.includes('標點錯誤')) {
                 suggestions.push('需要注意標點符號的正確使用方法。');
             }
             if (errorTypesArray.includes('冠詞錯誤')) {
-                suggestions.push('需要加強冠詞（a、an、the）的使用規則。');
+                suggestions.push('需要加強冠詞（a、an、the）的使用規則，特別是定冠詞的用法。');
             }
             
+            // 根據錯誤數量給予整體建議
             if (errorCount === 0) {
                 suggestions.push('表現優秀！建議持續練習以提升寫作的流暢度和多樣性。');
             } else if (errorCount <= 2) {
                 suggestions.push('整體表現良好，建議針對個別錯誤類型進行加強練習。');
             } else if (errorCount <= 4) {
                 suggestions.push('需要加強基礎文法概念，建議多做相關練習題。');
+            } else if (errorCount <= 7) {
+                suggestions.push('文法基礎需要大幅加強，建議從基本句型和常用單字開始複習。');
             } else {
-                suggestions.push('建議從基礎文法開始複習，多練習簡單句型的正確使用。');
+                suggestions.push('建議從基礎文法開始系統性復習，多練習簡單句型的正確使用。');
             }
             
             return suggestions;
