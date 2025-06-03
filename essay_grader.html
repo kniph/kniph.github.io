@@ -669,14 +669,6 @@
                 需要設定 Google Cloud Vision API 金鑰才能使用圖片辨識功能。</p>
             </div>
             
-            <div class="demo-section">
-                <h3 style="color: #16a34a; margin-bottom: 10px;">🎯 快速體驗</h3>
-                <p style="margin-bottom: 15px; color: #166534;">選擇示範作文進行分析（無需API金鑰）：</p>
-                <button class="demo-button" onclick="useDemoText('good')">📄 示範作文(優良)</button>
-                <button class="demo-button" onclick="useDemoText('average')">📄 示範作文(普通)</button>
-                <button class="demo-button" onclick="useDemoText('poor')">📄 示範作文(需改進)</button>
-            </div>
-            
             <div class="upload-section">
                 <div class="upload-options">
                     <div class="upload-option" onclick="document.getElementById('imageInput').click()">
@@ -802,20 +794,6 @@
         let analysisResult = null;
         let cameraStream = null;
         let currentFacingMode = 'environment';
-        
-        // 示範文字數據
-        const demoTexts = {
-            good: "It's Sunday morning. Mom woke Shiau-fang up at eight because Dad decides to take all family outside. They will visit the animals in the zoo, like elephants, tigers and monkeys. And then they'll have some fast-food for lunch. For Shiau-fang, it will be a great day.",
-            average: "On Sunday, Shiau-fang's mom calls her to get up at 8:00 in the morning. Because Shiau-fang's dad wants to take his family out today. At first, they go to the zoo. There are many animals in the zoo. They all have fun there. After they go to the zoo, they decide to go to the fast-food restaurant to have their lunch.",
-            poor: "Today morning, my mom call me get up, my ded want take our to zoo, we see a lot of animos, like.... elephants, monkey, big ber..... we have fun today, and night we go to the bergerking to eat handberger. We are so hungry and happy. I have a wenderful day."
-        };
-        
-        // 使用示範文字
-        function useDemoText(type) {
-            const text = demoTexts[type];
-            document.getElementById('manualText').value = text;
-            analyzeEssay();
-        }
         
         // 處理圖片上傳
         document.getElementById('imageInput').addEventListener('change', async function(e) {
@@ -1123,47 +1101,43 @@
             
             text = text.trim();
             
-            // 更全面的錯誤檢測規則
+            // 錯誤檢測規則，包含影響程度分級
             const errorRules = [
-                // 拼寫錯誤
-                { pattern: /\bvaction\b/gi, correct: 'vacation', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
-                { pattern: /\btyphon\b/gi, correct: 'typhoon', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
-                { pattern: /\barouna\b/gi, correct: 'around', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
-                { pattern: /\bded\b/gi, correct: 'dad', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
-                { pattern: /\banimos\b/gi, correct: 'animals', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
-                { pattern: /\bber\b/gi, correct: 'bear', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
-                { pattern: /\bhandberger\b/gi, correct: 'hamburger', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
-                { pattern: /\bbergerking\b/gi, correct: 'Burger King', type: '拼寫錯誤', explanation: '品牌名稱拼寫錯誤' },
-                { pattern: /\bwenderful\b/gi, correct: 'wonderful', type: '拼寫錯誤', explanation: '單字拼寫錯誤' },
+                // 嚴重影響理解的錯誤（critical）
+                { pattern: /\bmy ded want take our to zoo\b/gi, correct: 'my dad wants to take us to the zoo', type: '句型結構錯誤', severity: 'critical', explanation: '句型結構混亂，嚴重影響理解' },
+                { pattern: /\bcalls her getting up really\b/gi, correct: 'calls her to get up', type: '句型結構錯誤', severity: 'critical', explanation: '句型結構錯誤，影響理解' },
+                { pattern: /\bthey look a lot of animals\b/gi, correct: 'they see a lot of animals', type: '動詞用法錯誤', severity: 'critical', explanation: '動詞用法錯誤，影響意思表達' },
+                { pattern: /\bwas attack\b/gi, correct: 'was attacked', type: '被動語態錯誤', severity: 'critical', explanation: '被動語態錯誤，影響理解' },
+                { pattern: /\broofs was blowing\b/gi, correct: 'roofs were blown away', type: '語態和主謂錯誤', severity: 'critical', explanation: '語態錯誤且主謂不一致' },
                 
-                // 動詞時態錯誤
-                { pattern: /\bwas changing\b/gi, correct: 'changed', type: '動詞時態錯誤', explanation: '應使用過去式而非過去進行式' },
-                { pattern: /\bwas attack\b/gi, correct: 'was attacked', type: '被動語態錯誤', explanation: '被動語態缺少過去分詞' },
-                { pattern: /\bneed to a lot of money\b/gi, correct: 'needed a lot of money', type: '動詞時態錯誤', explanation: '時態錯誤且介詞使用錯誤' },
-                { pattern: /\bmom call\b/gi, correct: 'mom calls', type: '動詞變化錯誤', explanation: '第三人稱單數動詞需加s' },
-                { pattern: /\bwant take our\b/gi, correct: 'wants to take us', type: '動詞錯誤', explanation: '動詞時態和不定詞用法錯誤' },
-                { pattern: /\bDad decides\b/gi, correct: 'Dad decided', type: '動詞時態錯誤', explanation: '時態不一致，應使用過去式' },
+                // 中等影響理解的錯誤（moderate）
+                { pattern: /\bToday morning\b/gi, correct: 'This morning', type: '用字錯誤', severity: 'moderate', explanation: '時間表達方式錯誤' },
+                { pattern: /\bcall me get up\b/gi, correct: 'calls me to get up', type: '句型錯誤', severity: 'moderate', explanation: '不定詞用法錯誤' },
+                { pattern: /\bthey eats\b/gi, correct: 'they eat', type: '動詞變化錯誤', severity: 'moderate', explanation: '複數主詞不需要動詞加s' },
+                { pattern: /\bneed to a lot of money\b/gi, correct: 'need a lot of money', type: '介詞錯誤', severity: 'moderate', explanation: '多餘的介詞' },
+                { pattern: /\bOne of a Bed and Breakfast\b/gi, correct: 'One of the Bed and Breakfasts', type: '冠詞錯誤', severity: 'moderate', explanation: 'one of 後面應接定冠詞和複數' },
                 
-                // 主謂一致錯誤
-                { pattern: /\broofs was\b/gi, correct: 'roofs were', type: '主謂一致錯誤', explanation: '複數主詞應搭配複數動詞' },
-                
-                // 冠詞錯誤
-                { pattern: /\bOne of a Bed and Breakfast\b/gi, correct: 'One of the Bed and Breakfasts', type: '冠詞錯誤', explanation: 'one of 後面應接定冠詞和複數名詞' },
-                { pattern: /\btake all family\b/gi, correct: 'take the whole family', type: '冠詞錯誤', explanation: 'family前需要定冠詞' },
-                
-                // 句型錯誤
-                { pattern: /\bToday morning\b/gi, correct: 'This morning', type: '句型錯誤', explanation: '時間表達方式錯誤' },
-                { pattern: /\band night we\b/gi, correct: 'and at night we', type: '句型錯誤', explanation: '缺少介詞' },
-                { pattern: /\bwas blowing\b/gi, correct: 'were blown away', type: '語態錯誤', explanation: '應使用被動語態' },
-                
-                // 語法結構錯誤
-                { pattern: /\bIt was a big typhon arouna\b/gi, correct: 'There was a big typhoon around', type: '句型錯誤', explanation: '句型結構錯誤' },
-                
-                // 標點錯誤
-                { pattern: /\.{4,}/g, correct: '...', type: '標點錯誤', explanation: '過多的省略號' }
+                // 輕微影響理解的錯誤（minor）
+                { pattern: /\bvaction\b/gi, correct: 'vacation', type: '拼寫錯誤', severity: 'minor', explanation: '單字拼寫錯誤' },
+                { pattern: /\btyphon\b/gi, correct: 'typhoon', type: '拼寫錯誤', severity: 'minor', explanation: '單字拼寫錯誤' },
+                { pattern: /\barouna\b/gi, correct: 'around', type: '拼寫錯誤', severity: 'minor', explanation: '單字拼寫錯誤' },
+                { pattern: /\bded\b/gi, correct: 'dad', type: '拼寫錯誤', severity: 'minor', explanation: '單字拼寫錯誤' },
+                { pattern: /\banimos\b/gi, correct: 'animals', type: '拼寫錯誤', severity: 'minor', explanation: '單字拼寫錯誤' },
+                { pattern: /\bber\b/gi, correct: 'bear', type: '拼寫錯誤', severity: 'minor', explanation: '單字拼寫錯誤' },
+                { pattern: /\bhandberger\b/gi, correct: 'hamburger', type: '拼寫錯誤', severity: 'minor', explanation: '單字拼寫錯誤' },
+                { pattern: /\bbergerking\b/gi, correct: 'Burger King', type: '拼寫錯誤', severity: 'minor', explanation: '品牌名稱拼寫錯誤' },
+                { pattern: /\bwenderful\b/gi, correct: 'wonderful', type: '拼寫錯誤', severity: 'minor', explanation: '單字拼寫錯誤' },
+                { pattern: /\brestaurent\b/gi, correct: 'restaurant', type: '拼寫錯誤', severity: 'minor', explanation: '單字拼寫錯誤' },
+                { pattern: /\bdelicous\b/gi, correct: 'delicious', type: '拼寫錯誤', severity: 'minor', explanation: '單字拼寫錯誤' },
+                { pattern: /\bDad decides\b/gi, correct: 'Dad decided', type: '時態錯誤', severity: 'minor', explanation: '時態不一致，但不影響理解' },
+                { pattern: /\bmom calls her to get up\b/gi, correct: 'mom wakes her up', type: '用字不當', severity: 'minor', explanation: '用字稍微不當但不影響理解' }
             ];
             
-            // 檢測錯誤
+            // 檢測錯誤並計算影響程度
+            let criticalErrors = 0;
+            let moderateErrors = 0;
+            let minorErrors = 0;
+            
             errorRules.forEach(rule => {
                 const matches = text.match(rule.pattern);
                 if (matches) {
@@ -1172,32 +1146,38 @@
                             original: match,
                             correct: rule.correct,
                             type: rule.type,
-                            explanation: rule.explanation
+                            explanation: rule.explanation,
+                            severity: rule.severity
                         });
                         errorTypes.add(rule.type);
+                        
+                        // 統計不同嚴重程度的錯誤
+                        if (rule.severity === 'critical') criticalErrors++;
+                        else if (rule.severity === 'moderate') moderateErrors++;
+                        else minorErrors++;
                     });
                 }
             });
             
-            // 更嚴格的評分邏輯
+            // 根據錯誤對理解的影響程度評分
             let grade = 5;
             let gradeDescription = '';
             
-            if (errors.length === 0) {
-                grade = 5;
-                gradeDescription = '正確表達題目之要求；文法、用字等幾乎無誤。';
-            } else if (errors.length <= 2) {
-                grade = 4;
-                gradeDescription = '大致正確表達題目之要求；文法、用字等有誤，但不影響讀者之理解。';
-            } else if (errors.length <= 4) {
-                grade = 3;
-                gradeDescription = '大致回答題目之要求，但未能完全達意；文法、用字等有誤，稍影響讀者之理解。';
-            } else if (errors.length <= 7) {
-                grade = 2;
-                gradeDescription = '部分回答題目之要求，表達上有令人不解/誤解之處；文法、用字等皆有誤，讀者須耐心解讀。';
-            } else {
+            if (criticalErrors >= 3 || (criticalErrors >= 2 && moderateErrors >= 2)) {
                 grade = 1;
                 gradeDescription = '僅回答1個問題或重點；文法、用字等錯誤過多，嚴重影響讀者之理解。';
+            } else if (criticalErrors >= 2 || (criticalErrors >= 1 && moderateErrors >= 3)) {
+                grade = 2;
+                gradeDescription = '部分回答題目之要求，表達上有令人不解/誤解之處；文法、用字等皆有誤，讀者須耐心解讀。';
+            } else if (criticalErrors >= 1 || moderateErrors >= 2) {
+                grade = 3;
+                gradeDescription = '大致回答題目之要求，但未能完全達意；文法、用字等有誤，稍影響讀者之理解。';
+            } else if (moderateErrors >= 1 || minorErrors >= 3) {
+                grade = 4;
+                gradeDescription = '大致正確表達題目之要求；文法、用字等有誤，但不影響讀者之理解。';
+            } else {
+                grade = 5;
+                gradeDescription = '正確表達題目之要求；文法、用字等幾乎無誤。';
             }
             
             // 改寫文字
@@ -1213,48 +1193,62 @@
                 grade: grade,
                 gradeDescription: gradeDescription,
                 errorTypes: Array.from(errorTypes),
-                suggestions: generateSuggestions(errorTypes, errors.length)
+                suggestions: generateSuggestions(errorTypes, criticalErrors, moderateErrors, minorErrors),
+                errorCounts: {
+                    critical: criticalErrors,
+                    moderate: moderateErrors,
+                    minor: minorErrors
+                }
             };
         }
         
         // 產生建議
-        function generateSuggestions(errorTypes, errorCount) {
+        function generateSuggestions(errorTypes, criticalErrors, moderateErrors, minorErrors) {
             const suggestions = [];
             const errorTypesArray = Array.isArray(errorTypes) ? errorTypes : Array.from(errorTypes || []);
             
-            if (errorTypesArray.includes('拼寫錯誤')) {
-                suggestions.push('建議加強基礎單字的拼寫練習，特別是常用單字如 vacation、typhoon、around 等。');
-            }
-            if (errorTypesArray.includes('動詞變化錯誤') || errorTypesArray.includes('動詞錯誤') || errorTypesArray.includes('動詞時態錯誤')) {
-                suggestions.push('需要加強動詞時態的概念，注意過去式的正確使用和時態一致性。');
-            }
-            if (errorTypesArray.includes('被動語態錯誤')) {
-                suggestions.push('需要學習被動語態的正確結構，特別是 be + 過去分詞的形式。');
-            }
-            if (errorTypesArray.includes('主謂一致錯誤')) {
-                suggestions.push('需要注意主謂一致的文法規則，複數主詞應搭配複數動詞。');
-            }
-            if (errorTypesArray.includes('句型錯誤') || errorTypesArray.includes('語態錯誤')) {
-                suggestions.push('建議多閱讀英文文章，學習完整的句型結構和正確的語態使用。');
-            }
-            if (errorTypesArray.includes('標點錯誤')) {
-                suggestions.push('需要注意標點符號的正確使用方法。');
-            }
-            if (errorTypesArray.includes('冠詞錯誤')) {
-                suggestions.push('需要加強冠詞（a、an、the）的使用規則，特別是定冠詞的用法。');
+            // 根據錯誤嚴重程度給予優先建議
+            if (criticalErrors > 0) {
+                suggestions.push('首要任務：加強基本句型結構，建議從簡單句開始練習，確保句子的完整性和邏輯性。');
             }
             
-            // 根據錯誤數量給予整體建議
-            if (errorCount === 0) {
-                suggestions.push('表現優秀！建議持續練習以提升寫作的流暢度和多樣性。');
-            } else if (errorCount <= 2) {
-                suggestions.push('整體表現良好，建議針對個別錯誤類型進行加強練習。');
-            } else if (errorCount <= 4) {
-                suggestions.push('需要加強基礎文法概念，建議多做相關練習題。');
-            } else if (errorCount <= 7) {
-                suggestions.push('文法基礎需要大幅加強，建議從基本句型和常用單字開始複習。');
+            if (errorTypesArray.includes('句型結構錯誤')) {
+                suggestions.push('建議大量閱讀簡單的英文文章，模仿正確的句型結構。');
+            }
+            
+            if (errorTypesArray.includes('被動語態錯誤') || errorTypesArray.includes('語態錯誤')) {
+                suggestions.push('需要系統性學習被動語態，掌握 be + 過去分詞的基本結構。');
+            }
+            
+            if (errorTypesArray.includes('動詞用法錯誤') || errorTypesArray.includes('動詞變化錯誤')) {
+                suggestions.push('建議複習基本動詞用法，特別注意第三人稱單數和時態變化。');
+            }
+            
+            if (errorTypesArray.includes('主謂一致錯誤')) {
+                suggestions.push('需要加強主謂一致的概念，注意單複數的搭配。');
+            }
+            
+            if (errorTypesArray.includes('冠詞錯誤')) {
+                suggestions.push('建議系統學習冠詞用法，特別是 a/an/the 的使用規則。');
+            }
+            
+            if (errorTypesArray.includes('拼寫錯誤')) {
+                suggestions.push('建議加強常用單字的拼寫練習，可以製作單字卡進行反覆練習。');
+            }
+            
+            if (errorTypesArray.includes('用字錯誤') || errorTypesArray.includes('句型錯誤')) {
+                suggestions.push('建議多做句型轉換練習，學習正確的英文表達方式。');
+            }
+            
+            // 根據總體錯誤嚴重程度給予學習建議
+            if (criticalErrors >= 2) {
+                suggestions.push('建議回到基礎文法，從最簡單的句型開始重新學習，紮實基礎。');
+            } else if (criticalErrors >= 1 || moderateErrors >= 2) {
+                suggestions.push('需要加強中級文法練習，建議搭配練習題來鞏固概念。');
+            } else if (moderateErrors >= 1 || minorErrors >= 3) {
+                suggestions.push('整體表現不錯，建議針對個別錯誤類型進行精進練習。');
             } else {
-                suggestions.push('建議從基礎文法開始系統性復習，多練習簡單句型的正確使用。');
+                suggestions.push('表現優秀！建議持續練習以提升寫作的流暢度和表達的多樣性。');
             }
             
             return suggestions;
