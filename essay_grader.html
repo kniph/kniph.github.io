@@ -665,7 +665,8 @@
         <div class="main-content">
             <div class="feature-notice">
                 <h3>🚀 Google Cloud Vision API</h3>
-                <p>本系統使用 Google Cloud Vision API 進行文字辨識，支援手寫和印刷體英文。<br></p>
+                <p>本系統使用 Google Cloud Vision API 進行文字辨識，支援手寫和印刷體英文。<br>
+                上傳照片後將自動進行文字辨識，分析完成後可下載專業的評分報告。</p>
             </div>
             
             <div class="upload-section">
@@ -1378,7 +1379,193 @@
                 return;
             }
             
-            // 創建文字報告
+            try {
+                // 檢查jsPDF是否載入
+                if (typeof window.jspdf === 'undefined') {
+                    console.warn('jsPDF未載入，使用文字報告替代');
+                    downloadTextReport();
+                    return;
+                }
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // 設定字體
+                doc.setFont('helvetica');
+                
+                // 標題
+                doc.setFontSize(18);
+                doc.text('Student Essay Grading Report', 20, 25);
+                doc.text('(AI-Powered Analysis)', 20, 35);
+                
+                // 生成時間
+                doc.setFontSize(10);
+                doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 45);
+                
+                let yPosition = 60;
+                const lineHeight = 7;
+                const pageHeight = 280;
+                
+                // 1. 辨識文字
+                doc.setFontSize(16);
+                doc.text('1. Recognized Text', 20, yPosition);
+                yPosition += 10;
+                
+                doc.setFontSize(10);
+                const textLines = doc.splitTextToSize(analysisResult.originalText, 170);
+                textLines.forEach(line => {
+                    if (yPosition > pageHeight - 10) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    doc.text(line, 20, yPosition);
+                    yPosition += lineHeight;
+                });
+                yPosition += 10;
+                
+                // 2. 錯誤分析
+                if (yPosition > pageHeight - 30) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                
+                doc.setFontSize(16);
+                doc.text('2. Error Analysis', 20, yPosition);
+                yPosition += 10;
+                
+                doc.setFontSize(10);
+                if (analysisResult.errors.length === 0) {
+                    doc.text('No errors found', 20, yPosition);
+                    yPosition += lineHeight + 5;
+                } else {
+                    analysisResult.errors.forEach((error, index) => {
+                        if (yPosition > pageHeight - 25) {
+                            doc.addPage();
+                            yPosition = 20;
+                        }
+                        doc.text(`${index + 1}. Error: ${error.original}`, 20, yPosition);
+                        yPosition += lineHeight;
+                        doc.text(`   Correct: ${error.correct}`, 20, yPosition);
+                        yPosition += lineHeight;
+                        doc.text(`   Type: ${error.type}`, 20, yPosition);
+                        yPosition += lineHeight + 3;
+                    });
+                }
+                
+                // 3. 改寫後版本
+                if (yPosition > pageHeight - 30) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                
+                doc.setFontSize(16);
+                doc.text('3. Improved Version', 20, yPosition);
+                yPosition += 10;
+                
+                doc.setFontSize(10);
+                const improvedLines = doc.splitTextToSize(analysisResult.improvedText, 170);
+                improvedLines.forEach(line => {
+                    if (yPosition > pageHeight - 10) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    doc.text(line, 20, yPosition);
+                    yPosition += lineHeight;
+                });
+                yPosition += 10;
+                
+                // 4. 評級
+                if (yPosition > pageHeight - 25) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                
+                doc.setFontSize(16);
+                doc.text('4. Grade', 20, yPosition);
+                yPosition += 10;
+                
+                doc.setFontSize(14);
+                doc.text(`Grade: ${analysisResult.grade}/5`, 20, yPosition);
+                yPosition += 10;
+                
+                doc.setFontSize(10);
+                const gradeLines = doc.splitTextToSize(analysisResult.gradeDescription, 170);
+                gradeLines.forEach(line => {
+                    if (yPosition > pageHeight - 10) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    doc.text(line, 20, yPosition);
+                    yPosition += lineHeight;
+                });
+                yPosition += 10;
+                
+                // 5. 建議
+                if (yPosition > pageHeight - 30) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                
+                doc.setFontSize(16);
+                doc.text('5. Suggestions', 20, yPosition);
+                yPosition += 10;
+                
+                doc.setFontSize(10);
+                analysisResult.suggestions.forEach((suggestion, index) => {
+                    if (yPosition > pageHeight - 15) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    const suggestionLines = doc.splitTextToSize(`${index + 1}. ${suggestion}`, 170);
+                    suggestionLines.forEach(line => {
+                        doc.text(line, 20, yPosition);
+                        yPosition += lineHeight;
+                    });
+                    yPosition += 3;
+                });
+                
+                // 6. 錯誤類型
+                if (yPosition > pageHeight - 20) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                
+                doc.setFontSize(16);
+                doc.text('6. Error Types', 20, yPosition);
+                yPosition += 10;
+                
+                doc.setFontSize(10);
+                if (analysisResult.errorTypes.length === 0) {
+                    doc.text('No major error types found', 20, yPosition);
+                } else {
+                    doc.text(analysisResult.errorTypes.join(', '), 20, yPosition);
+                }
+                
+                // 頁腳
+                const totalPages = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= totalPages; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.text(`Page ${i} of ${totalPages}`, 180, 290);
+                }
+                
+                // 保存PDF
+                doc.save('essay-grading-report.pdf');
+                
+            } catch (error) {
+                console.error('PDF生成錯誤:', error);
+                console.log('改為下載文字報告');
+                downloadTextReport();
+            }
+        }
+        
+        // 下載文字報告（備用方案）
+        function downloadTextReport() {
+            if (!analysisResult) {
+                alert('沒有分析結果可以下載');
+                return;
+            }
+            
             const reportContent = generateTextReport();
             const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
