@@ -1121,6 +1121,17 @@
 
                 // 解析後端回傳的結果
                 return parseBackendResponse(data.result, essayText);
+                // 根據級分獲取描述
+        function getGradeDescription(grade) {
+            const descriptions = {
+                5: '正確表達題目之要求；文法、用字等幾乎無誤。',
+                4: '大致正確表達題目之要求；文法、用字等有誤，但不影響讀者之理解。',
+                3: '大致回答題目之要求，但未能完全達意；文法、用字等有誤，稍影響讀者之理解。',
+                2: '部分回答題目之要求，表達上有令人不解/誤解之處；文法、用字等皆有誤，讀者須耐心解讀。',
+                1: '僅回答1個問題或重點；文法、用字等錯誤過多，嚴重影響讀者之理解。'
+            };
+            return descriptions[grade] || descriptions[3];
+        }
                 
             } catch (error) {
                 console.error('後端 API 錯誤:', error);
