@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>學生作文評分系統</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
     <style>
         * {
             margin: 0;
@@ -625,36 +626,6 @@
         .stat-moderate .stat-number { color: #d97706; }
         .stat-minor .stat-number { color: #2563eb; }
         
-        .test-panel {
-            background: linear-gradient(135deg, #fef2f2, #fee2e2);
-            border: 2px solid #ef4444;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        
-        .test-panel h3 {
-            color: #dc2626;
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-        }
-        
-        .test-btn {
-            background: linear-gradient(45deg, #ef4444, #dc2626);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .test-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-        }
-        
         @media (max-width: 768px) {
             .main-content {
                 padding: 20px;
@@ -743,17 +714,9 @@
         
         <div class="main-content">
             <div class="feature-notice">
-                <h3>🚀 Google Cloud Vision API + OpenAI GPT-4</h3>
-                <p>本系統使用 Google Cloud Vision API 進行文字辨識，並整合 OpenAI GPT-4 進行專業評分。<br>
-                支援手寫和印刷體英文，分析完成後可下載專業的評分報告。</p>
-            </div>
-            
-            <!-- 測試面板 -->
-            <div class="test-panel">
-                <h3>🧪 系統測試面板</h3>
-                <button class="test-btn" onclick="testWithSampleText()">使用範例作文測試</button>
-                <button class="test-btn" onclick="testBackendConnection()">測試後端連線</button>
-                <button class="test-btn" onclick="clearResults()">清除結果</button>
+                <h3>🚀 Google Cloud Vision API</h3>
+                <p>本系統使用 Google Cloud Vision API 進行文字辨識，支援手寫和印刷體英文。<br>
+                上傳照片後將自動進行文字辨識，分析完成後可下載專業的評分報告。</p>
             </div>
             
             <div class="upload-section">
@@ -839,7 +802,7 @@
                 </div>
                 
                 <div class="result-section">
-                    <h3>📊 2. 錯誤統計</h3>
+                    <h3>� 2. 錯誤統計</h3>
                     <div class="stats-display" id="errorStats"></div>
                 </div>
                 
@@ -878,7 +841,7 @@
         // ==========================================
         // 🔑 在此處設定您的 API Keys
         // ==========================================
-        const GOOGLE_CLOUD_VISION_API_KEY = 'AIzaSyC_aGiEVd9oYiDZcQMXavb9kXYmnNHljdk';
+        const GOOGLE_CLOUD_VISION_API_KEY = 'AIzaSyC_aGiEVd9oYiDZcQMXavb9kXYmnNHljdk'; // 提醒：請替換成您的有效金鑰
         
         // ===============================
         // 🤖 後端 API 評分系統
@@ -892,198 +855,8 @@
         let currentFacingMode = 'environment';
         
         // ===============================
-        // 🛠️ 工具函數
+        // Event Listeners & Basic UI
         // ===============================
-        
-        // 將檔案轉換為 base64
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        }
-        
-        // 獲取級分描述
-        function getGradeDescription(grade) {
-            const descriptions = {
-                5: '正確表達題目之要求；文法、用字等幾乎無誤。',
-                4: '大致正確表達題目之要求；文法、用字等有誤，但不影響讀者之理解。',
-                3: '大致回答題目之要求，但未能完全達意；文法、用字等有誤，稍影響讀者之理解。',
-                2: '部分回答題目之要求，表達上有令人不解/誤解之處；文法、用字等皆有誤，讀者須耐心解讀。',
-                1: '僅回答1個問題或重點；文法、用字等錯誤過多，嚴重影響讀者之理解。',
-                0: '未答、等同未答。'
-            };
-            return descriptions[grade] || descriptions[3];
-        }
-        
-        // 解析後端回傳的評分結果
-        function parseBackendResponse(data) {
-            try {
-                // 直接使用後端結構化的回應
-                if (data && data.result) {
-                    return {
-                        grade: data.result.grade || 3,
-                        gradeDescription: data.result.gradeDescription || getGradeDescription(data.result.grade || 3),
-                        errors: data.result.errors || [],
-                        improvedText: data.result.improvedText || data.originalText || '原文已經很好',
-                        suggestions: data.result.suggestions || ['繼續努力，表現不錯！'],
-                        errorTypes: data.result.errorTypes || [],
-                        originalText: data.originalText || data.result.improvedText || '',
-                        stats: data.result.stats || {
-                            critical: 0,
-                            moderate: 0,
-                            minor: 0,
-                            wordCount: (data.originalText || '').split(/\s+/).length
-                        }
-                    };
-                }
-                
-                // 如果沒有結構化資料，嘗試解析原始回應
-                console.warn('後端回應格式異常，嘗試解析原始回應');
-                return parseRawResponse(data.rawResponse || '', data.originalText || '');
-                
-            } catch (parseError) {
-                console.error('解析後端回應時出錯:', parseError);
-                return createFallbackResponse(data.originalText || '');
-            }
-        }
-        
-        // 解析原始 AI 回應（備用方案）
-        function parseRawResponse(aiResult, originalText) {
-            const lines = aiResult.split('\n').filter(line => line.trim());
-            
-            let grade = 3;
-            let gradeDescription = '';
-            let errors = [];
-            let improvedText = originalText;
-            let suggestions = [];
-            let errorTypes = [];
-            
-            // 解析級分
-            const gradeMatch = aiResult.match(/整體評級[：:]?\s*(\d)\s*級分/);
-            if (gradeMatch) {
-                grade = parseInt(gradeMatch[1]);
-            }
-            
-            gradeDescription = getGradeDescription(grade);
-            
-            // 解析錯誤列表
-            const errorSection = aiResult.match(/錯誤列表[：:]?(.*?)(?=3\.|改寫|$)/s);
-            if (errorSection) {
-                const errorLines = errorSection[1].split('\n').filter(line => line.trim());
-                for (let line of errorLines) {
-                    if (line.includes('→') || line.includes('->')) {
-                        const parts = line.split(/[→->]/);
-                        if (parts.length >= 2) {
-                            errors.push({
-                                original: parts[0].trim().replace(/^[•\-\d\.]\s*/, ''),
-                                correct: parts[1].trim(),
-                                type: '語法錯誤',
-                                severity: 'moderate',
-                                explanation: 'AI 檢測到的問題'
-                            });
-                        }
-                    }
-                }
-            }
-            
-            // 解析改寫版本
-            const improvedMatch = aiResult.match(/改寫.*?版本[：:]?(.*?)(?=4\.|整體|建議|$)/s);
-            if (improvedMatch) {
-                improvedText = improvedMatch[1].trim();
-            }
-            
-            // 解析建議
-            const suggestionMatch = aiResult.match(/建議.*?方式[：:]?(.*?)$/s);
-            if (suggestionMatch) {
-                const suggestionText = suggestionMatch[1].trim();
-                suggestions = suggestionText.split(/[•\-\n]/).filter(s => s.trim()).map(s => s.trim());
-            }
-            
-            return {
-                grade: grade,
-                gradeDescription: gradeDescription,
-                errors: errors,
-                improvedText: improvedText,
-                suggestions: suggestions.length > 0 ? suggestions : ['AI 分析完成，請參考上述評分結果'],
-                errorTypes: errors.length > 0 ? ['語法錯誤', '表達問題'] : [],
-                originalText: originalText,
-                stats: {
-                    critical: errors.filter(e => e.severity === 'critical').length,
-                    moderate: errors.filter(e => e.severity === 'moderate').length,
-                    minor: errors.filter(e => e.severity === 'minor').length,
-                    wordCount: originalText.split(/\s+/).length
-                }
-            };
-        }
-        
-        // 建立備用回應
-        function createFallbackResponse(originalText) {
-            return {
-                grade: 3,
-                gradeDescription: getGradeDescription(3),
-                errors: [],
-                improvedText: originalText || '系統處理中...',
-                suggestions: ['系統已完成基本評分，建議重新嘗試以獲得詳細分析'],
-                errorTypes: [],
-                originalText: originalText || '',
-                stats: {
-                    critical: 0,
-                    moderate: 0,
-                    minor: 0,
-                    wordCount: (originalText || '').split(/\s+/).length
-                }
-            };
-        }
-        
-        // ===============================
-        // 🔗 後端 API 連接
-        // ===============================
-        
-        // 使用後端 API 進行評分
-        async function gradeWithBackend(essayText) {
-            try {
-                console.log('正在呼叫後端 API...');
-                
-                const response = await fetch(BACKEND_API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        essay: essayText
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('後端 API 錯誤回應:', errorText);
-                    throw new Error(`後端 API 錯誤 (${response.status}): ${errorText}`);
-                }
-
-                const data = await response.json();
-                console.log('後端 API 回應:', data);
-                
-                if (!data.success) {
-                    throw new Error(data.error || '後端評分失敗');
-                }
-                
-                // 解析後端回應
-                return parseBackendResponse(data);
-                
-            } catch (error) {
-                console.error('後端 API 呼叫失敗:', error);
-                throw error;
-            }
-        }
-        
-        // ===============================
-        // 📷 相機功能
-        // ===============================
-        
-        // 處理圖片上傳
         document.getElementById('imageInput').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -1101,8 +874,20 @@
                 await performCloudVisionOCR(file);
             }
         });
-        
-        // 使用 Google Cloud Vision API 進行 OCR
+
+        // 將檔案轉換為 base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // ===============================
+        // Google Cloud Vision OCR
+        // ===============================
         async function performCloudVisionOCR(imageFile) {
             if (!GOOGLE_CLOUD_VISION_API_KEY || GOOGLE_CLOUD_VISION_API_KEY === 'YOUR_API_KEY_HERE') {
                 alert('請先在程式碼中設定 Google Cloud Vision API 金鑰');
@@ -1123,22 +908,12 @@
                 progressFill.style.width = '20%';
                 loadingText.textContent = '正在連接 Google Cloud Vision API...';
                 
-                // 準備 API 請求
                 const apiUrl = `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_CLOUD_VISION_API_KEY}`;
                 const requestBody = {
-                    requests: [
-                        {
-                            image: {
-                                content: base64Image.split(',')[1]
-                            },
-                            features: [
-                                {
-                                    type: 'TEXT_DETECTION',
-                                    maxResults: 1
-                                }
-                            ]
-                        }
-                    ]
+                    requests: [ {
+                        image: { content: base64Image.split(',')[1] },
+                        features: [ { type: 'TEXT_DETECTION', maxResults: 1 } ]
+                    } ]
                 };
                 
                 progressFill.style.width = '40%';
@@ -1146,9 +921,7 @@
                 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestBody)
                 });
                 
@@ -1166,14 +939,11 @@
                 
                 if (data.responses && data.responses[0] && data.responses[0].textAnnotations) {
                     const detectedText = data.responses[0].textAnnotations[0].description;
-                    console.log('Cloud Vision 辨識結果:', detectedText);
-                    
                     document.getElementById('manualText').value = detectedText.trim();
                     loading.style.display = 'none';
                     
-                    setTimeout(() => {
-                        analyzeEssayWithAI();
-                    }, 500);
+                    // 自動觸發 AI 評分
+                    setTimeout(() => analyzeEssayWithAI(), 500);
                     
                 } else {
                     throw new Error('未能辨識出文字內容');
@@ -1182,51 +952,27 @@
             } catch (error) {
                 console.error('Cloud Vision OCR 錯誤:', error);
                 loading.style.display = 'none';
-                
-                let errorMessage = '文字辨識失敗';
-                if (error.message.includes('API_KEY_INVALID')) {
-                    errorMessage = 'API 金鑰無效，請檢查程式碼中的金鑰是否正確';
-                } else if (error.message.includes('PERMISSION_DENIED')) {
-                    errorMessage = 'API 權限被拒絕，請確認已啟用 Cloud Vision API';
-                } else if (error.message.includes('QUOTA_EXCEEDED')) {
-                    errorMessage = 'API 配額已用完，請檢查您的 Google Cloud 帳單';
-                } else if (error.message.includes('未能辨識出文字內容')) {
-                    errorMessage = '未能辨識出文字內容，請確認圖片清晰度或手動輸入文字';
-                } else {
-                    errorMessage = `辨識失敗：${error.message}`;
-                }
-                
-                alert(errorMessage + '\n\n您可以選擇手動輸入文字內容進行分析。');
+                let errorMessage = '文字辨識失敗。您可以選擇手動輸入文字內容進行分析。\n\n錯誤詳情：' + error.message;
+                alert(errorMessage);
             }
         }
         
-        // 開啟相機
+        // ===============================
+        // Camera Functionality
+        // ===============================
         async function openCamera() {
             try {
                 const cameraOverlay = document.getElementById('cameraOverlay');
                 const video = document.getElementById('cameraVideo');
-                
                 cameraOverlay.style.display = 'flex';
-                
-                const constraints = {
-                    video: {
-                        facingMode: currentFacingMode,
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 }
-                    },
-                    audio: false
-                };
-                
+                const constraints = { video: { facingMode: currentFacingMode, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false };
                 cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = cameraStream;
-                
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                
                 if (videoDevices.length > 1) {
                     document.getElementById('switchBtn').style.display = 'block';
                 }
-                
             } catch (error) {
                 console.error('無法開啟相機:', error);
                 alert('無法開啟相機，請確認已授權相機權限，或使用檔案上傳功能');
@@ -1234,287 +980,244 @@
             }
         }
         
-        // 關閉相機
         function closeCamera() {
-            const cameraOverlay = document.getElementById('cameraOverlay');
-            
             if (cameraStream) {
                 cameraStream.getTracks().forEach(track => track.stop());
                 cameraStream = null;
             }
-            
-            cameraOverlay.style.display = 'none';
+            document.getElementById('cameraOverlay').style.display = 'none';
             document.getElementById('switchBtn').style.display = 'none';
         }
         
-        // 切換前後鏡頭
         async function switchCamera() {
-            try {
-                if (cameraStream) {
-                    cameraStream.getTracks().forEach(track => track.stop());
-                }
-                
-                currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-                
-                const video = document.getElementById('cameraVideo');
-                const constraints = {
-                    video: {
-                        facingMode: currentFacingMode,
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 }
-                    },
-                    audio: false
-                };
-                
-                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-                video.srcObject = cameraStream;
-                
-            } catch (error) {
-                console.error('切換相機失敗:', error);
-                alert('切換相機失敗');
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
             }
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            await openCamera();
         }
         
-        // 拍攝照片
         function capturePhoto() {
             try {
                 const video = document.getElementById('cameraVideo');
                 const canvas = document.getElementById('cameraCanvas');
                 const context = canvas.getContext('2d');
-                
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
-                
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                
                 canvas.toBlob(function(blob) {
                     const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
                     currentImage = file;
-                    
                     const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const previewContainer = document.getElementById('previewContainer');
-                        previewContainer.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="拍攝的作文照片">`;
+                    reader.onload = e => {
+                        document.getElementById('previewContainer').innerHTML = `<img src="${e.target.result}" class="preview-image" alt="拍攝的作文照片">`;
                     };
                     reader.readAsDataURL(file);
-                    
                     closeCamera();
                     performCloudVisionOCR(file);
-                    
                 }, 'image/jpeg', 0.9);
-                
             } catch (error) {
                 console.error('拍照失敗:', error);
                 alert('拍照失敗，請重試');
             }
         }
-        
-        // ===============================
-        // 🧠 AI 評分分析
-        // ===============================
-        
-        async function analyzeEssayWithAI() {
-            try {
-                console.log('AI 分析函數被呼叫');
-                
-                const textArea = document.getElementById('manualText');
-                if (!textArea) {
-                    console.error('找不到 manualText 元素');
-                    alert('系統錯誤：找不到文字輸入區域');
-                    return;
-                }
-                
-                const manualText = textArea.value.trim();
-                console.log('輸入文字長度:', manualText.length);
-                
-                if (!manualText) {
-                    alert('請輸入作文內容或上傳照片');
-                    return;
-                }
 
-                // 顯示載入狀態
-                const loading = document.getElementById('loading');
-                const loadingText = document.getElementById('loadingText');
-                const progressFill = document.getElementById('progressFill');
+        // ===============================
+        // AI Grading & Backend API
+        // ===============================
+
+        // AI 分析主函數
+        async function analyzeEssayWithAI() {
+            const manualText = document.getElementById('manualText').value.trim();
+            if (!manualText) {
+                alert('請輸入作文內容或上傳照片');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loadingText');
+            const progressFill = document.getElementById('progressFill');
+            
+            loading.style.display = 'block';
+            loadingText.textContent = '正在連接後端 API 進行智能評分...';
+            progressFill.style.width = '20%';
+            
+            try {
+                progressFill.style.width = '60%';
+                loadingText.textContent = '正在使用 OpenAI GPT-4 分析...';
                 
-                if (!loading || !loadingText || !progressFill) {
-                    console.error('找不到載入狀態元素');
-                    alert('系統錯誤：找不到載入狀態元素');
-                    return;
-                }
+                analysisResult = await gradeWithBackend(manualText);
                 
-                console.log('開始顯示載入狀態');
-                loading.style.display = 'block';
-                loadingText.textContent = '正在連接後端 API 進行智能評分...';
-                progressFill.style.width = '20%';
+                progressFill.style.width = '100%';
+                loadingText.textContent = 'AI 評分完成！';
                 
-                try {
-                    progressFill.style.width = '60%';
-                    loadingText.textContent = '正在使用 OpenAI GPT-4 分析...';
-                    
-                    console.log('準備呼叫後端 API');
-                    console.log('後端 URL:', BACKEND_API_URL);
-                    console.log('發送文字:', manualText.substring(0, 50) + '...');
-                    
-                    // 使用後端 API
-                    analysisResult = await gradeWithBackend(manualText);
-                    
-                    console.log('收到 AI 分析結果:', analysisResult);
-                    
-                    progressFill.style.width = '100%';
-                    loadingText.textContent = 'AI 評分完成！';
-                    
-                    setTimeout(() => {
-                        loading.style.display = 'none';
-                        console.log('開始顯示結果');
-                        displayResults(analysisResult);
-                        
-                        const results = document.getElementById('results');
-                        const downloadBtn = document.getElementById('downloadBtn');
-                        
-                        if (results) {
-                            results.style.display = 'block';
-                            console.log('結果區域已顯示');
-                            setTimeout(() => {
-                                results.scrollIntoView({ behavior: 'smooth' });
-                            }, 100);
-                        }
-                        
-                        if (downloadBtn) {
-                            downloadBtn.disabled = false;
-                            console.log('下載按鈕已啟用');
-                        }
-                    }, 1000);
-                    
-                } catch (apiError) {
+                setTimeout(() => {
                     loading.style.display = 'none';
-                    console.error('後端 API 錯誤:', apiError);
-                    
-                    let errorMessage = 'AI 評分失敗：';
-                    
-                    if (apiError.message.includes('Failed to fetch')) {
-                        errorMessage += '無法連接到後端服務，請檢查網路連線';
-                    } else if (apiError.message.includes('API 錯誤')) {
-                        errorMessage += '後端服務暫時無法使用';
-                    } else {
-                        errorMessage += apiError.message;
-                    }
-                    
-                    alert(errorMessage);
-                }
+                    displayResults(analysisResult);
+                    document.getElementById('results').style.display = 'block';
+                    document.getElementById('downloadBtn').disabled = false;
+                    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+                }, 1000);
                 
-            } catch (error) {
-                console.error('分析過程錯誤:', error);
-                const loading = document.getElementById('loading');
-                if (loading) loading.style.display = 'none';
-                alert('分析過程中發生錯誤：' + error.message);
+            } catch (apiError) {
+                loading.style.display = 'none';
+                console.error('後端 API 錯誤:', apiError);
+                let errorMessage = 'AI 評分失敗：' + apiError.message;
+                if (apiError.message.includes('Failed to fetch')) {
+                    errorMessage = 'AI 評分失敗：無法連接到後端服務，請檢查網路連線或後端服務狀態。';
+                }
+                alert(errorMessage);
             }
         }
         
+        // 使用後端 API 進行評分
+        async function gradeWithBackend(essayText) {
+            try {
+                const response = await fetch(BACKEND_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ essay: essayText })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`後端 API 錯誤: ${errorData.error || response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || '後端回傳評分失敗');
+                }
+
+                return parseBackendResponse(data.result, essayText);
+                
+            } catch (error) {
+                console.error('後端 API 呼叫失敗:', error);
+                throw error; // 將錯誤拋出給 analyzeEssayWithAI 處理
+            }
+        }
+
+        // 取得級分描述 (移至此處)
+        function getGradeDescription(grade) {
+            const descriptions = {
+                5: '正確表達題目之要求；文法、用字等幾乎無誤。',
+                4: '大致正確表達題目之要求；文法、用字等有誤，但不影響讀者之理解。',
+                3: '大致回答題目之要求，但未能完全達意；文法、用字等有誤，稍影響讀者之理解。',
+                2: '部分回答題目之要求，表達上有令人不解/誤解之處；文法、用字等皆有誤，讀者須耐心解讀。',
+                1: '僅回答1個問題或重點；文法、用字等錯誤過多，嚴重影響讀者之理解。'
+            };
+            return descriptions[grade] || 'AI 已完成評分。';
+        }
+
+        // 解析後端回傳的評分結果 (單一、修正後的版本)
+        function parseBackendResponse(aiResult, originalText) {
+            try {
+                let grade = 3, gradeDescription = '', errors = [], improvedText = originalText, suggestions = [], errorTypes = [];
+
+                const gradeMatch = aiResult.match(/整體評級[：:]?\s*(\d)\s*級分/);
+                if (gradeMatch) grade = parseInt(gradeMatch[1]);
+                
+                const gradeDescMatch = aiResult.match(/(\d級分.*?(?=\n|$))/);
+                gradeDescription = gradeDescMatch ? gradeDescMatch[1] : getGradeDescription(grade);
+
+                const errorSection = aiResult.match(/錯誤列表[：:]?(.*?)(?=改寫後版本|3\.|建議改進方式|4\.|整體評級|5\.|$)/s);
+                if (errorSection) {
+                    const errorLines = errorSection[1].split('\n').filter(line => line.trim() && (line.includes('→') || line.includes('->')));
+                    errors = errorLines.map(line => {
+                        const parts = line.split(/[→\-\>]/);
+                        return {
+                            original: parts[0].trim().replace(/^[•\-\d\.]+\s*/, ''),
+                            correct: parts[1] ? parts[1].trim() : 'N/A',
+                            type: '語法錯誤',
+                            severity: 'moderate',
+                            explanation: 'AI 檢測到的問題'
+                        };
+                    });
+                }
+                
+                const improvedMatch = aiResult.match(/(?:改寫後版本|3\.)[：:]?(.*?)(?=建議改進方式|4\.|整體評級|5\.|$)/s);
+                if (improvedMatch) improvedText = improvedMatch[1].trim();
+                
+                const suggestionMatch = aiResult.match(/(?:建議改進方式|4\.)[：:]?(.*?)(?=整體評級|5\.|$)/s);
+                if (suggestionMatch) {
+                    suggestions = suggestionMatch[1].trim().split(/[•\-\n]/).map(s => s.trim().replace(/^\d+\.\s*/, '')).filter(Boolean);
+                }
+
+                if (errors.length > 0) errorTypes.push('語法錯誤');
+
+                return {
+                    grade: grade,
+                    gradeDescription: gradeDescription,
+                    errors: errors,
+                    improvedText: improvedText,
+                    suggestions: suggestions.length > 0 ? suggestions : ['AI 分析完成，請參考上述評分結果'],
+                    errorTypes: errorTypes,
+                    originalText: originalText,
+                    stats: {
+                        critical: 0,
+                        moderate: errors.length,
+                        minor: 0,
+                        wordCount: originalText.split(/\s+/).filter(Boolean).length
+                    }
+                };
+            } catch (parseError) {
+                console.warn('解析 AI 回應時出錯，回傳基本結果:', parseError);
+                return {
+                    grade: 3, gradeDescription: '系統評分完成', errors: [], improvedText: originalText,
+                    suggestions: [aiResult.substring(0, 300) + '...'], errorTypes: [], originalText: originalText,
+                    stats: { critical: 0, moderate: 0, minor: 0, wordCount: originalText.split(/\s+/).filter(Boolean).length }
+                };
+            }
+        }
+
         // ===============================
-        // 📊 結果顯示
+        // Display & PDF Generation
         // ===============================
         
         // 顯示結果
         function displayResults(result) {
-            try {
-                console.log('開始顯示結果:', result);
-                
-                const recognizedText = document.getElementById('recognizedText');
-                const errorList = document.getElementById('errorList');
-                const improvedText = document.getElementById('improvedText');
-                const gradeNumber = document.getElementById('gradeNumber');
-                const gradeText = document.getElementById('gradeText');
-                const suggestions = document.getElementById('suggestions');
-                const errorTypes = document.getElementById('errorTypes');
-                const errorStats = document.getElementById('errorStats');
-                
-                if (recognizedText) {
-                    recognizedText.textContent = result.originalText || result.improvedText.substring(0, 200) + '...';
-                }
-                
-                // 顯示錯誤統計
-                if (errorStats && result.stats) {
-                    var statsHTML = '';
-                    statsHTML += '<div class="stat-card stat-critical"><div class="stat-number">' + (result.stats.critical || 0) + '</div><div>嚴重錯誤</div></div>';
-                    statsHTML += '<div class="stat-card stat-moderate"><div class="stat-number">' + (result.stats.moderate || 0) + '</div><div>中等錯誤</div></div>';
-                    statsHTML += '<div class="stat-card stat-minor"><div class="stat-number">' + (result.stats.minor || 0) + '</div><div>輕微錯誤</div></div>';
-                    statsHTML += '<div class="stat-card" style="background:#f8fafc;border-color:#64748b;"><div class="stat-number" style="color:#475569;">' + (result.stats.wordCount || 0) + '</div><div>總字數</div></div>';
-                    errorStats.innerHTML = statsHTML;
-                }
-                
-                if (errorList) {
-                    errorList.innerHTML = '';
-                    
-                    if (!result.errors || result.errors.length === 0) {
-                        const li = document.createElement('li');
-                        li.className = 'error-item error-minor';
-                        li.innerHTML = '<div style="color:#059669;font-weight:bold;">🎉 AI 分析：未發現重大錯誤，表現良好！</div>';
-                        errorList.appendChild(li);
-                    } else {
-                        for (var i = 0; i < result.errors.length; i++) {
-                            var error = result.errors[i];
-                            var li = document.createElement('li');
-                            li.className = 'error-item error-' + (error.severity || 'moderate');
-                            
-                            var severityLabel = '';
-                            if (error.severity === 'critical') severityLabel = '🔴 嚴重';
-                            else if (error.severity === 'moderate') severityLabel = '🟡 中等';
-                            else severityLabel = '🔵 輕微';
-                            
-                            li.innerHTML = 
-                                '<div class="error-original">' + severityLabel + ' 錯誤 ' + (i + 1) + '：「' + error.original + '」</div>' +
-                                '<div class="error-correct">AI 建議：「' + error.correct + '」</div>' +
-                                '<div class="error-explanation">' + (error.type || '語法錯誤') + ' - ' + (error.explanation || 'AI 檢測到的問題') + '</div>';
-                            errorList.appendChild(li);
-                        }
-                    }
-                }
-                
-                if (improvedText) {
-                    improvedText.textContent = result.improvedText || '原文已經很好，無需大幅修改。';
-                }
-                
-                if (gradeNumber) {
-                    gradeNumber.textContent = result.grade || '4';
-                }
-                
-                if (gradeText) {
-                    gradeText.textContent = (result.grade || '4') + '級分 - ' + (result.gradeDescription || '表現良好');
-                }
-                
-                if (suggestions) {
-                    var suggestionHTML = '';
-                    const suggestionList = result.suggestions || ['繼續努力，表現不錯！'];
-                    for (var j = 0; j < suggestionList.length; j++) {
-                        suggestionHTML += '<p style="margin-bottom: 12px; line-height: 1.6;">• ' + suggestionList[j] + '</p>';
-                    }
-                    suggestions.innerHTML = suggestionHTML;
-                }
-                
-                if (errorTypes) {
-                    if (!result.errorTypes || result.errorTypes.length === 0) {
-                        errorTypes.innerHTML = '<span style="color: #059669; font-weight: 600; background: #ecfdf5; padding: 8px 16px; border-radius: 20px;">✅ AI 分析：整體表現良好</span>';
-                    } else {
-                        var typeHTML = '';
-                        for (var k = 0; k < result.errorTypes.length; k++) {
-                            typeHTML += '<span class="error-tag moderate">' + result.errorTypes[k] + '</span>';
-                        }
-                        errorTypes.innerHTML = typeHTML;
-                    }
-                }
-                
-                console.log('所有結果顯示完成');
-                
-            } catch (error) {
-                console.error('顯示結果時發生錯誤:', error);
-                alert('顯示結果時發生錯誤：' + error.message);
+            document.getElementById('recognizedText').textContent = result.originalText;
+            
+            const errorStats = document.getElementById('errorStats');
+            errorStats.innerHTML = `
+                <div class="stat-card stat-critical"><div class="stat-number">${result.stats.critical}</div><div>嚴重錯誤</div></div>
+                <div class="stat-card stat-moderate"><div class="stat-number">${result.stats.moderate}</div><div>中等錯誤</div></div>
+                <div class="stat-card stat-minor"><div class="stat-number">${result.stats.minor}</div><div>輕微錯誤</div></div>
+                <div class="stat-card" style="background:#f8fafc;border-color:#64748b;"><div class="stat-number" style="color:#475569;">${result.stats.wordCount}</div><div>總字數</div></div>
+            `;
+            
+            const errorList = document.getElementById('errorList');
+            errorList.innerHTML = '';
+            if (result.errors.length === 0) {
+                errorList.innerHTML = '<li class="error-item error-minor"><div style="color:#059669;font-weight:bold;">🎉 AI 分析：未發現重大錯誤，表現良好！</div></li>';
+            } else {
+                result.errors.forEach((error, i) => {
+                    const li = document.createElement('li');
+                    li.className = `error-item error-${error.severity || 'moderate'}`;
+                    li.innerHTML = `
+                        <div class="error-original">🔴 錯誤 ${i + 1}：「${error.original}」</div>
+                        <div class="error-correct">AI 建議：「${error.correct}」</div>
+                        <div class="error-explanation">${error.type} - ${error.explanation}</div>
+                    `;
+                    errorList.appendChild(li);
+                });
+            }
+            
+            document.getElementById('improvedText').textContent = result.improvedText;
+            document.getElementById('gradeNumber').textContent = result.grade;
+            document.getElementById('gradeText').textContent = `${result.grade}級分 - ${result.gradeDescription}`;
+            
+            const suggestions = document.getElementById('suggestions');
+            suggestions.innerHTML = result.suggestions.map(s => `<p style="margin-bottom: 12px; line-height: 1.6;">• ${s}</p>`).join('');
+            
+            const errorTypes = document.getElementById('errorTypes');
+            if (result.errorTypes.length === 0) {
+                errorTypes.innerHTML = '<span style="color: #059669; font-weight: 600; background: #ecfdf5; padding: 8px 16px; border-radius: 20px;">✅ AI 分析：整體表現良好</span>';
+            } else {
+                errorTypes.innerHTML = result.errorTypes.map(type => `<span class="error-tag moderate">${type}</span>`).join('');
             }
         }
-        
-        // ===============================
-        // 📄 PDF 報告生成
-        // ===============================
         
         // 下載PDF報告
         function downloadPDF() {
@@ -1522,331 +1225,54 @@
                 alert('沒有分析結果可以下載');
                 return;
             }
-            
-            var htmlContent = generatePDFContent(analysisResult);
-            
-            try {
-                var newWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes');
-                if (newWindow) {
-                    newWindow.document.write(htmlContent);
-                    newWindow.document.close();
-                } else {
-                    alert('無法開啟列印視窗，請檢查瀏覽器設定');
-                }
-            } catch (e) {
-                alert('PDF生成失敗：請檢查瀏覽器設定');
-            }
+            const htmlContent = generatePDFContent(analysisResult);
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write(htmlContent);
+            newWindow.document.close();
         }
         
         // 生成PDF內容
         function generatePDFContent(result) {
-            var currentTime = new Date().toLocaleString('zh-TW');
-            
-            var htmlContent = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>AI作文評分報告 - OpenAI版</title>';
-            htmlContent += '<style>body{font-family:"Microsoft JhengHei",Arial,sans-serif;margin:20px;line-height:1.6;color:#333;font-size:12px}';
-            htmlContent += 'h1{color:#4f46e5;border-bottom:3px solid #4f46e5;padding-bottom:10px;margin-bottom:20px;font-size:24px}';
-            htmlContent += 'h2{color:#4f46e5;margin-top:25px;margin-bottom:15px;font-size:16px;border-left:4px solid #4f46e5;padding-left:10px}';
-            htmlContent += '.grade-box{background:#f0fdf4;border:2px solid #22c55e;padding:20px;margin:20px 0;border-radius:8px;text-align:center}';
-            htmlContent += '.grade-number{font-size:36px;color:#059669;font-weight:bold;margin-bottom:10px}';
-            htmlContent += '.content-box{background:#f8fafc;border:1px solid #e2e8f0;padding:15px;margin:15px 0;border-radius:6px;white-space:pre-wrap;word-wrap:break-word}';
-            htmlContent += '.error-item{padding:12px;margin:10px 0;border-radius:4px;border-left:4px solid #f59e0b}';
-            htmlContent += '.error-original{font-weight:bold;margin-bottom:5px;color:#d97706}.error-correct{color:#059669;font-weight:bold;margin-bottom:5px}';
-            htmlContent += '.suggestion-item{background:#fffbeb;border-left:4px solid #f59e0b;padding:12px;margin:8px 0;border-radius:4px}';
-            htmlContent += '.print-instruction{background:#e0f2fe;border:2px solid #0288d1;padding:20px;margin:20px 0;border-radius:8px;text-align:center}';
-            htmlContent += '@media print{.no-print{display:none!important}body{margin:0}}@page{margin:2cm;size:A4}</style></head><body>';
-            
-            htmlContent += '<div class="print-instruction no-print"><h3>📋 如何儲存為PDF：</h3>';
-            htmlContent += '<p><strong>1.</strong> 按下 Ctrl+P (Windows) 或 Cmd+P (Mac)</p>';
-            htmlContent += '<p><strong>2.</strong> 在印表機選項中選擇「另存為PDF」</p>';
-            htmlContent += '<p><strong>3.</strong> 點擊「列印」按鈕即可下載PDF檔案</p><hr style="margin:20px 0"></div>';
-            
-            htmlContent += '<h1>🤖 AI作文評分報告 - OpenAI版</h1>';
-            htmlContent += '<div style="color:#6b7280;font-size:11px;margin-bottom:30px">';
-            htmlContent += '<strong>生成時間：</strong>' + currentTime + '<br>';
-            htmlContent += '<strong>評分技術：</strong>OpenAI GPT-4 專業英文評分</div>';
-            
-            htmlContent += '<div class="grade-box"><h2 style="margin-top:0;border:none;padding:0">🎯 AI 評級結果</h2>';
-            htmlContent += '<div class="grade-number">' + (result.grade || '4') + '/5 級分</div>';
-            htmlContent += '<div style="font-size:14px;color:#065f46;margin-top:10px">' + (result.gradeDescription || '表現良好') + '</div></div>';
-            
-            htmlContent += '<h2>📖 原始作文</h2><div class="content-box">' + (result.originalText || result.improvedText || '未提供原文') + '</div>';
-            
-            htmlContent += '<h2>❌ AI 錯誤分析</h2>';
-            if (!result.errors || result.errors.length === 0) {
-                htmlContent += '<div class="error-item"><div style="color:#059669;font-weight:bold">🎉 AI 分析：表現優秀，未發現重大錯誤！</div></div>';
+            const currentTime = new Date().toLocaleString('zh-TW');
+            let htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>AI作文評分報告</title><style>
+                body{font-family:"Microsoft JhengHei",Arial,sans-serif;margin:20px;line-height:1.6;color:#333;font-size:12px}
+                h1{color:#4f46e5;border-bottom:3px solid #4f46e5;padding-bottom:10px;margin-bottom:20px;font-size:24px}
+                h2{color:#4f46e5;margin-top:25px;margin-bottom:15px;font-size:16px;border-left:4px solid #4f46e5;padding-left:10px}
+                .grade-box{background:#f0fdf4;border:2px solid #22c55e;padding:20px;margin:20px 0;border-radius:8px;text-align:center}
+                .grade-number{font-size:36px;color:#059669;font-weight:bold;margin-bottom:10px}
+                .content-box{background:#f8fafc;border:1px solid #e2e8f0;padding:15px;margin:15px 0;border-radius:6px;white-space:pre-wrap;word-wrap:break-word}
+                .error-item{padding:12px;margin:10px 0;border-radius:4px;border-left:4px solid #f59e0b;background:#fffbeb;}
+                .error-original{font-weight:bold;margin-bottom:5px;color:#d97706}.error-correct{color:#059669;font-weight:bold;margin-bottom:5px}
+                .suggestion-item{background:#fffbeb;border-left:4px solid #f59e0b;padding:12px;margin:8px 0;border-radius:4px}
+                .print-instruction{background:#e0f2fe;border:2px solid #0288d1;padding:20px;margin:20px 0;border-radius:8px;text-align:center}
+                @media print{.no-print{display:none!important}body{margin:0}}@page{margin:2cm;size:A4}</style></head><body>
+                <div class="print-instruction no-print"><h3>📋 如何儲存為PDF：</h3><p>1. 按下 Ctrl+P (Windows) 或 Cmd+P (Mac)</p><p>2. 在印表機選項中選擇「另存為PDF」</p><p>3. 點擊「列印」按鈕即可下載PDF檔案</p></div>
+                <h1>🤖 AI作文評分報告</h1>
+                <div style="color:#6b7280;font-size:11px;margin-bottom:30px"><strong>生成時間：</strong>${currentTime}<br><strong>評分技術：</strong>Netlify Functions + OpenAI API</div>
+                <div class="grade-box"><h2 style="margin-top:0;border:none;padding:0">🎯 AI 評級結果</h2><div class="grade-number">${result.grade}/5 級分</div><div style="font-size:14px;color:#065f46;margin-top:10px">${result.gradeDescription}</div></div>
+                <h2>📖 原始作文</h2><div class="content-box">${result.originalText}</div>
+                <h2>❌ AI 錯誤分析</h2>`;
+
+            if (result.errors.length === 0) {
+                htmlContent += '<div class="error-item" style="background:#ecfdf5;border-left-color:#22c55e;"><div style="color:#059669;font-weight:bold">🎉 表現優秀，未發現重大錯誤！</div></div>';
             } else {
-                for (var i = 0; i < result.errors.length; i++) {
-                    var error = result.errors[i];
-                    htmlContent += '<div class="error-item">';
-                    htmlContent += '<div class="error-original">錯誤 ' + (i + 1) + '：「' + error.original + '」</div>';
-                    htmlContent += '<div class="error-correct">AI 建議：「' + error.correct + '」</div>';
-                    htmlContent += '<div style="color:#6b7280;font-size:11px;font-style:italic">' + (error.type || '語法問題') + ' - ' + (error.explanation || 'AI 檢測') + '</div>';
-                    htmlContent += '</div>';
-                }
+                result.errors.forEach((error, i) => {
+                    htmlContent += `<div class="error-item"><div class="error-original">錯誤 ${i+1}：「${error.original}」</div><div class="error-correct">AI 建議：「${error.correct}」</div><div style="color:#6b7280;font-size:11px;font-style:italic">${error.type} - ${error.explanation}</div></div>`;
+                });
             }
-            
-            htmlContent += '<h2>✏️ AI 改寫版本</h2>';
-            htmlContent += '<div class="content-box" style="background:#f0f9ff;border-color:#0ea5e9">' + (result.improvedText || '原文已經很好') + '</div>';
-            
-            htmlContent += '<h2>💡 AI 改進建議</h2>';
-            const suggestions = result.suggestions || ['繼續努力，表現不錯！'];
-            for (var j = 0; j < suggestions.length; j++) {
-                htmlContent += '<div class="suggestion-item"><strong>' + (j + 1) + '.</strong> ' + suggestions[j] + '</div>';
-            }
-            
-            htmlContent += '<h2>🏷️ 主要錯誤類型</h2>';
-            htmlContent += '<div style="background:#f3f4f6;border:1px solid #d1d5db;padding:15px;margin:15px 0;border-radius:6px">';
-            if (!result.errorTypes || result.errorTypes.length === 0) {
-                htmlContent += '<strong>AI 分析：整體表現良好，未發現主要錯誤類型</strong>';
-            } else {
-                htmlContent += '<strong>檢測到的錯誤類型：</strong>' + result.errorTypes.join('、');
-            }
-            htmlContent += '</div>';
-            
-            htmlContent += '<div style="margin-top:40px;padding-top:20px;border-top:1px solid #ccc;text-align:center;color:#666;font-size:10px">';
-            htmlContent += '<p><strong>本報告由 OpenAI GPT-4 生成</strong></p>';
-            htmlContent += '<p>AI 智能評分系統 • Google Cloud Vision API 文字辨識</p>';
-            htmlContent += '<p>生成時間：' + currentTime + '</p></div>';
-            
-            htmlContent += '<script>window.onload=function(){setTimeout(function(){window.print()},1000)};';
-            htmlContent += 'window.onafterprint=function(){setTimeout(function(){window.close()},500)};<\/script></body></html>';
-            
+
+            htmlContent += `<h2>✏️ AI 改寫版本</h2><div class="content-box" style="background:#f0f9ff;border-color:#0ea5e9">${result.improvedText}</div>
+                <h2>💡 AI 改進建議</h2>`;
+
+            result.suggestions.forEach((suggestion, i) => {
+                htmlContent += `<div class="suggestion-item"><strong>${i+1}.</strong> ${suggestion}</div>`;
+            });
+
+            htmlContent += `<div style="margin-top:40px;padding-top:20px;border-top:1px solid #ccc;text-align:center;color:#666;font-size:10px"><p>本報告由 AI 智能評分系統生成</p></div>
+                <script>window.onload=function(){setTimeout(function(){window.print()},1000)};window.onafterprint=function(){setTimeout(function(){window.close()},500)};<\/script></body></html>`;
             return htmlContent;
         }
-        
-        // ===============================
-        // 🧪 測試功能
-        // ===============================
-        
-        // 使用範例作文測試
-        function testWithSampleText() {
-            try {
-                console.log('測試函數被呼叫');
-                const sampleEssay = `Today morning, my mom call me get up, my dad want take our to zoo, we see a lot of animos, like.... elephants, monkey, big ber..... we have fun today, and night we go to the bergerking to eat handberger. We are so hungry and happy.
-I have a wenderful day.`;
-                
-                const textArea = document.getElementById('manualText');
-                if (textArea) {
-                    textArea.value = sampleEssay;
-                    alert('已載入範例作文，請點擊「AI 智能評分」開始測試！');
-                    console.log('範例作文已載入');
-                } else {
-                    console.error('找不到 manualText 元素');
-                    alert('錯誤：找不到文字輸入框');
-                }
-            } catch (error) {
-                console.error('testWithSampleText 錯誤:', error);
-                alert('測試函數執行錯誤：' + error.message);
-            }
-        }
-        
-        // 測試後端連線
-        async function testBackendConnection() {
-            try {
-                console.log('開始測試後端連線');
-                const loading = document.getElementById('loading');
-                const loadingText = document.getElementById('loadingText');
-                const progressFill = document.getElementById('progressFill');
-                
-                if (!loading || !loadingText || !progressFill) {
-                    throw new Error('找不到載入狀態元素');
-                }
-                
-                loading.style.display = 'block';
-                loadingText.textContent = '正在測試後端連線...';
-                progressFill.style.width = '50%';
-                
-                console.log('發送測試請求到:', BACKEND_API_URL);
-                
-                const response = await fetch(BACKEND_API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        essay: 'This is a test.'
-                    })
-                });
-                
-                progressFill.style.width = '100%';
-                console.log('收到回應，狀態:', response.status);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('後端回應:', data);
-                    loadingText.textContent = '後端連線成功！';
-                    setTimeout(() => {
-                        loading.style.display = 'none';
-                        alert('✅ 後端連線測試成功！\n\n後端 API 正常運作，可以開始使用 AI 評分功能。');
-                    }, 1000);
-                } else {
-                    const errorText = await response.text();
-                    console.error('後端回應錯誤:', errorText);
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-            } catch (error) {
-                console.error('後端連線測試失敗:', error);
-                const loading = document.getElementById('loading');
-                if (loading) loading.style.display = 'none';
-                alert('❌ 後端連線測試失敗！\n\n錯誤訊息: ' + error.message + '\n\n請檢查：\n1. 網路連線\n2. 後端服務狀態\n3. API URL 是否正確');
-            }
-        }
-        
-        // 清除結果
-        function clearResults() {
-            try {
-                console.log('清除結果函數被呼叫');
-                
-                // 清除文字輸入
-                const textArea = document.getElementById('manualText');
-                if (textArea) {
-                    textArea.value = '';
-                    console.log('已清除文字輸入');
-                }
-                
-                // 清除預覽圖片
-                const previewContainer = document.getElementById('previewContainer');
-                if (previewContainer) {
-                    previewContainer.innerHTML = '';
-                    console.log('已清除預覽圖片');
-                }
-                
-                // 隱藏結果區域
-                const results = document.getElementById('results');
-                if (results) {
-                    results.style.display = 'none';
-                    console.log('已隱藏結果區域');
-                }
-                
-                // 重置下載按鈕
-                const downloadBtn = document.getElementById('downloadBtn');
-                if (downloadBtn) {
-                    downloadBtn.disabled = true;
-                    console.log('已重置下載按鈕');
-                }
-                
-                // 清除全域變數
-                currentImage = null;
-                analysisResult = null;
-                
-                alert('已清除所有結果和輸入內容');
-                console.log('清除完成');
-                
-            } catch (error) {
-                console.error('clearResults 錯誤:', error);
-                alert('清除結果時發生錯誤：' + error.message);
-            }
-        }
-        
-        // ===============================
-        // 🎯 頁面初始化與除錯
-        // ===============================
-        
-        // 頁面載入完成後執行
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('=== AI 作文評分系統初始化 ===');
-            console.log('後端 API URL:', BACKEND_API_URL);
-            
-            // 檢查必要的 DOM 元素
-            const requiredElements = [
-                'imageInput', 'manualText', 'loading', 'results', 
-                'recognizedText', 'errorList', 'improvedText', 
-                'gradeNumber', 'gradeText', 'suggestions', 'errorTypes',
-                'loadingText', 'progressFill', 'errorStats', 'downloadBtn'
-            ];
-            
-            let missingElements = [];
-            for (let elementId of requiredElements) {
-                const element = document.getElementById(elementId);
-                if (!element) {
-                    missingElements.push(elementId);
-                    console.error('❌ 缺少元素:', elementId);
-                } else {
-                    console.log('✅ 找到元素:', elementId);
-                }
-            }
-            
-            if (missingElements.length > 0) {
-                console.error('缺少必要的 DOM 元素:', missingElements);
-                alert('系統初始化錯誤：缺少必要的頁面元素\n' + missingElements.join(', '));
-            } else {
-                console.log('✅ 所有必要的 DOM 元素已就緒');
-            }
-            
-            // 測試函數是否可用
-            console.log('=== 測試函數可用性 ===');
-            if (typeof testWithSampleText === 'function') {
-                console.log('✅ testWithSampleText 函數可用');
-            } else {
-                console.error('❌ testWithSampleText 函數不可用');
-            }
-            
-            if (typeof testBackendConnection === 'function') {
-                console.log('✅ testBackendConnection 函數可用');
-            } else {
-                console.error('❌ testBackendConnection 函數不可用');
-            }
-            
-            if (typeof clearResults === 'function') {
-                console.log('✅ clearResults 函數可用');
-            } else {
-                console.error('❌ clearResults 函數不可用');
-            }
-            
-            if (typeof analyzeEssayWithAI === 'function') {
-                console.log('✅ analyzeEssayWithAI 函數可用');
-            } else {
-                console.error('❌ analyzeEssayWithAI 函數不可用');
-            }
-            
-            // 為測試按鈕綁定點擊事件（備用方案）
-            const testButtons = document.querySelectorAll('.test-btn');
-            testButtons.forEach((btn, index) => {
-                btn.addEventListener('click', function(event) {
-                    console.log('測試按鈕被點擊:', index, btn.textContent);
-                    event.preventDefault();
-                    event.stopPropagation();
-                    
-                    try {
-                        if (btn.textContent.includes('範例作文')) {
-                            testWithSampleText();
-                        } else if (btn.textContent.includes('後端連線')) {
-                            testBackendConnection();
-                        } else if (btn.textContent.includes('清除結果')) {
-                            clearResults();
-                        }
-                    } catch (error) {
-                        console.error('按鈕點擊處理錯誤:', error);
-                        alert('按鈕功能執行錯誤：' + error.message);
-                    }
-                });
-            });
-            
-            // 為 AI 評分按鈕綁定事件（備用方案）
-            const aiButton = document.querySelector('.btn-primary');
-            if (aiButton) {
-                aiButton.addEventListener('click', function(event) {
-                    console.log('AI 評分按鈕被點擊');
-                    event.preventDefault();
-                    event.stopPropagation();
-                    analyzeEssayWithAI();
-                });
-            }
-            
-            console.log('=== 初始化完成 ===');
-        });
-        
-        // 全域錯誤處理
-        window.addEventListener('error', function(event) {
-            console.error('全域錯誤:', event.error);
-            console.error('錯誤位置:', event.filename, '行', event.lineno);
-        });
-        
-        // Promise 錯誤處理
-        window.addEventListener('unhandledrejection', function(event) {
-            console.error('未處理的 Promise 錯誤:', event.reason);
-        });
     </script>
 </body>
 </html>
+�
