@@ -2,11 +2,16 @@ exports.handler = async function(event, context) {
   // 解析前端傳來的帳號密碼
   const { username, password } = JSON.parse(event.body);
 
-  // 這裡設定你的帳號密碼
-  const validUser = "jelitest";
-  const validPass = "0492739116";
+    // 多組帳號密碼
+  const users = [
+    { username: "jelitest", password: "0492739116" },
+    { username: "cyc0903cyc", password: "0903" },
+    { username: "test", password: "temp" }
+  ];
 
-  if (username === validUser && password === validPass) {
+  const found = users.find(u => u.username === username && u.password === password);
+
+  if (found) {
     return {
       statusCode: 200,
       body: JSON.stringify({ success: true })
