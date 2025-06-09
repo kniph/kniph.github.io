@@ -63,6 +63,11 @@
     const GITHUB_REPO = 'kniph/scheduling-data';
     const GITHUB_FILE_PATH = 'scheduling-data.json';
 
+    // 取代 btoa，支援 UTF-8（含中文）
+    function base64EncodeUnicode(str) {
+      return btoa(unescape(encodeURIComponent(str)));
+    }
+
     // Realize Grid Layout
     const TimeSlotCourseGrid = ({ day, hour, courses, onRemoveCourse }) => {
       const [isModalOpen, setIsModalOpen] = useState(false);
@@ -353,7 +358,7 @@
             }
 
             const data = await response.json();
-            const content = JSON.parse(atob(data.content));
+            const content = JSON.parse(decodeURIComponent(escape(atob(data.content))));
             
             // 確保所有課程都有 duration 和 color 屬性
             const coursesWithProps = content.courses.map(course => ({
@@ -867,7 +872,7 @@
           const fileData = fileExists ? await checkResponse.json() : null;
 
           // 準備要上傳的資料
-          const content = btoa(JSON.stringify(data, null, 2));
+          const content = base64EncodeUnicode(JSON.stringify(data, null, 2));
           const message = fileExists ? '更新排課資料' : '新增排課資料';
           const sha = fileExists ? fileData.sha : undefined;
 
@@ -1178,7 +1183,7 @@
                         }
 
                         const data = await response.json();
-                        const content = JSON.parse(atob(data.content));
+                        const content = JSON.parse(decodeURIComponent(escape(atob(data.content))));
                         
                         // 確保所有課程都有 duration 和 color 屬性
                         const coursesWithProps = content.courses.map(course => ({
