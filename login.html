@@ -70,6 +70,9 @@
             .then(data => {
                 if (data.success) {
                     localStorage.setItem('loggedIn', 'yes');
+                    // 設定 1 分鐘後過期
+                    const expireTime = Date.now() + 60 * 1000;
+                    localStorage.setItem('expireAt', expireTime);
                     window.location.href = "index.html";
                 } else {
                     document.getElementById('error').innerText = data.message;
