@@ -58,16 +58,6 @@
     // Get all unique hours for display
     const allHours = [...new Set([].concat(...Object.values(hourSlots)))].sort((a, b) => a - b);
 
-    // GitHub 相關設定
-    const GITHUB_TOKEN = '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';
-    const GITHUB_REPO = 'kniph/scheduling-data';
-    const GITHUB_FILE_PATH = 'scheduling-data.json';
-
-    // 取代 btoa，支援 UTF-8（含中文）
-    function base64EncodeUnicode(str) {
-      return btoa(unescape(encodeURIComponent(str)));
-    }
-
     // Realize Grid Layout
     const TimeSlotCourseGrid = ({ day, hour, courses, onRemoveCourse }) => {
       const [isModalOpen, setIsModalOpen] = useState(false);
@@ -333,60 +323,35 @@
       const [editStudentSchool, setEditStudentSchool] = useState('');
       const [editStudentGrade, setEditStudentGrade] = useState('');
 
-      // Load data from GitHub on initial render
+      // Load data from localStorage on initial render
       useEffect(() => {
-        const loadFromGitHub = async () => {
-          try {
-            const response = await fetch(
-              `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`,
-              {
-                headers: {
-                  'Authorization': `token ${GITHUB_TOKEN}`,
-                  'Accept': 'application/vnd.github.v3+json'
-                }
-              }
-            );
+        const savedCourses = localStorage.getItem('courses');
+        const savedCalendar = localStorage.getItem('calendarItems');
 
-            if (!response.ok) {
-              if (response.status === 404) {
-                // 檔案不存在，使用空資料
-                setCourses([]);
-                setCalendarItems(days.reduce((acc, day) => ({ ...acc, [day]: {} }), {}));
-                return;
-              }
-              throw new Error('讀取失敗');
-            }
+        if (savedCourses) {
+          // Ensure duration and color are loaded correctly
+           const loadedCourses = JSON.parse(savedCourses).map(c => ({
+             ...c,
+             duration: c.duration || 1,
+             color: c.color || courseColors[0] // 確保顏色資訊存在
+           }));
+          setCourses(loadedCourses);
+        }
 
-            const data = await response.json();
-            const content = JSON.parse(decodeURIComponent(escape(atob(data.content))));
-            
-            // 確保所有課程都有 duration 和 color 屬性
-            const coursesWithProps = content.courses.map(course => ({
-              ...course,
-              duration: course.duration || 1,
-              color: course.color || courseColors[0]
-            }));
-            
-            const calendarWithProps = content.calendarItems;
-            Object.keys(calendarWithProps).forEach(day => {
-              Object.keys(calendarWithProps[day]).forEach(hour => {
-                calendarWithProps[day][hour] = calendarWithProps[day][hour].map(c => ({
-                  ...c,
-                  duration: c.duration || 1,
-                  color: c.color || courseColors[0]
-                }));
-              });
+        if (savedCalendar) {
+          // Ensure courses within calendar also have duration and color
+          const loadedCalendar = JSON.parse(savedCalendar);
+          Object.keys(loadedCalendar).forEach(day => {
+            Object.keys(loadedCalendar[day]).forEach(hour => {
+              loadedCalendar[day][hour] = loadedCalendar[day][hour].map(c => ({
+                ...c,
+                duration: c.duration || 1,
+                color: c.color || courseColors[0] // 確保顏色資訊存在
+              }));
             });
-
-            setCourses(coursesWithProps);
-            setCalendarItems(calendarWithProps);
-          } catch (error) {
-            console.error('載入錯誤：', error);
-            alert('從 GitHub 載入資料失敗：' + error.message);
-          }
-        };
-
-        loadFromGitHub();
+          });
+          setCalendarItems(loadedCalendar);
+        }
       }, []);
 
       // Save data to localStorage when it changes
@@ -854,56 +819,21 @@
 
       // Export data to JSON
       const handleExportData = async () => {
+        const data = { courses, calendarItems };
         try {
-          const data = { courses, calendarItems };
-          
-          // 檢查檔案是否存在
-          const checkResponse = await fetch(
-            `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`,
-            {
-              headers: {
-                'Authorization': `token ${GITHUB_TOKEN}`,
-                'Accept': 'application/vnd.github.v3+json'
-              }
-            }
-          );
-
-          const fileExists = checkResponse.status === 200;
-          const fileData = fileExists ? await checkResponse.json() : null;
-
-          // 準備要上傳的資料
-          const content = base64EncodeUnicode(JSON.stringify(data, null, 2));
-          const message = fileExists ? '更新排課資料' : '新增排課資料';
-          const sha = fileExists ? fileData.sha : undefined;
-
-          // 組合 body
-          const body = { message, content };
-          if (sha) body.sha = sha;
-
-          // 上傳資料
-          const response = await fetch(
-            `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`,
-            {
-              method: 'PUT',
-              headers: {
-                'Authorization': `token ${GITHUB_TOKEN}`,
-                'Accept': 'application/vnd.github.v3+json',
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(body)
-            }
-          );
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error('GitHub API error:', errorText);
-            throw new Error('上傳失敗');
+          const res = await fetch('/.netlify/functions/saveToGithub', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data })
+          });
+          if (res.ok) {
+            alert('已成功儲存到 GitHub！');
+          } else {
+            const err = await res.text();
+            alert('儲存失敗：' + err);
           }
-
-          alert('資料已成功儲存到 GitHub！');
-        } catch (error) {
-          console.error('儲存錯誤：', error);
-          alert('儲存失敗：' + error.message);
+        } catch (e) {
+          alert('儲存時發生錯誤：' + e.message);
         }
       };
 
@@ -1159,73 +1089,64 @@
 
           {/* Export/Import Section */}
           <div className="bg-gray-50 p-4 rounded-lg border mb-6">
-            <h2 className="text-lg font-bold mb-3">資料儲存/載入</h2>
+            <h2 className="text-lg font-bold mb-3">資料匯出/匯入</h2>
             <div className="flex flex-col md:flex-row gap-4 items-center">
               <div>
-                <button
-                  onClick={() => {
-                    const loadFromGitHub = async () => {
-                      try {
-                        const response = await fetch(
-                          `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`,
-                          {
-                            headers: {
-                              'Authorization': `token ${GITHUB_TOKEN}`,
-                              'Accept': 'application/vnd.github.v3+json'
-                            }
-                          }
-                        );
-
-                        if (!response.ok) {
-                          if (response.status === 404) {
-                            alert('GitHub 上尚未有資料');
-                            return;
-                          }
-                          throw new Error('讀取失敗');
-                        }
-
-                        const data = await response.json();
-                        const content = JSON.parse(decodeURIComponent(escape(atob(data.content))));
-                        
-                        // 確保所有課程都有 duration 和 color 屬性
-                        const coursesWithProps = content.courses.map(course => ({
-                          ...course,
-                          duration: course.duration || 1,
-                          color: course.color || courseColors[0]
-                        }));
-                        
-                        const calendarWithProps = content.calendarItems;
-                        Object.keys(calendarWithProps).forEach(day => {
-                          Object.keys(calendarWithProps[day]).forEach(hour => {
-                            calendarWithProps[day][hour] = calendarWithProps[day][hour].map(c => ({
-                              ...c,
-                              duration: c.duration || 1,
-                              color: c.color || courseColors[0]
+                <h3 className="font-semibold mb-1">匯入資料：</h3>
+                <input
+                  type="file"
+                  accept="application/json"
+                  className="border px-3 py-2 rounded text-sm"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        try {
+                          const data = JSON.parse(event.target.result);
+                          if (data.courses && data.calendarItems) {
+                            // 確保所有課程都有 duration 和 color 屬性
+                            const coursesWithProps = data.courses.map(course => ({
+                              ...course,
+                              duration: course.duration || 1,
+                              color: course.color || courseColors[0]
                             }));
-                          });
-                        });
+                             
+                            const calendarWithProps = data.calendarItems;
+                            Object.keys(calendarWithProps).forEach(day => {
+                                Object.keys(calendarWithProps[day]).forEach(hour => {
+                                    calendarWithProps[day][hour] = calendarWithProps[day][hour].map(c => ({
+                                        ...c,
+                                        duration: c.duration || 1,
+                                        color: c.color || courseColors[0]
+                                    }));
+                                });
+                            });
 
-                        setCourses(coursesWithProps);
-                        setCalendarItems(calendarWithProps);
-                        alert('資料已成功從 GitHub 載入！');
-                      } catch (error) {
-                        console.error('載入錯誤：', error);
-                        alert('載入失敗：' + error.message);
-                      }
-                    };
-                    loadFromGitHub();
+                            setCourses(coursesWithProps);
+                            setCalendarItems(calendarWithProps);
+                            alert('資料匯入成功！');
+                          } else {
+                            alert('格式錯誤，請確認檔案包含 courses 與 calendarItems。');
+                          }
+                        } catch(error) {
+                           console.error("Import Error:", error);
+                          alert('無法解析 JSON 檔案，請確認格式正確。');
+                        }
+                      };
+                      reader.readAsText(file);
+                      // Clear the input value so the same file can be loaded again
+                      e.target.value = null;
+                    }
                   }}
-                  className="bg-green-600 text-white px-4 py-2 rounded"
-                >
-                  從 GitHub 載入資料
-                </button>
+                />
               </div>
               <div>
                 <button
                   onClick={handleExportData}
                   className="bg-blue-600 text-white px-4 py-2 rounded"
                 >
-                  儲存資料到 GitHub
+                  儲存到 GitHub
                 </button>
               </div>
             </div>
