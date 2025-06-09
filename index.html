@@ -209,10 +209,20 @@
 </head>
 <body>
     <script>
-        // 如果沒登入，導向登入頁
-        if (localStorage.getItem('loggedIn') !== 'yes') {
+        // 檢查登入狀態與過期時間
+        const expireAt = localStorage.getItem('expireAt');
+        if (!expireAt || Date.now() > Number(expireAt)) {
+            localStorage.removeItem('loggedIn');
+            localStorage.removeItem('expireAt');
             window.location.href = "login.html";
         }
+
+        // （可選）自動倒數登出
+        setTimeout(() => {
+            localStorage.removeItem('loggedIn');
+            localStorage.removeItem('expireAt');
+            window.location.href = "login.html";
+        }, Number(expireAt) - Date.now());
     </script>
 
     <div class="particles">
@@ -250,6 +260,15 @@
         <div class="footer">
             <p>選擇您想要使用的學習工具，開始您的學習之旅！</p>
         </div>
+        <button onclick="logout()">登出</button>
     </div>
+    <script>
+        // 登出功能
+        function logout() {
+            localStorage.removeItem('loggedIn');
+            localStorage.removeItem('expireAt');
+            window.location.href = "login.html";
+        }
+    </script>
 </body>
 </html>
