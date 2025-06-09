@@ -10,7 +10,7 @@ exports.handler = async function(event, context) {
     { username: "shelly", password: "1127" },
     { username: "maggie", password: "yu631" },
     { username: "yiching", password: "0809" },
-    { username: "kinph", password: "jackie" }
+    { username: "kniph", password: "jackie" }
   
   ];
 
