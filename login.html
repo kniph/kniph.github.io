@@ -52,16 +52,16 @@
 <body>
     <div class="login-box">
         <h2>登入</h2>
-        <input type="text" id="jelitest" placeholder="帳號">
-        <input type="password" id="0492739116" placeholder="密碼">
+        <input type="text" id="username" placeholder="帳號">
+        <input type="password" id="password" placeholder="密碼">
         <button onclick="login()">登入</button>
         <div class="error" id="error"></div>
     </div>
     <script>
         function login() {
             // 這裡設定你的帳號密碼
-            const validUser = "yourname";
-            const validPass = "yourpassword";
+            const validUser = "jelitest";
+            const validPass = "0492739116";
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
             if (u === validUser && p === validPass) {
