@@ -821,7 +821,7 @@
       const handleExportData = async () => {
         const data = { courses, calendarItems };
         try {
-          const res = await fetch('/.netlify/functions/saveToGithub', {
+          const res = await fetch('/.netlify/functions/SaveToGitHub', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ data })
@@ -834,6 +834,22 @@
           }
         } catch (e) {
           alert('儲存時發生錯誤：' + e.message);
+        }
+      };
+
+      const handleImportFromGitHub = async () => {
+        try {
+          const res = await fetch('/.netlify/functions/LoadFromGitHub');
+          if (res.ok) {
+            const data = await res.json();
+            setCourses(data.courses);
+            setCalendarItems(data.calendarItems);
+            alert('已從 GitHub 載入資料！');
+          } else {
+            alert('讀取失敗：' + (await res.text()));
+          }
+        } catch (e) {
+          alert('讀取時發生錯誤：' + e.message);
         }
       };
 
@@ -1149,6 +1165,11 @@
                   儲存到 GitHub
                 </button>
               </div>
+            </div>
+            <div>
+              <button onClick={handleImportFromGitHub} className="bg-green-600 text-white px-4 py-2 rounded">
+                從 GitHub 載入
+              </button>
             </div>
           </div> {/* End Export/Import Section */}
 
