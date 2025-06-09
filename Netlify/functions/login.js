@@ -1,4 +1,5 @@
 exports.handler = async function(event, context) {
+  // 解析前端傳來的帳號密碼
   const { username, password } = JSON.parse(event.body);
 
   // 這裡設定你的帳號密碼
