@@ -7,6 +7,10 @@ exports.handler = async function(event, context) {
     { username: "jelitest", password: "0492739116" },
     { username: "cyc0903cyc", password: "0903" },
     { username: "test", password: "temp" }
+    { username: "shelly", password: "1127" }
+    { username: "maggie", password: "yu631" }
+    { username: "yiching", password: "0809" }
+  
   ];
 
   const found = users.find(u => u.username === username && u.password === password);
