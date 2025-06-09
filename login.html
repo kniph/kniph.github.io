@@ -59,19 +59,34 @@
     </div>
     <script>
         function login() {
-            // 這裡設定你的帳號密碼
-            const validUser = "jelitest";
-            const validPass = "0492739116";
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
-            if (u === validUser && p === validPass) {
-                // 登入成功，儲存登入狀態
-                localStorage.setItem('loggedIn', 'yes');
-                window.location.href = "index.html";
-            } else {
-                document.getElementById('error').innerText = "帳號或密碼錯誤";
-            }
+            fetch('/.netlify/functions/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    localStorage.setItem('loggedIn', 'yes');
+                    window.location.href = "index.html";
+                } else {
+                    document.getElementById('error').innerText = data.message;
+                }
+            })
+            .catch(err => {
+                document.getElementById('error').innerText = "登入服務異常，請稍後再試";
+            });
         }
+
+        // 監聽 Enter 鍵
+        document.getElementById('username').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') login();
+        });
+        document.getElementById('password').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') login();
+        });
     </script>
 </body>
 </html>
