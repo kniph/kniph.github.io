@@ -876,6 +876,10 @@
           const message = fileExists ? '更新排課資料' : '新增排課資料';
           const sha = fileExists ? fileData.sha : undefined;
 
+          // 組合 body
+          const body = { message, content };
+          if (sha) body.sha = sha;
+
           // 上傳資料
           const response = await fetch(
             `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`,
@@ -886,15 +890,13 @@
                 'Accept': 'application/vnd.github.v3+json',
                 'Content-Type': 'application/json'
               },
-              body: JSON.stringify({
-                message,
-                content,
-                sha
-              })
+              body: JSON.stringify(body)
             }
           );
 
           if (!response.ok) {
+            const errorText = await response.text();
+            console.error('GitHub API error:', errorText);
             throw new Error('上傳失敗');
           }
 
