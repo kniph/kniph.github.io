@@ -821,7 +821,7 @@
       const handleExportData = async () => {
         const data = { courses, calendarItems };
         try {
-          const res = await fetch('/.netlify/functions/SaveToGitHub', {
+          const res = await fetch('https://scheduling-data.netlify.app/.netlify/functions/loadFromGitHub', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ data })
@@ -839,7 +839,7 @@
 
       const handleImportFromGitHub = async () => {
         try {
-          const res = await fetch('/.netlify/functions/LoadFromGitHub');
+          const res = await fetch('https://scheduling-data.netlify.app/.netlify/functions/loadFromGitHub');
           if (res.ok) {
             const data = await res.json();
             setCourses(data.courses);
