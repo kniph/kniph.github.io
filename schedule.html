@@ -323,6 +323,25 @@
       const [editStudentSchool, setEditStudentSchool] = useState('');
       const [editStudentGrade, setEditStudentGrade] = useState('');
 
+      //
+      useEffect(() => {
+        async function fetchData() {
+          try {
+          const res = await fetch('https://scheduling-data.netlify.app/.netlify/functions/get-schedules');
+          if (res.ok) {
+            const data = await res.json();
+              setCourses(data.courses || []);
+              setCalendarItems(data.calendarItems || days.reduce((acc, day) => ({ ...acc, [day]: {} }), {}));
+          } else {
+            alert('讀取雲端資料失敗');
+          }
+        } catch (e) {
+          alert('讀取雲端資料時發生錯誤：' + e.message);
+        }
+      }
+      fetchData();
+    }, []);
+
       // Add a student to the temporary student list
       const addTempStudent = () => {
         if (newStudentName && newStudentSchool && newStudentGrade) {
@@ -1216,6 +1235,25 @@
     } // End App Component
 
     ReactDOM.render(<App />, document.getElementById('root'));
+
+    async function saveToCloud(newCourses, newCalendarItems) {
+      try{
+        await fetch('/.netlify/functions/save-schedule', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            courses: newCourses,
+            calendarItems: newCalendarItems
+          })
+        });
+      } catch (e) {
+        alert('儲存到雲端失敗：' + e.message);
+      }
+    }
+    // 監聽 courses, calendarItems 變化自動儲存
+    useEffect(() => {
+      saveToCloud(courses, calendarItems);
+    }, [courses, calendarItems]);
   </script>
 </body>
 </html>
