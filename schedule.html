@@ -1,1310 +1,280 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Course Scheduling System</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.2/babel.min.js"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <title>補習班排課系統 - Firebase 版</title>
+  <style>
+    /* --- 基本樣式 --- */
+    :root {
+      --primary-color: #007bff;
+      --danger-color: #dc3545;
+      --light-gray: #f8f9fa;
+      --dark-gray: #343a40;
+      --border-color: #dee2e6;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--light-gray);
+      color: var(--dark-gray);
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h1, h2 {
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    /* --- 表格樣式 --- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+    }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 12px 15px;
+      text-align: left;
+    }
+
+    thead {
+      background-color: var(--primary-color);
+      color: #fff;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: var(--light-gray);
+    }
+
+    /* --- 表單樣式 --- */
+    #add-schedule-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      align-items: end;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input[type="text"], input[type="datetime-local"] {
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    /* --- 按鈕樣式 --- */
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+      transition: background-color 0.2s;
+    }
+
+    button[type="submit"] {
+      background-color: var(--primary-color);
+      width: 100%;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #0056b3;
+    }
+
+    .delete-btn {
+      background-color: var(--danger-color);
+    }
+    
+    .delete-btn:hover {
+      background-color: #c82333;
+    }
+
+  </style>
 </head>
 <body>
-  <div id="root" class="container mx-auto p-4"></div>
 
-  <script type="text/babel">
-    const { useState, useEffect } = React;
+  <div class="container">
+    <h1>課程表</h1>
+    <div id="schedule-table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>課程名稱</th>
+            <th>授課老師</th>
+            <th>開始時間</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="schedule-body">
+          <tr>
+            <td colspan="4" style="text-align: center;">讀取中...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-    // Define constants
-    const days = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+    <h2>新增課程</h2>
+    <form id="add-schedule-form">
+      <div class="form-group">
+        <label for="className">課程名稱</label>
+        <input type="text" id="className" required>
+      </div>
+      <div class="form-group">
+        <label for="teacher">授課老師</label>
+        <input type="text" id="teacher" required>
+      </div>
+      <div class="form-group">
+        <label for="startTime">開始時間</label>
+        <input type="datetime-local" id="startTime" required>
+      </div>
+      <div class="form-group">
+        <button type="submit">新增課程</button>
+      </div>
+    </form>
+  </div>
 
-    // Define course durations
-    const courseDurations = [
-      { value: 1, label: '1小時' },
-      { value: 1.5, label: '1.5小時' },
-      { value: 2, label: '2小時' },
-      { value: 3, label: '3小時' }
-    ];
+  <script>
+    const scheduleBody = document.getElementById('schedule-body');
+    const addScheduleForm = document.getElementById('add-schedule-form');
 
-    // 定義課程顏色選項
-    const courseColors = [
-      { bg: 'bg-blue-100', text: 'text-blue-800', hover: 'hover:bg-blue-200', border: 'border-blue-300' },
-      { bg: 'bg-green-100', text: 'text-green-800', hover: 'hover:bg-green-200', border: 'border-green-300' },
-      { bg: 'bg-yellow-100', text: 'text-yellow-800', hover: 'hover:bg-yellow-200', border: 'border-yellow-300' },
-      { bg: 'bg-red-100', text: 'text-red-800', hover: 'hover:bg-red-200', border: 'border-red-300' },
-      { bg: 'bg-purple-100', text: 'text-purple-800', hover: 'hover:bg-purple-200', border: 'border-purple-300' },
-      { bg: 'bg-pink-100', text: 'text-pink-800', hover: 'hover:bg-pink-200', border: 'border-pink-300' },
-      { bg: 'bg-indigo-100', text: 'text-indigo-800', hover: 'hover:bg-indigo-200', border: 'border-indigo-300' },
-      { bg: 'bg-gray-100', text: 'text-gray-800', hover: 'hover:bg-gray-200', border: 'border-gray-300' },
-    ];
-
-    // Generate weekday hours (13-21) and saturday hours (9-20)
-    const generateHourSlots = () => {
-      const weekdayHours = Array.from({ length: 9 }, (_, i) => i + 13); // 13 to 21
-      const saturdayHours = Array.from({ length: 12 }, (_, i) => i + 9); // 9 to 20
-
-      // Create mapping of day to available hours
-      return {
-        '星期一': weekdayHours,
-        '星期二': weekdayHours,
-        '星期三': weekdayHours,
-        '星期四': weekdayHours,
-        '星期五': weekdayHours,
-        '星期六': saturdayHours,
-      };
-    };
-
-    const hourSlots = generateHourSlots();
-    // Get all unique hours for display
-    const allHours = [...new Set([].concat(...Object.values(hourSlots)))].sort((a, b) => a - b);
-
-    // Realize Grid Layout
-    const TimeSlotCourseGrid = ({ day, hour, courses, onRemoveCourse }) => {
-      const [isModalOpen, setIsModalOpen] = useState(false);
-      const [selectedCourse, setSelectedCourse] = useState(null);
-
-      // Open Modal Detail
-      const openCourseDetail = (course) => {
-        setSelectedCourse(course);
-        setIsModalOpen(true);
-      };
-    
-      // Deal with Removed Course
-      const handleRemoveCourse = (index, e) => {
-        e.stopPropagation();
-        onRemoveCourse(day, hour, index);
-      };
-
-      return (
-        <>
-          {/* 網格式佈局-每行最多兩個課程 */}
-          <div className="grid grid-cols-2 gap-1 w-full">
-            {courses.map((course, index) => {
-              // 使用課程顏色，如果未定義則使用默認藍色
-              const courseColor = course.color || { 
-                bg: 'bg-blue-100', 
-                text: 'text-blue-800', 
-                hover: 'hover:bg-blue-200',
-                border: 'border-blue-300'
-              };
-              
-              // 處理課程名稱的垂直顯示
-              const formatVerticalName = (name) => {
-                // 如果是英文名稱，直接按字元垂直排列
-                if (/^[A-Za-z0-9\s]+$/.test(name)) {
-                  return name.split('').join('\n');
-                }
-                
-                // 處理特殊格式：「國二數學B班」
-                const gradeSubjectPattern = /(國|高|國小)([一二三四五六七八九])(數學|英文|國文|理化|物理|化學|生物|地理|歷史|公民)([A-Z])?班?/;
-                const match = name.match(gradeSubjectPattern);
-                
-                if (match) {
-                  let result = match[1] + '\n' + match[2] + '\n';
-                  // 將科目名稱拆分
-                  if (match[3] === '數學') result += '數\n學\n';
-                  else if (match[3] === '英文') result += '英\n文\n';
-                  else if (match[3] === '國文') result += '國\n文\n';
-                  else if (match[3] === '理化') result += '理\n化\n';
-                  else if (match[3] === '物理') result += '物\n理\n';
-                  else if (match[3] === '化學') result += '化\n學\n';
-                  else if (match[3] === '生物') result += '生\n物\n';
-                  else if (match[3] === '地理') result += '地\n理\n';
-                  else if (match[3] === '歷史') result += '歷\n史\n';
-                  else if (match[3] === '公民') result += '公\n民\n';
-                  else result += match[3].split('').join('\n') + '\n';
-                  
-                  // 添加班級標識
-                  if (match[4]) result += match[4] + '\n';
-                  result += '班';
-                  return result;
-                }
-                
-                // 其他情況：完全垂直顯示所有字元
-                return name.split('').join('\n');
-              };
-              
-              // 將課程名稱轉為垂直顯示
-              const verticalName = formatVerticalName(course.name);
-              
-              return (
-                <div
-                  key={`${course.id}-${index}`} 
-                  className={`${courseColor.bg} ${courseColor.text} rounded p-1 relative cursor-pointer ${courseColor.hover} border ${courseColor.border} flex`}
-                  onClick={() => openCourseDetail(course)}
-                  title={`點擊查看 ${course.name} 詳情`}
-                >
-                  <div className="absolute top-0.5 right-0.5 z-20">
-                    <button
-                      className="text-gray-500 hover:text-red-500 text-xs bg-white bg-opacity-70 rounded-full w-4 h-4 flex items-center justify-center"
-                      onClick={(e) => handleRemoveCourse(index, e)}
-                      title="移除課程"
-                    >
-                      ×
-                    </button>
-                  </div>
-                  
-                  {/* 垂直顯示課程名稱 */}
-                  <div className="font-medium text-xs mr-1 leading-tight whitespace-pre" style={{ width: 'auto', minWidth: '1rem' }}>
-                    {verticalName}
-                  </div>
-                  
-                  {/* 右側顯示學生數和時長 */}
-                  <div className="text-xs text-gray-600 ml-auto flex flex-col justify-center">
-                    <div>{course.students.length}人</div>
-                    <div>{course.duration}小時</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+    /**
+     * 從後端獲取並渲染所有課表資料
+     */
+    async function loadSchedules() {
+      scheduleBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">讀取中...</td></tr>';
+      try {
+        const response = await fetch('/.netlify/functions/get-schedules');
+        if (!response.ok) {
+            throw new Error(`HTTP 錯誤! 狀態: ${response.status}`);
+        }
+        const schedules = await response.json();
         
-          {/* 課程詳情彈窗 */}
-          {isModalOpen && selectedCourse && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className={`text-xl font-bold ${selectedCourse.color?.text || 'text-blue-800'}`}>
-                    {selectedCourse.name}
-                  </h2>
-                  <button
-                    onClick={() => setIsModalOpen(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    ×
-                  </button>
-                </div>
-              
-                <div className="mb-6">
-                  <div className={`${selectedCourse.color?.bg || 'bg-blue-50'} p-4 rounded`}>
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <p className="text-sm text-gray-500">課程時段</p>
-                        <p className="font-medium">{day} {hour}:00</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">課程時長</p>
-                        <p className="font-medium">{selectedCourse.duration} 小時</p>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">學生名單 ({selectedCourse.students.length}人)</p>
-                      {selectedCourse.students.length === 0 ? (
-                        <p className="text-gray-500">(尚無學生)</p>
-                      ) : (
-                        <ul className="list-disc pl-5 text-sm max-h-48 overflow-y-auto">
-                          {selectedCourse.students.map((student, idx) => (
-                            <li key={idx}>
-                              {student.name}（{student.school}・{student.grade}）
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              
-                <div className="flex justify-end gap-2">
-                  <button
-                    className="px-4 py-2 border rounded hover:bg-gray-50"
-                    onClick={() => setIsModalOpen(false)}
-                  >
-                    關閉
-                  </button>
-                  <button
-                    className={`px-4 py-2 ${selectedCourse.color?.bg || 'bg-blue-500'} ${selectedCourse.color?.text || 'text-white'} rounded ${selectedCourse.color?.hover || 'hover:bg-blue-600'}`}
-                    onClick={() => {
-                      setIsModalOpen(false);
-                    }}
-                  >
-                    編輯課程
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </>
-      );
-    };
-      
-    // Course component with hover functionality
-    const CourseComponent = ({ course, actions, inCalendar = false }) => {
-      const [isHovering, setIsHovering] = useState(false);
+        scheduleBody.innerHTML = ''; // 清空讀取提示
 
-      // 使用課程顏色，如果未定義則使用默認藍色
-      const courseColor = course.color || { 
-        bg: 'bg-blue-100', 
-        text: 'text-blue-800', 
-        hover: 'hover:bg-blue-200',
-        border: 'border-blue-300'
-      };
-
-      // Calculate height based on duration for calendar display
-      const getHeightStyle = () => {
-        if (!inCalendar) return {};
-
-        const duration = course.duration || 1;
-        // Assuming base height of a 1-hour slot is roughly h-24 (6rem)
-        // Adjust multiplier based on actual cell height and desired visual representation
-        const baseHeightRem = 6;
-        const height = baseHeightRem * duration;
-        // Subtract padding/margin if needed, e.g., mb-1 is 0.25rem
-        const verticalSpacingRem = 0.25;
-        return {
-             height: `calc(${height}rem - ${verticalSpacingRem}rem)`,
-             // Ensure content doesn't overflow if height is small
-             overflow: 'hidden',
-             // Position relative needed for potential absolute positioning inside
-             position: 'relative',
-        };
-      };
-
-      return (
-        <div
-          className={`${inCalendar ? courseColor.bg : 'bg-white'} p-3 rounded 
-                     ${!inCalendar && 'shadow border'} ${!inCalendar && 'cursor-move'} 
-                     ${courseColor.text} mb-1 ${inCalendar ? 'border ' + courseColor.border : ''}`}
-          style={getHeightStyle()}
-          onMouseEnter={() => inCalendar ? null : setIsHovering(true)}
-          onMouseLeave={() => inCalendar ? null : setIsHovering(false)}
-          draggable={!inCalendar ? "true" : "false"}
-          onDragStart={!inCalendar ? actions.onDragStart : null}
-        >
-          <div className="flex justify-between items-start">
-            <h4 className="font-semibold text-sm">{course.name}</h4>
-            <div className="flex gap-1 flex-shrink-0">
-              {actions.buttons}
-            </div>
-          </div>
-
-          <div className="text-xs text-gray-600 mt-1">
-            學生：{course.students.length}人
-            {course.duration && <span className="ml-2">({course.duration}小時)</span>}
-          </div>
-
-          {/* Hover effect only for candidate courses */}
-          {!inCalendar && isHovering && (
-            <div className="absolute text-sm mt-1 bg-white p-2 rounded shadow-lg border border-gray-200 z-20 max-w-xs">
-              <div className="font-semibold mb-1">學生名單：</div>
-              <ul className="list-disc pl-5 text-gray-700">
-                {course.students.map((student, idx) => (
-                  <li key={idx}>
-                    {student.name}（{student.school}・{student.grade}）
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      );
-    };
-
-    function App() {
-      // Main application states
-      const [courses, setCourses] = useState([]);
-      const [calendarItems, setCalendarItems] = useState(
-        days.reduce((acc, day) => ({ ...acc, [day]: {} }), {})
-      );
-      const [conflictStudents, setConflictStudents] = useState([]);
-
-      // Course creation states
-      const [newCourseName, setNewCourseName] = useState('');
-      const [newStudentName, setNewStudentName] = useState('');
-      const [newStudentSchool, setNewStudentSchool] = useState('');
-      const [newStudentGrade, setNewStudentGrade] = useState('');
-      const [newCourseDuration, setNewCourseDuration] = useState(1); // Default to 1 hour
-      const [tempStudents, setTempStudents] = useState([]);
-      const [newCourseColor, setNewCourseColor] = useState(courseColors[0]); // 默認顏色
-
-      // Course editing states
-      const [editingCourse, setEditingCourse] = useState(null);
-      const [editStudentName, setEditStudentName] = useState('');
-      const [editStudentSchool, setEditStudentSchool] = useState('');
-      const [editStudentGrade, setEditStudentGrade] = useState('');
-
-      // Load data from localStorage on initial render
-      useEffect(() => {
-        const savedCourses = localStorage.getItem('courses');
-        const savedCalendar = localStorage.getItem('calendarItems');
-
-        if (savedCourses) {
-          // Ensure duration and color are loaded correctly
-           const loadedCourses = JSON.parse(savedCourses).map(c => ({
-             ...c,
-             duration: c.duration || 1,
-             color: c.color || courseColors[0] // 確保顏色資訊存在
-           }));
-          setCourses(loadedCourses);
+        if (schedules.length === 0) {
+            scheduleBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">目前沒有任何課程。</td></tr>';
+            return;
         }
 
-        if (savedCalendar) {
-          // Ensure courses within calendar also have duration and color
-          const loadedCalendar = JSON.parse(savedCalendar);
-          Object.keys(loadedCalendar).forEach(day => {
-            Object.keys(loadedCalendar[day]).forEach(hour => {
-              loadedCalendar[day][hour] = loadedCalendar[day][hour].map(c => ({
-                ...c,
-                duration: c.duration || 1,
-                color: c.color || courseColors[0] // 確保顏色資訊存在
-              }));
-            });
+        schedules.forEach(schedule => {
+          const tr = document.createElement('tr');
+          
+          // 將 Firestore 的時間字串轉換成台灣本地的日期時間格式
+          const formattedTime = new Date(schedule.startTime).toLocaleString('zh-TW', {
+            year: 'numeric', month: 'numeric', day: 'numeric',
+            hour: '2-digit', minute: '2-digit', hour12: false
           });
-          setCalendarItems(loadedCalendar);
-        }
-      }, []);
 
-      // Save data to localStorage when it changes
-      useEffect(() => {
-        localStorage.setItem('courses', JSON.stringify(courses));
-      }, [courses]);
-
-      useEffect(() => {
-        localStorage.setItem('calendarItems', JSON.stringify(calendarItems));
-      }, [calendarItems]);
-
-      // Add a student to the temporary student list
-      const addTempStudent = () => {
-        if (newStudentName && newStudentSchool && newStudentGrade) {
-          setTempStudents([...tempStudents, {
-            name: newStudentName,
-            school: newStudentSchool,
-            grade: newStudentGrade
-          }]);
-          setNewStudentName('');
-          setNewStudentSchool('');
-          setNewStudentGrade('');
-        } else {
-          alert('請填寫學生的所有欄位');
-        }
-      };
-
-      // Create a new course with the collected students
-      const createNewCourse = () => {
-        if (newCourseName && tempStudents.length > 0) {
-          const newId = `course-${Date.now()}`;
-          const newCourse = {
-            id: newId,
-            name: newCourseName,
-            students: tempStudents,
-            duration: parseFloat(newCourseDuration),
-            color: newCourseColor // 添加顏色屬性
-          };
-          setCourses([...courses, newCourse]);
-          setNewCourseName('');
-          setTempStudents([]);
-          setNewCourseDuration(1); // Reset to default duration
-          setNewCourseColor(courseColors[0]); // 重置為預設顏色
-        } else {
-          alert('請輸入課程名稱並至少添加一位學生');
-        }
-      };
-
-      // Delete a course from the candidate list
-      const deleteCourse = (courseId) => {
-        setCourses(courses.filter(course => course.id !== courseId));
-      };
-
-      // Clone an existing course
-      const cloneCourse = (courseId) => {
-        const course = courses.find(c => c.id === courseId);
-        if (course) {
-          const newId = `course-${Date.now()}`;
-          const clonedCourse = { ...course, id: newId };
-          setCourses([...courses, clonedCourse]);
-        }
-      };
-
-      // Start editing a course
-      const startEditCourse = (course) => {
-        setEditingCourse({
-          ...course,
-          duration: course.duration || 1, // Ensure duration exists
-          color: course.color || courseColors[0] // 確保顏色資訊存在
+          tr.innerHTML = `
+            <td>${schedule.className}</td>
+            <td>${schedule.teacher}</td>
+            <td>${formattedTime}</td>
+            <td>
+              <button class="delete-btn" data-id="${schedule.id}">刪除</button>
+            </td>
+          `;
+          scheduleBody.appendChild(tr);
         });
-        setEditStudentName('');
-        setEditStudentSchool('');
-        setEditStudentGrade('');
+
+      } catch (error) {
+        console.error('讀取課表失敗:', error);
+        scheduleBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: red;">讀取資料失敗，請檢查後台日誌。</td></tr>';
+      }
+    }
+
+    /**
+     * 處理新增課程表單的提交事件
+     */
+    addScheduleForm.addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const newScheduleData = {
+        className: document.getElementById('className').value,
+        teacher: document.getElementById('teacher').value,
+        startTime: document.getElementById('startTime').value
       };
 
-      // Add a student to the course being edited
-      const addStudentToEditingCourse = () => {
-        if (editStudentName && editStudentSchool && editStudentGrade) {
-          const newStudent = {
-            name: editStudentName,
-            school: editStudentSchool,
-            grade: editStudentGrade
-          };
-          setEditingCourse({
-            ...editingCourse,
-            students: [...editingCourse.students, newStudent]
-          });
-          setEditStudentName('');
-          setEditStudentSchool('');
-          setEditStudentGrade('');
-        } else {
-          alert('請填寫學生的所有欄位');
-        }
-      };
-
-      // Remove a student from the course being edited
-      const removeStudentFromEditingCourse = (index) => {
-        const newStudents = [...editingCourse.students];
-        newStudents.splice(index, 1);
-        setEditingCourse({ ...editingCourse, students: newStudents });
-      };
-
-      // Save the edited course
-      const saveEditedCourse = () => {
-        setCourses(
-          courses.map(c => c.id === editingCourse.id ? editingCourse : c)
-        );
-        // Also update the course if it's already in the calendar
-        const updatedCalendar = { ...calendarItems };
-        let courseFoundInCalendar = false;
-        
-        Object.keys(updatedCalendar).forEach(day => {
-            Object.keys(updatedCalendar[day]).forEach(hour => {
-                const courseIndex = updatedCalendar[day][hour].findIndex(c => c.id === editingCourse.id);
-                if (courseIndex !== -1) {
-                    updatedCalendar[day][hour][courseIndex] = editingCourse;
-                    courseFoundInCalendar = true;
-                }
-            });
+      try {
+        const response = await fetch('/.netlify/functions/add-schedule', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newScheduleData)
         });
-        
-        if (courseFoundInCalendar) {
-            setCalendarItems(updatedCalendar);
-        }
 
-        setEditingCourse(null);
-      };
-
-      // Check if a specific time slot is available and within bounds
-      const isSlotAvailable = (day, hour) => {
-        const hourNum = parseFloat(hour);
-        
-        // 檢查此小時是否在可用時間範圍內
-        const isHourInRange = hourSlots[day]?.includes(Math.floor(hourNum));
-        if (!isHourInRange) return false;
-        
-        // 檢查是否被其他課程佔用 (檢查是否有課程延伸到這個時段)
-        const isOccupied = calendarItems[day] && 
-          Object.entries(calendarItems[day]).some(([startHour, courses]) => {
-            return courses.some(course => {
-              const startHourNum = parseInt(startHour);
-              const endHour = startHourNum + (course.duration || 1);
-              // 如果當前小時在某課程的時間範圍內(但不是開始時間)，那麼它被佔用
-              return hour > startHourNum && hour < endHour;
-            });
-          });
-        
-        return !isOccupied;
-      };
-
-      // 計算跨欄課程的位置和大小
-      const calculateCoursePosition = (day, hour, course, courseIndex, courseCount) => {
-        // 找到對應的起始單元格位置
-        const startHourNum = parseInt(hour);
-        const startHourRowIndex = allHours.findIndex(h => h === startHourNum);
-        if (startHourRowIndex === -1) return null;
-        
-        // 獲取日期列的索引
-        const dayIndex = days.indexOf(day);
-        if (dayIndex === -1) return null;
-        
-        // 計算課程應該佔據的空間
-        const duration = course.duration || 1;
-        const courseHeight = duration * 6 - 0.5; // 6rem 是基本單元格高度，減少一些間距
-        
-        // 表格相關尺寸
-        const cell = document.querySelector(`td[data-day="${day}"][data-hour="${hour}"]`);
-        const cellRect = cell?.getBoundingClientRect();
-        
-        if (!cellRect) {
-          // 如果無法獲取單元格位置，使用預設計算方式
-          const headerHeight = 2.5; // 表頭高度 (rem)
-          const firstRowOffset = 0.5; // 第一行的額外偏移量 (rem)
-          const tableWidth = document.querySelector('table')?.offsetWidth || 1000;
-          const dayCellWidth = (tableWidth - 64) / days.length; // 64px是時間列的寬度
-          const leftOffset = 64 + (dayIndex * dayCellWidth); // 左偏移量 (px)
-          
-          // 計算課程寬度和位置
-          const width = dayCellWidth * 0.95; // 95%的單元格寬度
-          const top = `calc(${startHourRowIndex * 6}rem + ${headerHeight + firstRowOffset}rem)`;
-          
-          return {
-            top: top,
-            left: `${leftOffset}px`,
-            width: `${width}px`,
-            height: `${courseHeight}rem`
-          };
+        if (!response.ok) {
+            throw new Error(`HTTP 錯誤! 狀態: ${response.status}`);
         }
         
-        // 使用實際的單元格尺寸
-        const top = cellRect.top + window.scrollY;
-        const left = cellRect.left + window.scrollX;
-        const width = cellRect.width;
-        
-        // 多個課程排列
-        const courseWidth = courseCount > 1 ? (width / courseCount) - 2 : width - 4;
-        const courseLeft = left + (courseIndex * (width / courseCount)) + 2;
-        
-        return {
-          top: `${top}px`,
-          left: `${courseLeft}px`,
-          width: `${courseWidth}px`,
-          height: `${courseHeight}rem`
-        };
-      };
+        console.log('成功新增課程!');
+        addScheduleForm.reset(); // 清空表單
+        loadSchedules(); // 重新載入課表以顯示最新資料
 
-      // 渲染延展的課程 (跨欄效果)
-      const renderExtendedCourses = () => {
-        // 存儲所有渲染的跨欄課程
-        const extendedCourseElements = [];
-        
-        // 遍歷每一天和每個時間段
-        days.forEach((day, dayIndex) => {
-          if (!calendarItems[day]) return;
-          
-          Object.entries(calendarItems[day]).forEach(([startHour, courses]) => {
-            const startHourNum = parseInt(startHour);
+      } catch (error) {
+        console.error('新增課程失敗:', error);
+        alert('新增失敗，請稍後再試。');
+      }
+    });
+
+    /**
+     * 處理刪除按鈕的點擊事件 (使用事件委派)
+     */
+    scheduleBody.addEventListener('click', async function(event) {
+        if (event.target.classList.contains('delete-btn')) {
+            const scheduleId = event.target.dataset.id;
             
-            // 計算每個課程的位置和高度
-            courses.forEach((course, courseIndex) => {
-              if (course.duration <= 1) return; // 只處理持續時間大於1小時的課程
-              
-              // 找到對應的起始單元格位置
-              const startHourRowIndex = allHours.findIndex(h => h === startHourNum);
-              if (startHourRowIndex === -1) return;
-              
-              // 計算課程應該佔據的空間
-              const courseHeight = course.duration * 6 - 0.5; // 6rem 是基本單元格高度，減少一些間距
-              
-              // 創建一個絕對定位的元素來表示跨欄課程
-              const courseColor = course.color || { 
-                bg: 'bg-blue-100', 
-                text: 'text-blue-800', 
-                hover: 'hover:bg-blue-200',
-                border: 'border-blue-300'
-              };
-              
-              // 計算位置 (根據實際佈局調整)
-              const headerHeight = 2.5; // 表頭高度 (rem)
-              const firstRowOffset = 0.5; // 第一行的額外偏移量 (rem)
-              
-              // 獲取表格和單元格的尺寸
-              const tableElement = document.querySelector('table');
-              const tableWidth = tableElement?.offsetWidth || 940;
-              const timeColWidth = 64; // 時間列寬度 (px)
-              const dayCellWidth = (tableWidth - timeColWidth) / days.length;
-              
-              // 計算課程在格子中的位置
-              const courseCount = courses.length;
-              const leftPosition = timeColWidth + (dayIndex * dayCellWidth);
-              const courseWidth = courseCount > 1 ? (dayCellWidth / courseCount) - 4 : dayCellWidth - 6;
-              const courseLeft = leftPosition + (courseIndex * (dayCellWidth / courseCount)) + 3;
-              
-              // 處理課程名稱的垂直顯示
-              const formatVerticalName = (name) => {
-                // 如果是英文名稱，直接按字元垂直排列
-                if (/^[A-Za-z0-9\s]+$/.test(name)) {
-                  return name.split('').join('\n');
-                }
-                
-                // 處理特殊格式：「國二數學B班」
-                const gradeSubjectPattern = /(國|高|國小)([一二三四五六七八九])(數學|英文|國文|理化|物理|化學|生物|地理|歷史|公民)([A-Z])?班?/;
-                const match = name.match(gradeSubjectPattern);
-                
-                if (match) {
-                  let result = match[1] + '\n' + match[2] + '\n';
-                  // 將科目名稱拆分
-                  if (match[3] === '數學') result += '數\n學\n';
-                  else if (match[3] === '英文') result += '英\n文\n';
-                  else if (match[3] === '國文') result += '國\n文\n';
-                  else if (match[3] === '理化') result += '理\n化\n';
-                  else if (match[3] === '物理') result += '物\n理\n';
-                  else if (match[3] === '化學') result += '化\n學\n';
-                  else if (match[3] === '生物') result += '生\n物\n';
-                  else if (match[3] === '地理') result += '地\n理\n';
-                  else if (match[3] === '歷史') result += '歷\n史\n';
-                  else if (match[3] === '公民') result += '公\n民\n';
-                  else result += match[3].split('').join('\n') + '\n';
-                  
-                  // 添加班級標識
-                  if (match[4]) result += match[4] + '\n';
-                  result += '班';
-                  return result;
-                }
-                
-                // 其他情況：完全垂直顯示所有字元
-                return name.split('').join('\n');
-              };
-              
-              // 將課程名稱轉為垂直顯示
-              const verticalName = formatVerticalName(course.name);
-              
-              const style = {
-                top: `calc(${startHourRowIndex * 6}rem + ${headerHeight + firstRowOffset}rem)`,
-                left: `${courseLeft}px`,
-                width: `${courseWidth}px`,
-                height: `${courseHeight}rem`,
-                zIndex: 5,
-                pointerEvents: 'none',
-                borderWidth: '1px',
-                borderStyle: 'solid',
-                transition: 'all 0.2s ease',
-                overflow: 'hidden'
-              };
-              
-              // 視覺上的改進 - 垂直顯示課程名稱
-              const extendedCourse = (
-                <div 
-                  key={`extended-${day}-${startHour}-${courseIndex}`}
-                  className={`absolute ${courseColor.bg} ${courseColor.text} rounded-sm ${courseColor.border}`}
-                  style={style}
-                >
-                  {/* 垂直顯示的課程內容 */}
-                  <div className="p-1 flex h-full">
-                    {/* 垂直顯示課程名稱 */}
-                    <div className="font-medium text-xs leading-tight whitespace-pre" style={{ width: 'auto', minWidth: '1rem' }}>
-                      {verticalName}
-                    </div>
-                    
-                    {/* 右側顯示時長和人數 */}
-                    {courseWidth > 50 && (
-                      <div className="text-xs ml-auto flex flex-col justify-center">
-                        <div>{course.students.length}人</div>
-                        <div>{course.duration}時</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-              
-              extendedCourseElements.push(extendedCourse);
-            });
-          });
-        });
-        
-        return extendedCourseElements;
-      };
-
-      // Add a course to the calendar
-      const addCourseToCalendar = (courseId, day, hour) => {
-        const courseToAdd = courses.find(c => c.id === courseId);
-        if (!courseToAdd) return;
-
-        const startHourNum = parseInt(hour);
-        const duration = courseToAdd.duration || 1;
-        const endHour = startHourNum + duration; // End hour (exclusive)
-
-        // --- Refined Availability & Conflict Check ---
-        let conflicts = [];
-        let canPlace = true;
-
-        // 1. Check if all required slots are within the valid time range for the day
-        for (let h = startHourNum; h < endHour; h += 0.5) { // Check in 0.5h increments
-            const currentCheckHour = Math.floor(h); // The integer hour slot to check
-            if (!hourSlots[day]?.includes(currentCheckHour)) {
-                alert(`無法將課程加入此時段：課程時長 (${duration}小時) 超出 ${day} 的可用時間範圍。`);
-                canPlace = false;
-                break;
+            if (!confirm('您確定要刪除這堂課嗎？此操作無法復原。')) {
+                return;
             }
-        }
-        if (!canPlace) return;
 
-        // 2. 檢查該課程的所有需佔用時段是否已被佔用
-        for (let h = startHourNum + 1; h < endHour; h++) {
-            // 跳過開始時段，因為可以有多個課程在同一起始時段
-            if (calendarItems[day]?.[h]?.length > 0) {
-                alert(`無法將課程加入此時段：${day} ${h}:00 已被其他課程佔用。`);
-                canPlace = false;
-                break;
-            }
-        }
-        if (!canPlace) return;
-
-        // 3. Check for student conflicts in all slots the new course will occupy
-        for (let h = startHourNum; h < endHour; h++) { // Check integer hours
-            Object.entries(calendarItems[day] || {}).forEach(([existingStartHour, existingCourses]) => {
-                const existingStartHourNum = parseInt(existingStartHour);
-                existingCourses.forEach(existingCourse => {
-                    const existingEndHour = existingStartHourNum + (existingCourse.duration || 1);
-                    // 檢查此小時是否被現有課程覆蓋
-                    if (h >= existingStartHourNum && h < existingEndHour) {
-                        // 檢查學生衝突
-                        const slotConflicts = courseToAdd.students.filter(newStudent =>
-                            existingCourse.students.some(existingStudent => 
-                                existingStudent.name === newStudent.name)
-                        );
-                        conflicts = [...conflicts, ...slotConflicts];
-                    }
+            try {
+                const response = await fetch(`/.netlify/functions/delete-schedule`, {
+                    method: 'POST', // Netlify functions on free tier are simpler with POST
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: scheduleId })
                 });
-            });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP 錯誤! 狀態: ${response.status}`);
+                }
+
+                console.log('成功刪除課程:', scheduleId);
+                // 直接從畫面上移除該行，比重新載入整個列表體驗更好
+                event.target.closest('tr').remove();
+
+            } catch (error) {
+                console.error('刪除課程失敗:', error);
+                alert('刪除失敗，請稍後再試。');
+            }
         }
+    });
 
-        // Remove duplicate student conflicts
-        conflicts = conflicts.filter((student, index, self) =>
-          index === self.findIndex(s => s.name === student.name)
-        );
-
-        if (conflicts.length > 0) {
-          setConflictStudents(conflicts.map(s =>
-            `${s.name}（${s.school}・${s.grade}）`
-          ));
-          // Don't necessarily block placement, just warn
-          alert(`注意：${conflicts.map(s=>s.name).join(', ')} 在此時段有其他課程，請查看右側衝突區。`);
-        } else {
-          setConflictStudents([]);
-        }
-
-        // --- Add the course (only to start slot) ---
-        const updatedCalendar = { ...calendarItems };
-        if (!updatedCalendar[day][startHourNum]) {
-          updatedCalendar[day][startHourNum] = [];
-        }
-        updatedCalendar[day][startHourNum].push(courseToAdd);
-        setCalendarItems(updatedCalendar);
-
-        // Remove the course from the candidate list
-        setCourses(courses.filter(c => c.id !== courseId));
-      };
-
-      // Handle drag start
-      const handleDragStart = (e, courseId) => {
-        e.dataTransfer.setData('courseId', courseId);
-        e.dataTransfer.effectAllowed = 'move';
-      };
-
-      // Handle drag over
-      const handleDragOver = (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-      };
-
-      // Handle drop
-      const handleDrop = (e, day, hour) => {
-        e.preventDefault();
-        const courseId = e.dataTransfer.getData('courseId');
-        if (courseId) {
-          addCourseToCalendar(courseId, day, hour);
-        }
-      };
-
-      // Remove a course from the calendar
-      const removeCourseFromCalendar = (day, hour, index) => {
-        const hourNum = parseInt(hour);
-        const updatedCalendar = { ...calendarItems };
-
-        if (!updatedCalendar[day]?.[hourNum]) return;
-
-        const removedCourse = updatedCalendar[day][hourNum][index];
-
-        // Remove the course from the calendar start slot
-        updatedCalendar[day][hourNum].splice(index, 1);
-        if (updatedCalendar[day][hourNum].length === 0) {
-          delete updatedCalendar[day][hourNum];
-        }
-        setCalendarItems(updatedCalendar);
-
-        // Add the course back to the candidate list
-        if (removedCourse) {
-            setCourses([...courses, removedCourse]);
-        }
-
-        // Clear conflict display
-        setConflictStudents([]);
-      };
-
-      // Export data to JSON
-      const handleExportData = async () => {
-        const data = { courses, calendarItems };
-        try {
-          const res = await fetch('https://scheduling-data.netlify.app/.netlify/functions/loadFromGitHub', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data })
-          });
-          if (res.ok) {
-            alert('已成功儲存到 GitHub！');
-          } else {
-            const err = await res.text();
-            alert('儲存失敗：' + err);
-          }
-        } catch (e) {
-          alert('儲存時發生錯誤：' + e.message);
-        }
-      };
-
-      const handleImportFromGitHub = async () => {
-        try {
-          const res = await fetch('https://scheduling-data.netlify.app/.netlify/functions/loadFromGitHub');
-          if (res.ok) {
-            const data = await res.json();
-            setCourses(data.courses);
-            setCalendarItems(data.calendarItems);
-            alert('已從 GitHub 載入資料！');
-          } else {
-            alert('讀取失敗：' + (await res.text()));
-          }
-        } catch (e) {
-          alert('讀取時發生錯誤：' + e.message);
-        }
-      };
-
-      // --- JSX Structure ---
-      return (
-        <div className="max-w-7xl mx-auto relative"> {/* 添加 relative 用於定位跨欄課程 */}
-          <h1 className="text-2xl font-bold mb-6">傑立排課系統</h1>
-
-          {/* Main Content - 3 Columns */}
-          <div className="flex gap-4 mb-6">
-
-            {/* Left Column - Course Management (1/5 width) */}
-            <div className="w-1/5">
-              {/* Course Creation Form */}
-              <div className="bg-white p-4 rounded-lg border mb-4">
-                <h3 className="font-semibold mb-3">新增課程</h3>
-                <input
-                  type="text"
-                  placeholder="課程名稱"
-                  value={newCourseName}
-                  onChange={(e) => setNewCourseName(e.target.value)}
-                  className="border px-2 py-1 w-full mb-3"
-                />
-
-                {/* Course Duration Dropdown */}
-                <div className="mb-3">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    課程時長：
-                  </label>
-                  <select
-                    value={newCourseDuration}
-                    onChange={(e) => setNewCourseDuration(e.target.value)}
-                    className="border px-2 py-1 w-full"
-                  >
-                    {courseDurations.map(option => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Course Color Selection */}
-                <div className="mb-3">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    課程顏色：
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {courseColors.map((colorOption, idx) => (
-                      <div 
-                        key={idx}
-                        onClick={() => setNewCourseColor(colorOption)}
-                        className={`w-6 h-6 rounded-full cursor-pointer ${colorOption.bg} border ${colorOption.border}
-                                  ${newCourseColor.bg === colorOption.bg ? 'ring-2 ring-offset-1 ring-blue-500' : ''}`}
-                        title="選擇此顏色"
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Student Input Fields */}
-                <div className="flex gap-2 flex-wrap mb-2">
-                  <input
-                    type="text"
-                    placeholder="學生姓名"
-                    value={newStudentName}
-                    onChange={(e) => setNewStudentName(e.target.value)}
-                    className="border px-2 py-1 flex-1 min-w-[80px]"
-                  />
-                  <input
-                    type="text"
-                    placeholder="學校"
-                    value={newStudentSchool}
-                    onChange={(e) => setNewStudentSchool(e.target.value)}
-                    className="border px-2 py-1 flex-1 min-w-[80px]"
-                  />
-                  <input
-                    type="text"
-                    placeholder="年級"
-                    value={newStudentGrade}
-                    onChange={(e) => setNewStudentGrade(e.target.value)}
-                    className="border px-2 py-1 flex-1 min-w-[80px]"
-                  />
-                </div>
-
-                <button
-                  onClick={addTempStudent}
-                  className="bg-blue-500 text-white px-3 py-1 rounded mb-3 w-full"
-                >
-                  加入學生
-                </button>
-
-                {/* Temporary Student List */}
-                <div className="mb-3 text-sm text-gray-700">
-                  <div className="font-semibold mb-1">已加入學生：</div>
-                  {tempStudents.length === 0 ? (
-                    <div className="text-gray-500">(尚無學生)</div>
-                  ) : (
-                    <ul className="list-disc pl-5 max-h-20 overflow-y-auto">
-                      {tempStudents.map((student, idx) => (
-                        <li key={idx}>
-                          {student.name}（{student.school}・{student.grade}）
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <button
-                  onClick={createNewCourse}
-                  className="bg-green-600 text-white px-3 py-1 rounded w-full"
-                  disabled={!newCourseName || tempStudents.length === 0}
-                >
-                  新增課程
-                </button>
-              </div> {/* End Course Creation Form */}
-
-              {/* Course Candidate List */}
-              <div className="bg-gray-50 p-4 rounded-lg border">
-                <h3 className="font-bold text-lg mb-2">課程候選區</h3>
-                <p className="text-sm font-normal text-gray-500 mb-3">(拖拽課程到日曆格子上)</p>
-                {courses.length === 0 ? (
-                  <div className="text-gray-500">（尚無課程）</div>
-                ) : (
-                  <div className="space-y-2">
-                    {courses.map((course) => (
-                      <CourseComponent
-                        key={course.id}
-                        course={course}
-                        inCalendar={false}
-                        actions={{
-                          onDragStart: (e) => handleDragStart(e, course.id),
-                          buttons: (
-                            <>
-                              <button
-                                onClick={() => deleteCourse(course.id)}
-                                className="text-red-500 hover:text-red-700 text-xs p-0.5"
-                                title="刪除課程"
-                              >
-                                🗑️
-                              </button>
-                              <button
-                                onClick={() => cloneCourse(course.id)}
-                                className="text-blue-500 hover:text-blue-700 text-xs p-0.5"
-                                title="複製課程"
-                              >
-                                📄
-                              </button>
-                              <button
-                                onClick={() => startEditCourse(course)}
-                                className="text-green-500 hover:text-green-700 text-xs p-0.5"
-                                title="編輯課程"
-                              >
-                                ✏️
-                              </button>
-                            </>
-                          )
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div> {/* End Course Candidate List */}
-            </div> {/* End Left Column */}
-
-            {/* Middle Column - Calendar (3/5 width) */}
-            <div className="w-3/5">
-              <div className="bg-white rounded-lg border overflow-hidden relative"> {/* 添加 relative 用於定位跨欄課程 */}
-                <table className="w-full border-collapse table-fixed">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="border p-2 w-16"></th>
-                      {days.map(day => (
-                        <th key={day} className="border p-2">{day}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allHours.map(hour => (
-                      <tr key={hour}>
-                        <td className="border p-2 bg-gray-50 text-center font-semibold text-sm h-24">
-                          {hour}:00
-                        </td> 
-                        {days.map(day => {
-                          // 檢查此時段是否在可用範圍內
-                          const isHourAvailable = hourSlots[day]?.includes(hour);
-                          
-                          // 檢查是否有延伸到此格子的課程 (不計算開始時間)
-                          const isExtendedByPrevious = calendarItems[day] && 
-                            Object.entries(calendarItems[day]).some(([startHour, courses]) => {
-                              const startHourNum = parseInt(startHour);
-                              return courses.some(course => {
-                                const endHour = startHourNum + (course.duration || 1);
-                                return hour > startHourNum && hour < endHour;
-                              });
-                            });
-                          
-                          // 是否允許拖放
-                          const allowDrop = isHourAvailable && !isExtendedByPrevious;
-
-                          return (
-                           <td
-                              key={`${day}-${hour}`}
-                              className={`border p-1 align-top relative h-24 
-                                        ${!isHourAvailable ? 'bg-gray-200' : ''} 
-                                        ${isExtendedByPrevious ? 'bg-gray-100' : ''}`}
-                              onDragOver={allowDrop ? handleDragOver : null}
-                              onDrop={allowDrop ? (e) => handleDrop(e, day, hour) : null}
-                              data-day={day}
-                              data-hour={hour}
-                              style={allowDrop ? { backgroundColor: 'rgba(240, 240, 250, 0.5)' } : {}}
-                            >
-                              {isHourAvailable && calendarItems[day]?.[hour]?.length > 0 && (
-                                <TimeSlotCourseGrid
-                                  day={day}
-                                  hour={hour}
-                                  courses={calendarItems[day][hour]}
-                                  onRemoveCourse={removeCourseFromCalendar}
-                                />
-                              )}
-                              {!isHourAvailable && <span className="text-gray-400 text-xs absolute top-1 left-1">不適用</span>}
-                              {isExtendedByPrevious && <span className="text-gray-400 text-xs italic absolute top-1 left-1">已被佔用</span>}
-                             </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                
-                {/* 渲染跨欄課程 */}
-                {renderExtendedCourses()}
-              </div>
-            </div> {/* End Middle Column */}
-
-            {/* Right Column - Conflict Display (1/5 width) */}
-            <div className="w-1/5" relative>
-              <div className="sticky top-4 bg-red-50 p-4 rounded-lg border border-red-200 shadow-md">
-                <h3 className="font-bold text-lg mb-3 text-red-700">衝突學生顯示區</h3>
-                {conflictStudents.length === 0 ? (
-                  <p className="text-gray-500">無衝突</p>
-                ) : (
-                  <ul className="list-disc pl-5 text-red-600 text-sm max-h-96 overflow-y-auto">
-                    {conflictStudents.map((name, idx) => (
-                      <li key={idx}>{name}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div> {/* End Right Column */}
-
-          </div> {/* End Main Content Flex */}
-
-          {/* Export/Import Section */}
-          <div className="bg-gray-50 p-4 rounded-lg border mb-6">
-            <h2 className="text-lg font-bold mb-3">資料匯出/匯入</h2>
-            <div className="flex flex-col md:flex-row gap-4 items-center">
-              <div>
-                <h3 className="font-semibold mb-1">匯入資料：</h3>
-                <input
-                  type="file"
-                  accept="application/json"
-                  className="border px-3 py-2 rounded text-sm"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        try {
-                          const data = JSON.parse(event.target.result);
-                          if (data.courses && data.calendarItems) {
-                            // 確保所有課程都有 duration 和 color 屬性
-                            const coursesWithProps = data.courses.map(course => ({
-                              ...course,
-                              duration: course.duration || 1,
-                              color: course.color || courseColors[0]
-                            }));
-                             
-                            const calendarWithProps = data.calendarItems;
-                            Object.keys(calendarWithProps).forEach(day => {
-                                Object.keys(calendarWithProps[day]).forEach(hour => {
-                                    calendarWithProps[day][hour] = calendarWithProps[day][hour].map(c => ({
-                                        ...c,
-                                        duration: c.duration || 1,
-                                        color: c.color || courseColors[0]
-                                    }));
-                                });
-                            });
-
-                            setCourses(coursesWithProps);
-                            setCalendarItems(calendarWithProps);
-                            alert('資料匯入成功！');
-                          } else {
-                            alert('格式錯誤，請確認檔案包含 courses 與 calendarItems。');
-                          }
-                        } catch(error) {
-                           console.error("Import Error:", error);
-                          alert('無法解析 JSON 檔案，請確認格式正確。');
-                        }
-                      };
-                      reader.readAsText(file);
-                      // Clear the input value so the same file can be loaded again
-                      e.target.value = null;
-                    }
-                  }}
-                />
-              </div>
-              <div>
-                <button
-                  onClick={handleExportData}
-                  className="bg-blue-600 text-white px-4 py-2 rounded"
-                >
-                  儲存到 GitHub
-                </button>
-              </div>
-            </div>
-            <div>
-              <button onClick={handleImportFromGitHub} className="bg-green-600 text-white px-4 py-2 rounded">
-                從 GitHub 載入
-              </button>
-            </div>
-          </div> {/* End Export/Import Section */}
-
-          {/* Course Editing Modal */}
-          {editingCourse && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-                <h2 className="text-xl font-bold mb-4">編輯課程</h2>
-
-                <div className="mb-4">
-                  <label className="block text-sm font-semibold mb-1">課程名稱：</label>
-                  <input
-                    type="text"
-                    value={editingCourse.name}
-                    onChange={(e) => setEditingCourse({ ...editingCourse, name: e.target.value })}
-                    className="border w-full p-2 rounded"
-                  />
-                </div>
-
-                {/* Course Duration Dropdown in Edit Modal */}
-                <div className="mb-4">
-                  <label className="block text-sm font-semibold mb-1">課程時長：</label>
-                  <select
-                    value={editingCourse.duration}
-                    onChange={(e) => setEditingCourse({
-                      ...editingCourse,
-                      duration: parseFloat(e.target.value)
-                    })}
-                    className="border w-full p-2 rounded"
-                  >
-                    {courseDurations.map(option => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Course Color Selection in Edit Modal */}
-                <div className="mb-4">
-                  <label className="block text-sm font-semibold mb-1">課程顏色：</label>
-                  <div className="flex flex-wrap gap-2">
-                    {courseColors.map((colorOption, idx) => (
-                      <div 
-                        key={idx}
-                        onClick={() => setEditingCourse({...editingCourse, color: colorOption})}
-                        className={`w-8 h-8 rounded cursor-pointer ${colorOption.bg} border ${colorOption.border} 
-                                  ${editingCourse.color && editingCourse.color.bg === colorOption.bg ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Student List in Edit Modal */}
-                <div className="mb-4">
-                  <h3 className="font-semibold mb-2">學生名單：</h3>
-                  <div className="max-h-40 overflow-y-auto mb-2 border rounded p-2">
-                    {editingCourse.students.length === 0 ? (
-                      <p className="text-gray-500">（尚無學生）</p>
-                    ) : (
-                      editingCourse.students.map((student, idx) => (
-                        <div key={idx} className="flex justify-between items-center p-2 bg-gray-50 mb-1 rounded">
-                          <span className="text-sm">
-                            {student.name}｜{student.school}｜{student.grade}
-                          </span>
-                          <button
-                            onClick={() => removeStudentFromEditingCourse(idx)}
-                            className="text-red-500 hover:text-red-700 text-xs"
-                          >
-                            刪除
-                          </button>
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                  {/* Add Student Form in Edit Modal */}
-                  <div className="border-t pt-3 mt-3">
-                    <h4 className="font-semibold mb-2">新增學生：</h4>
-                    <div className="flex gap-2 flex-wrap mb-2">
-                      <input
-                        type="text"
-                        placeholder="姓名"
-                        value={editStudentName}
-                        onChange={(e) => setEditStudentName(e.target.value)}
-                        className="border p-1 flex-1 min-w-[80px]"
-                      />
-                      <input
-                        type="text"
-                        placeholder="學校"
-                        value={editStudentSchool}
-                        onChange={(e) => setEditStudentSchool(e.target.value)}
-                        className="border p-1 flex-1 min-w-[80px]"
-                      />
-                      <input
-                        type="text"
-                        placeholder="年級"
-                        value={editStudentGrade}
-                        onChange={(e) => setEditStudentGrade(e.target.value)}
-                        className="border p-1 flex-1 min-w-[80px]"
-                      />
-                    </div>
-                    <button
-                      onClick={addStudentToEditingCourse}
-                      className="bg-blue-500 text-white px-3 py-1 rounded w-full text-sm"
-                    >
-                      新增學生到此課程
-                    </button>
-                  </div>
-                </div> {/* End Student List Section */}
-
-                {/* Modal Action Buttons */}
-                <div className="flex justify-end gap-3 mt-4">
-                  <button
-                    onClick={() => setEditingCourse(null)}
-                    className="px-4 py-2 border rounded"
-                  >
-                    取消
-                  </button>
-                  <button
-                    onClick={saveEditedCourse}
-                    className="px-4 py-2 bg-green-600 text-white rounded"
-                  >
-                    儲存變更
-                  </button>
-                </div>
-              </div> {/* End Modal Content */}
-            </div> /* End Modal Backdrop */
-          )} {/* End Editing Modal Conditional Render */}
-
-        </div> /* End Outer Container */
-      ); // End App return
-    } // End App Component
-
-    ReactDOM.render(<App />, document.getElementById('root'));
+    // --- 頁面初次載入時，自動執行 ---
+    document.addEventListener('DOMContentLoaded', loadSchedules);
   </script>
+
 </body>
 </html>
