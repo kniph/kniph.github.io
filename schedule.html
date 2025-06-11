@@ -323,46 +323,6 @@
       const [editStudentSchool, setEditStudentSchool] = useState('');
       const [editStudentGrade, setEditStudentGrade] = useState('');
 
-      // Load data from localStorage on initial render
-      useEffect(() => {
-        const savedCourses = localStorage.getItem('courses');
-        const savedCalendar = localStorage.getItem('calendarItems');
-
-        if (savedCourses) {
-          // Ensure duration and color are loaded correctly
-           const loadedCourses = JSON.parse(savedCourses).map(c => ({
-             ...c,
-             duration: c.duration || 1,
-             color: c.color || courseColors[0] // 確保顏色資訊存在
-           }));
-          setCourses(loadedCourses);
-        }
-
-        if (savedCalendar) {
-          // Ensure courses within calendar also have duration and color
-          const loadedCalendar = JSON.parse(savedCalendar);
-          Object.keys(loadedCalendar).forEach(day => {
-            Object.keys(loadedCalendar[day]).forEach(hour => {
-              loadedCalendar[day][hour] = loadedCalendar[day][hour].map(c => ({
-                ...c,
-                duration: c.duration || 1,
-                color: c.color || courseColors[0] // 確保顏色資訊存在
-              }));
-            });
-          });
-          setCalendarItems(loadedCalendar);
-        }
-      }, []);
-
-      // Save data to localStorage when it changes
-      useEffect(() => {
-        localStorage.setItem('courses', JSON.stringify(courses));
-      }, [courses]);
-
-      useEffect(() => {
-        localStorage.setItem('calendarItems', JSON.stringify(calendarItems));
-      }, [calendarItems]);
-
       // Add a student to the temporary student list
       const addTempStudent = () => {
         if (newStudentName && newStudentSchool && newStudentGrade) {
@@ -817,42 +777,6 @@
         setConflictStudents([]);
       };
 
-      // Export data to JSON
-      const handleExportData = async () => {
-        const data = { courses, calendarItems };
-        try {
-          const res = await fetch('https://scheduling-data.netlify.app/.netlify/functions/loadFromGitHub', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data })
-          });
-          if (res.ok) {
-            alert('已成功儲存到 GitHub！');
-          } else {
-            const err = await res.text();
-            alert('儲存失敗：' + err);
-          }
-        } catch (e) {
-          alert('儲存時發生錯誤：' + e.message);
-        }
-      };
-
-      const handleImportFromGitHub = async () => {
-        try {
-          const res = await fetch('https://scheduling-data.netlify.app/.netlify/functions/loadFromGitHub');
-          if (res.ok) {
-            const data = await res.json();
-            setCourses(data.courses);
-            setCalendarItems(data.calendarItems);
-            alert('已從 GitHub 載入資料！');
-          } else {
-            alert('讀取失敗：' + (await res.text()));
-          }
-        } catch (e) {
-          alert('讀取時發生錯誤：' + e.message);
-        }
-      };
-
       // --- JSX Structure ---
       return (
         <div className="max-w-7xl mx-auto relative"> {/* 添加 relative 用於定位跨欄課程 */}
@@ -1159,17 +1083,22 @@
               </div>
               <div>
                 <button
-                  onClick={handleExportData}
+                  onClick={() => {
+                    const data = { courses, calendarItems };
+                    const json = JSON.stringify(data, null, 2);
+                    const blob = new Blob([json], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = '排課資料.json';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
                   className="bg-blue-600 text-white px-4 py-2 rounded"
                 >
-                  儲存到 GitHub
+                  下載排課資料
                 </button>
               </div>
-            </div>
-            <div>
-              <button onClick={handleImportFromGitHub} className="bg-green-600 text-white px-4 py-2 rounded">
-                從 GitHub 載入
-              </button>
             </div>
           </div> {/* End Export/Import Section */}
 
@@ -1305,6 +1234,26 @@
     } // End App Component
 
     ReactDOM.render(<App />, document.getElementById('root'));
+
+    async function saveToCloud(newCourses, newCalendarItems) {
+      try {
+        await fetch('/.netlify/functions/save-schedules', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            courses: newCourses,
+            calendarItems: newCalendarItems
+          })
+        });
+      } catch (e) {
+        alert('儲存到雲端失敗：' + e.message);
+      }
+    }
+
+    // 監聽 courses, calendarItems 變化自動儲存
+    useEffect(() => {
+      saveToCloud(courses, calendarItems);
+    }, [courses, calendarItems]);
   </script>
 </body>
 </html>
