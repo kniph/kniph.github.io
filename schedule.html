@@ -777,6 +777,39 @@
         setConflictStudents([]);
       };
 
+      // 匯出
+      const handleExportData = () => {
+        const data = { courses, calendarItems };
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '排課資料.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      // 匯入
+      const handleImportData = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = async (event) => {
+            try {
+              const data = JSON.parse(event.target.result);
+              setCourses(data.courses || []);
+              setCalendarItems(data.calendarItems || {});
+              alert('資料匯入成功！');
+            } catch (error) {
+              alert('無法解析 JSON 檔案，請確認格式正確。');
+            }
+          };
+          reader.readAsText(file);
+          e.target.value = null;
+        }
+      };
+
       // --- JSX Structure ---
       return (
         <div className="max-w-7xl mx-auto relative"> {/* 添加 relative 用於定位跨欄課程 */}
@@ -1037,63 +1070,12 @@
                   type="file"
                   accept="application/json"
                   className="border px-3 py-2 rounded text-sm"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        try {
-                          const data = JSON.parse(event.target.result);
-                          if (data.courses && data.calendarItems) {
-                            // 確保所有課程都有 duration 和 color 屬性
-                            const coursesWithProps = data.courses.map(course => ({
-                              ...course,
-                              duration: course.duration || 1,
-                              color: course.color || courseColors[0]
-                            }));
-                             
-                            const calendarWithProps = data.calendarItems;
-                            Object.keys(calendarWithProps).forEach(day => {
-                                Object.keys(calendarWithProps[day]).forEach(hour => {
-                                    calendarWithProps[day][hour] = calendarWithProps[day][hour].map(c => ({
-                                        ...c,
-                                        duration: c.duration || 1,
-                                        color: c.color || courseColors[0]
-                                    }));
-                                });
-                            });
-
-                            setCourses(coursesWithProps);
-                            setCalendarItems(calendarWithProps);
-                            alert('資料匯入成功！');
-                          } else {
-                            alert('格式錯誤，請確認檔案包含 courses 與 calendarItems。');
-                          }
-                        } catch(error) {
-                           console.error("Import Error:", error);
-                          alert('無法解析 JSON 檔案，請確認格式正確。');
-                        }
-                      };
-                      reader.readAsText(file);
-                      // Clear the input value so the same file can be loaded again
-                      e.target.value = null;
-                    }
-                  }}
+                  onChange={handleImportData}
                 />
               </div>
               <div>
                 <button
-                  onClick={() => {
-                    const data = { courses, calendarItems };
-                    const json = JSON.stringify(data, null, 2);
-                    const blob = new Blob([json], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = '排課資料.json';
-                    a.click();
-                    URL.revokeObjectURL(url);
-                  }}
+                  onClick={handleExportData}
                   className="bg-blue-600 text-white px-4 py-2 rounded"
                 >
                   下載排課資料
@@ -1234,26 +1216,6 @@
     } // End App Component
 
     ReactDOM.render(<App />, document.getElementById('root'));
-
-    async function saveToCloud(newCourses, newCalendarItems) {
-      try {
-        await fetch('/.netlify/functions/save-schedules', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            courses: newCourses,
-            calendarItems: newCalendarItems
-          })
-        });
-      } catch (e) {
-        alert('儲存到雲端失敗：' + e.message);
-      }
-    }
-
-    // 監聽 courses, calendarItems 變化自動儲存
-    useEffect(() => {
-      saveToCloud(courses, calendarItems);
-    }, [courses, calendarItems]);
   </script>
 </body>
 </html>
