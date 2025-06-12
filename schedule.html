@@ -335,7 +335,7 @@
             const loadedData = await res.json();
 
             if (loadedData.courses && loadedData.courses.length > 0) {
-              const loadedCourses = loadedData.course.map(c => ({
+              const loadedCourses = loadedData.courses.map(c => ({
                 ...c,
                 duration: c.duration || 1,
                 color: c.color || courseColors[0]
