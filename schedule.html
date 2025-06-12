@@ -323,50 +323,35 @@
       const [editStudentSchool, setEditStudentSchool] = useState('');
       const [editStudentGrade, setEditStudentGrade] = useState('');
 
-      
-      //Add a Loading State on the top of React Element
-      const [isLoading, setIsLoading] = react.useState(true);
-
+      // Load data from localStorage on initial render
       useEffect(() => {
-        const LoadDataFromDB = async () => {
-          try {
-            //Call the new function
-            const res = await fetch('/.netlify/functions/get-app-state');
-            const loadedData = await res.json();
+        const savedCourses = localStorage.getItem('courses');
+        const savedCalendar = localStorage.getItem('calendarItems');
 
-            if (loadedData.courses && loadedData.courses.length >0) {
-              const loadedCourese = loadedData.course.map(c => ({
+        if (savedCourses) {
+          // Ensure duration and color are loaded correctly
+           const loadedCourses = JSON.parse(savedCourses).map(c => ({
+             ...c,
+             duration: c.duration || 1,
+             color: c.color || courseColors[0] // 確保顏色資訊存在
+           }));
+          setCourses(loadedCourses);
+        }
+
+        if (savedCalendar) {
+          // Ensure courses within calendar also have duration and color
+          const loadedCalendar = JSON.parse(savedCalendar);
+          Object.keys(loadedCalendar).forEach(day => {
+            Object.keys(loadedCalendar[day]).forEach(hour => {
+              loadedCalendar[day][hour] = loadedCalendar[day][hour].map(c => ({
                 ...c,
                 duration: c.duration || 1,
-                color: c.color || courseColors[0]
+                color: c.color || courseColors[0] // 確保顏色資訊存在
               }));
-              setCourses(loadedCourses);
-            }
-
-            if (loadedData.calendarItems) {
-              const loadedCalendar = loadedData.calendarItems;
-              Object.keys(loadedCalendar).forEach(day => {
-                Object.keys(loadedCalendar[day]).forEach(hour => {
-                  loadedCalendar[day][hour] = loadedCalendar[day][hour].map(c => ({
-                    ...c,
-                    duration: c.duration || 1,
-                    color: c.color || courseColors[0]
-                  }));
-                });
-              });
-              setCalendarItems(loadedCalendar);
-            }    
-          } catch (e) {
-            console.error("從資料庫讀取資料失敗:", e);
-            alert("無法從雲端讀取資料，將使用本機備份。");
-            // If loading from cloud fails, you'll have localStorage as backups
-            const savedCourses = localStorage.getItem('courses');
-          } finally {
-            setIsLoading(false);
-          }
-        };
-
-        loadDataFromDB();
+            });
+          });
+          setCalendarItems(loadedCalendar);
+        }
       }, []);
 
       // Save data to localStorage when it changes
@@ -831,21 +816,18 @@
         // Clear conflict display
         setConflictStudents([]);
       };
-      // 新的儲存函式，名稱也改得更貼切
-      const handleSaveDataToDB = async () => {
-        // 要儲存的資料結構與之前相同
+
+      // Export data to JSON
+      const handleExportData = async () => {
         const data = { courses, calendarItems };
         try {
-        // 呼叫我們新的後端函式
-          const res = await fetch('/.netlify/functions/save-app-state', {
+          const res = await fetch('/.netlify/functions/saveToGithub', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            // 注意：這裡的 body 結構要和後端對應
-            body: JSON.stringify({ data }) 
+            body: JSON.stringify({ data })
           });
-
           if (res.ok) {
-            alert('已成功儲存到雲端資料庫！');
+            alert('已成功儲存到 GitHub！');
           } else {
             const err = await res.text();
             alert('儲存失敗：' + err);
@@ -853,7 +835,7 @@
         } catch (e) {
           alert('儲存時發生錯誤：' + e.message);
         }
-      };  
+      };
 
       // --- JSX Structure ---
       return (
