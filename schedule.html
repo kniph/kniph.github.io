@@ -8,6 +8,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.2/babel.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #7f6aff 0%, #6e8fff 50%, #a084ee 100%);
+    }
+    .liquid-glass {
+      background: rgba(255, 255, 255, 0.35);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+  </style>
 </head>
 <body>
   <div id="root" class="container mx-auto p-4"></div>
@@ -323,50 +337,35 @@
       const [editStudentSchool, setEditStudentSchool] = useState('');
       const [editStudentGrade, setEditStudentGrade] = useState('');
 
-      
-      //Add a Loading State on the top of React Element
-      const [isLoading, setIsLoading] = React.useState(true);
-
+      // Load data from localStorage on initial render
       useEffect(() => {
-        const LoadDataFromDB = async () => {
-          try {
-            //Call the new function
-            const res = await fetch('https://scheduling-data.netlify.app/.netlify/functions/get-app-state');
-            const loadedData = await res.json();
+        const savedCourses = localStorage.getItem('courses');
+        const savedCalendar = localStorage.getItem('calendarItems');
 
-            if (loadedData.courses && loadedData.courses.length > 0) {
-              const loadedCourses = loadedData.courses.map(c => ({
+        if (savedCourses) {
+          // Ensure duration and color are loaded correctly
+           const loadedCourses = JSON.parse(savedCourses).map(c => ({
+             ...c,
+             duration: c.duration || 1,
+             color: c.color || courseColors[0] // 確保顏色資訊存在
+           }));
+          setCourses(loadedCourses);
+        }
+
+        if (savedCalendar) {
+          // Ensure courses within calendar also have duration and color
+          const loadedCalendar = JSON.parse(savedCalendar);
+          Object.keys(loadedCalendar).forEach(day => {
+            Object.keys(loadedCalendar[day]).forEach(hour => {
+              loadedCalendar[day][hour] = loadedCalendar[day][hour].map(c => ({
                 ...c,
                 duration: c.duration || 1,
-                color: c.color || courseColors[0]
+                color: c.color || courseColors[0] // 確保顏色資訊存在
               }));
-              setCourses(loadedCourses);
-            }
-
-            if (loadedData.calendarItems) {
-              const loadedCalendar = loadedData.calendarItems;
-              Object.keys(loadedCalendar).forEach(day => {
-                Object.keys(loadedCalendar[day]).forEach(hour => {
-                  loadedCalendar[day][hour] = loadedCalendar[day][hour].map(c => ({
-                    ...c,
-                    duration: c.duration || 1,
-                    color: c.color || courseColors[0]
-                  }));
-                });
-              });
-              setCalendarItems(loadedCalendar);
-            }    
-          } catch (e) {
-            console.error("從資料庫讀取資料失敗:", e);
-            alert("無法從雲端讀取資料，將使用本機備份。");
-            // If loading from cloud fails, you'll have localStorage as backups
-            const savedCourses = localStorage.getItem('courses');
-          } finally {
-            setIsLoading(false);
-          }
-        };
-
-        loadDataFromDB();
+            });
+          });
+          setCalendarItems(loadedCalendar);
+        }
       }, []);
 
       // Save data to localStorage when it changes
@@ -831,477 +830,465 @@
         // Clear conflict display
         setConflictStudents([]);
       };
-      // 新的儲存函式，名稱也改得更貼切
-      const handleSaveDataToDB = async () => {
-        // 要儲存的資料結構與之前相同
-        const data = { courses, calendarItems };
-        try {
-        // 呼叫我們新的後端函式
-          const res = await fetch('https://scheduling-data.netlify.app/.netlify/functions/save-app-state', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            // 注意：這裡的 body 結構要和後端對應
-            body: JSON.stringify({ data }) 
-          });
 
-          if (res.ok) {
-            alert('已成功儲存到雲端資料庫！');
-          } else {
-            const err = await res.text();
-            alert('儲存失敗：' + err);
-          }
-        } catch (e) {
-          alert('儲存時發生錯誤：' + e.message);
-        }
-      };  
+      // Export data to JSON
+      const handleExportData = () => {
+        const data = { courses, calendarItems };
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '傑立排課資料.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      };
 
       // --- JSX Structure ---
       return (
-        <div className="max-w-7xl mx-auto relative"> {/* 添加 relative 用於定位跨欄課程 */}
-          <h1 className="text-2xl font-bold mb-6">傑立排課系統</h1>
+        <div className="min-h-screen flex flex-col items-center justify-center">
+          <div className="max-w-7xl w-full mx-auto relative">
+            <h1 className="text-2xl font-bold mb-6 text-white">傑立排課系統</h1>
 
-          {/* Main Content - 3 Columns */}
-          <div className="flex gap-4 mb-6">
+            {/* Main Content - 3 Columns */}
+            <div className="flex gap-4 mb-6">
 
-            {/* Left Column - Course Management (1/5 width) */}
-            <div className="w-1/5">
-              {/* Course Creation Form */}
-              <div className="bg-white p-4 rounded-lg border mb-4">
-                <h3 className="font-semibold mb-3">新增課程</h3>
-                <input
-                  type="text"
-                  placeholder="課程名稱"
-                  value={newCourseName}
-                  onChange={(e) => setNewCourseName(e.target.value)}
-                  className="border px-2 py-1 w-full mb-3"
-                />
+              {/* Left Column - Course Management (1/5 width) */}
+              <div className="w-1/5">
+                {/* Course Creation Form */}
+                <div className="bg-white p-4 rounded-lg border mb-4">
+                  <h3 className="font-semibold mb-3">新增課程</h3>
+                  <input
+                    type="text"
+                    placeholder="課程名稱"
+                    value={newCourseName}
+                    onChange={(e) => setNewCourseName(e.target.value)}
+                    className="border px-2 py-1 w-full mb-3"
+                  />
 
-                {/* Course Duration Dropdown */}
-                <div className="mb-3">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    課程時長：
-                  </label>
-                  <select
-                    value={newCourseDuration}
-                    onChange={(e) => setNewCourseDuration(e.target.value)}
-                    className="border px-2 py-1 w-full"
-                  >
-                    {courseDurations.map(option => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Course Color Selection */}
-                <div className="mb-3">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    課程顏色：
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {courseColors.map((colorOption, idx) => (
-                      <div 
-                        key={idx}
-                        onClick={() => setNewCourseColor(colorOption)}
-                        className={`w-6 h-6 rounded-full cursor-pointer ${colorOption.bg} border ${colorOption.border}
-                                  ${newCourseColor.bg === colorOption.bg ? 'ring-2 ring-offset-1 ring-blue-500' : ''}`}
-                        title="選擇此顏色"
-                      />
-                    ))}
+                  {/* Course Duration Dropdown */}
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      課程時長：
+                    </label>
+                    <select
+                      value={newCourseDuration}
+                      onChange={(e) => setNewCourseDuration(e.target.value)}
+                      className="border px-2 py-1 w-full"
+                    >
+                      {courseDurations.map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                </div>
 
-                {/* Student Input Fields */}
-                <div className="flex gap-2 flex-wrap mb-2">
-                  <input
-                    type="text"
-                    placeholder="學生姓名"
-                    value={newStudentName}
-                    onChange={(e) => setNewStudentName(e.target.value)}
-                    className="border px-2 py-1 flex-1 min-w-[80px]"
-                  />
-                  <input
-                    type="text"
-                    placeholder="學校"
-                    value={newStudentSchool}
-                    onChange={(e) => setNewStudentSchool(e.target.value)}
-                    className="border px-2 py-1 flex-1 min-w-[80px]"
-                  />
-                  <input
-                    type="text"
-                    placeholder="年級"
-                    value={newStudentGrade}
-                    onChange={(e) => setNewStudentGrade(e.target.value)}
-                    className="border px-2 py-1 flex-1 min-w-[80px]"
-                  />
-                </div>
+                  {/* Course Color Selection */}
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      課程顏色：
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {courseColors.map((colorOption, idx) => (
+                        <div 
+                          key={idx}
+                          onClick={() => setNewCourseColor(colorOption)}
+                          className={`w-6 h-6 rounded-full cursor-pointer ${colorOption.bg} border ${colorOption.border}
+                                    ${newCourseColor.bg === colorOption.bg ? 'ring-2 ring-offset-1 ring-blue-500' : ''}`}
+                          title="選擇此顏色"
+                        />
+                      ))}
+                    </div>
+                  </div>
 
-                <button
-                  onClick={addTempStudent}
-                  className="bg-blue-500 text-white px-3 py-1 rounded mb-3 w-full"
-                >
-                  加入學生
-                </button>
+                  {/* Student Input Fields */}
+                  <div className="flex gap-2 flex-wrap mb-2">
+                    <input
+                      type="text"
+                      placeholder="學生姓名"
+                      value={newStudentName}
+                      onChange={(e) => setNewStudentName(e.target.value)}
+                      className="border px-2 py-1 flex-1 min-w-[80px]"
+                    />
+                    <input
+                      type="text"
+                      placeholder="學校"
+                      value={newStudentSchool}
+                      onChange={(e) => setNewStudentSchool(e.target.value)}
+                      className="border px-2 py-1 flex-1 min-w-[80px]"
+                    />
+                    <input
+                      type="text"
+                      placeholder="年級"
+                      value={newStudentGrade}
+                      onChange={(e) => setNewStudentGrade(e.target.value)}
+                      className="border px-2 py-1 flex-1 min-w-[80px]"
+                    />
+                  </div>
 
-                {/* Temporary Student List */}
-                <div className="mb-3 text-sm text-gray-700">
-                  <div className="font-semibold mb-1">已加入學生：</div>
-                  {tempStudents.length === 0 ? (
-                    <div className="text-gray-500">(尚無學生)</div>
+                  <button
+                    onClick={addTempStudent}
+                    className="bg-blue-500 text-white px-3 py-1 rounded mb-3 w-full"
+                  >
+                    加入學生
+                  </button>
+
+                  {/* Temporary Student List */}
+                  <div className="mb-3 text-sm text-gray-700">
+                    <div className="font-semibold mb-1">已加入學生：</div>
+                    {tempStudents.length === 0 ? (
+                      <div className="text-gray-500">(尚無學生)</div>
+                    ) : (
+                      <ul className="list-disc pl-5 max-h-20 overflow-y-auto">
+                        {tempStudents.map((student, idx) => (
+                          <li key={idx}>
+                            {student.name}（{student.school}・{student.grade}）
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={createNewCourse}
+                    className="bg-green-600 text-white px-3 py-1 rounded w-full"
+                    disabled={!newCourseName || tempStudents.length === 0}
+                  >
+                    新增課程
+                  </button>
+                </div> {/* End Course Creation Form */}
+
+                {/* Course Candidate List */}
+                <div className="bg-gray-50 p-4 rounded-lg border">
+                  <h3 className="font-bold text-lg mb-2">課程候選區</h3>
+                  <p className="text-sm font-normal text-gray-500 mb-3">(拖拽課程到日曆格子上)</p>
+                  {courses.length === 0 ? (
+                    <div className="text-gray-500">（尚無課程）</div>
                   ) : (
-                    <ul className="list-disc pl-5 max-h-20 overflow-y-auto">
-                      {tempStudents.map((student, idx) => (
-                        <li key={idx}>
-                          {student.name}（{student.school}・{student.grade}）
-                        </li>
+                    <div className="space-y-2">
+                      {courses.map((course) => (
+                        <CourseComponent
+                          key={course.id}
+                          course={course}
+                          inCalendar={false}
+                          actions={{
+                            onDragStart: (e) => handleDragStart(e, course.id),
+                            buttons: (
+                              <>
+                                <button
+                                  onClick={() => deleteCourse(course.id)}
+                                  className="text-red-500 hover:text-red-700 text-xs p-0.5"
+                                  title="刪除課程"
+                                >
+                                  🗑️
+                                </button>
+                                <button
+                                  onClick={() => cloneCourse(course.id)}
+                                  className="text-blue-500 hover:text-blue-700 text-xs p-0.5"
+                                  title="複製課程"
+                                >
+                                  📄
+                                </button>
+                                <button
+                                  onClick={() => startEditCourse(course)}
+                                  className="text-green-500 hover:text-green-700 text-xs p-0.5"
+                                  title="編輯課程"
+                                >
+                                  ✏️
+                                </button>
+                              </>
+                            )
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div> {/* End Course Candidate List */}
+              </div> {/* End Left Column */}
+
+              {/* Middle Column - Calendar (3/5 width) */}
+              <div className="w-3/5">
+                <div className="bg-white rounded-lg border overflow-hidden relative">
+                  <table className="w-full border-collapse table-fixed">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="border p-2 w-16"></th>
+                        {days.map(day => (
+                          <th key={day} className="border p-2">{day}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allHours.map(hour => (
+                        <tr key={hour}>
+                          <td className="border p-2 bg-gray-50 text-center font-semibold text-sm h-24">
+                            {hour}:00
+                          </td> 
+                          {days.map(day => {
+                            // 檢查此時段是否在可用範圍內
+                            const isHourAvailable = hourSlots[day]?.includes(hour);
+                            
+                            // 檢查是否有延伸到此格子的課程 (不計算開始時間)
+                            const isExtendedByPrevious = calendarItems[day] && 
+                              Object.entries(calendarItems[day]).some(([startHour, courses]) => {
+                                const startHourNum = parseInt(startHour);
+                                return courses.some(course => {
+                                  const endHour = startHourNum + (course.duration || 1);
+                                  return hour > startHourNum && hour < endHour;
+                                });
+                              });
+                            
+                            // 是否允許拖放
+                            const allowDrop = isHourAvailable && !isExtendedByPrevious;
+
+                            return (
+                             <td
+                                key={`${day}-${hour}`}
+                                className={`border p-1 align-top relative h-24 
+                                          ${!isHourAvailable ? 'bg-gray-200' : ''} 
+                                          ${isExtendedByPrevious ? 'bg-gray-100' : ''}`}
+                                onDragOver={allowDrop ? handleDragOver : null}
+                                onDrop={allowDrop ? (e) => handleDrop(e, day, hour) : null}
+                                data-day={day}
+                                data-hour={hour}
+                                style={allowDrop ? { backgroundColor: 'rgba(240, 240, 250, 0.5)' } : {}}
+                              >
+                                {isHourAvailable && calendarItems[day]?.[hour]?.length > 0 && (
+                                  <TimeSlotCourseGrid
+                                    day={day}
+                                    hour={hour}
+                                    courses={calendarItems[day][hour]}
+                                    onRemoveCourse={removeCourseFromCalendar}
+                                  />
+                                )}
+                                {!isHourAvailable && <span className="text-gray-400 text-xs absolute top-1 left-1">不適用</span>}
+                                {isExtendedByPrevious && <span className="text-gray-400 text-xs italic absolute top-1 left-1">已被佔用</span>}
+                               </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  
+                  {/* 渲染跨欄課程 */}
+                  {renderExtendedCourses()}
+                </div>
+              </div> {/* End Middle Column */}
+
+              {/* Right Column - Conflict Display (1/5 width) */}
+              <div className="w-1/5" relative>
+                <div className="sticky top-4 bg-red-50 p-4 rounded-lg border border-red-200 shadow-md">
+                  <h3 className="font-bold text-lg mb-3 text-red-700">衝突學生顯示區</h3>
+                  {conflictStudents.length === 0 ? (
+                    <p className="text-gray-500">無衝突</p>
+                  ) : (
+                    <ul className="list-disc pl-5 text-red-600 text-sm max-h-96 overflow-y-auto">
+                      {conflictStudents.map((name, idx) => (
+                        <li key={idx}>{name}</li>
                       ))}
                     </ul>
                   )}
                 </div>
+              </div> {/* End Right Column */}
 
-                <button
-                  onClick={createNewCourse}
-                  className="bg-green-600 text-white px-3 py-1 rounded w-full"
-                  disabled={!newCourseName || tempStudents.length === 0}
-                >
-                  新增課程
-                </button>
-              </div> {/* End Course Creation Form */}
+            </div> {/* End Main Content Flex */}
 
-              {/* Course Candidate List */}
-              <div className="bg-gray-50 p-4 rounded-lg border">
-                <h3 className="font-bold text-lg mb-2">課程候選區</h3>
-                <p className="text-sm font-normal text-gray-500 mb-3">(拖拽課程到日曆格子上)</p>
-                {courses.length === 0 ? (
-                  <div className="text-gray-500">（尚無課程）</div>
-                ) : (
-                  <div className="space-y-2">
-                    {courses.map((course) => (
-                      <CourseComponent
-                        key={course.id}
-                        course={course}
-                        inCalendar={false}
-                        actions={{
-                          onDragStart: (e) => handleDragStart(e, course.id),
-                          buttons: (
-                            <>
-                              <button
-                                onClick={() => deleteCourse(course.id)}
-                                className="text-red-500 hover:text-red-700 text-xs p-0.5"
-                                title="刪除課程"
-                              >
-                                🗑️
-                              </button>
-                              <button
-                                onClick={() => cloneCourse(course.id)}
-                                className="text-blue-500 hover:text-blue-700 text-xs p-0.5"
-                                title="複製課程"
-                              >
-                                📄
-                              </button>
-                              <button
-                                onClick={() => startEditCourse(course)}
-                                className="text-green-500 hover:text-green-700 text-xs p-0.5"
-                                title="編輯課程"
-                              >
-                                ✏️
-                              </button>
-                            </>
-                          )
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div> {/* End Course Candidate List */}
-            </div> {/* End Left Column */}
-
-            {/* Middle Column - Calendar (3/5 width) */}
-            <div className="w-3/5">
-              <div className="bg-white rounded-lg border overflow-hidden relative"> {/* 添加 relative 用於定位跨欄課程 */}
-                <table className="w-full border-collapse table-fixed">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="border p-2 w-16"></th>
-                      {days.map(day => (
-                        <th key={day} className="border p-2">{day}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allHours.map(hour => (
-                      <tr key={hour}>
-                        <td className="border p-2 bg-gray-50 text-center font-semibold text-sm h-24">
-                          {hour}:00
-                        </td> 
-                        {days.map(day => {
-                          // 檢查此時段是否在可用範圍內
-                          const isHourAvailable = hourSlots[day]?.includes(hour);
-                          
-                          // 檢查是否有延伸到此格子的課程 (不計算開始時間)
-                          const isExtendedByPrevious = calendarItems[day] && 
-                            Object.entries(calendarItems[day]).some(([startHour, courses]) => {
-                              const startHourNum = parseInt(startHour);
-                              return courses.some(course => {
-                                const endHour = startHourNum + (course.duration || 1);
-                                return hour > startHourNum && hour < endHour;
-                              });
-                            });
-                          
-                          // 是否允許拖放
-                          const allowDrop = isHourAvailable && !isExtendedByPrevious;
-
-                          return (
-                           <td
-                              key={`${day}-${hour}`}
-                              className={`border p-1 align-top relative h-24 
-                                        ${!isHourAvailable ? 'bg-gray-200' : ''} 
-                                        ${isExtendedByPrevious ? 'bg-gray-100' : ''}`}
-                              onDragOver={allowDrop ? handleDragOver : null}
-                              onDrop={allowDrop ? (e) => handleDrop(e, day, hour) : null}
-                              data-day={day}
-                              data-hour={hour}
-                              style={allowDrop ? { backgroundColor: 'rgba(240, 240, 250, 0.5)' } : {}}
-                            >
-                              {isHourAvailable && calendarItems[day]?.[hour]?.length > 0 && (
-                                <TimeSlotCourseGrid
-                                  day={day}
-                                  hour={hour}
-                                  courses={calendarItems[day][hour]}
-                                  onRemoveCourse={removeCourseFromCalendar}
-                                />
-                              )}
-                              {!isHourAvailable && <span className="text-gray-400 text-xs absolute top-1 left-1">不適用</span>}
-                              {isExtendedByPrevious && <span className="text-gray-400 text-xs italic absolute top-1 left-1">已被佔用</span>}
-                             </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                
-                {/* 渲染跨欄課程 */}
-                {renderExtendedCourses()}
-              </div>
-            </div> {/* End Middle Column */}
-
-            {/* Right Column - Conflict Display (1/5 width) */}
-            <div className="w-1/5" relative>
-              <div className="sticky top-4 bg-red-50 p-4 rounded-lg border border-red-200 shadow-md">
-                <h3 className="font-bold text-lg mb-3 text-red-700">衝突學生顯示區</h3>
-                {conflictStudents.length === 0 ? (
-                  <p className="text-gray-500">無衝突</p>
-                ) : (
-                  <ul className="list-disc pl-5 text-red-600 text-sm max-h-96 overflow-y-auto">
-                    {conflictStudents.map((name, idx) => (
-                      <li key={idx}>{name}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div> {/* End Right Column */}
-
-          </div> {/* End Main Content Flex */}
-
-          {/* Export/Import Section */}
-          <div className="bg-gray-50 p-4 rounded-lg border mb-6">
-            <h2 className="text-lg font-bold mb-3">資料匯出/匯入</h2>
-            <div className="flex flex-col md:flex-row gap-4 items-center">
-              <div>
-                <h3 className="font-semibold mb-1">匯入資料：</h3>
-                <input
-                  type="file"
-                  accept="application/json"
-                  className="border px-3 py-2 rounded text-sm"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        try {
-                          const data = JSON.parse(event.target.result);
-                          if (data.courses && data.calendarItems) {
-                            // 確保所有課程都有 duration 和 color 屬性
-                            const coursesWithProps = data.courses.map(course => ({
-                              ...course,
-                              duration: course.duration || 1,
-                              color: course.color || courseColors[0]
-                            }));
-                             
-                            const calendarWithProps = data.calendarItems;
-                            Object.keys(calendarWithProps).forEach(day => {
-                                Object.keys(calendarWithProps[day]).forEach(hour => {
-                                    calendarWithProps[day][hour] = calendarWithProps[day][hour].map(c => ({
-                                        ...c,
-                                        duration: c.duration || 1,
-                                        color: c.color || courseColors[0]
-                                    }));
-                                });
-                            });
-
-                            setCourses(coursesWithProps);
-                            setCalendarItems(calendarWithProps);
-                            alert('資料匯入成功！');
-                          } else {
-                            alert('格式錯誤，請確認檔案包含 courses 與 calendarItems。');
-                          }
-                        } catch(error) {
-                           console.error("Import Error:", error);
-                          alert('無法解析 JSON 檔案，請確認格式正確。');
-                        }
-                      };
-                      reader.readAsText(file);
-                      // Clear the input value so the same file can be loaded again
-                      e.target.value = null;
-                    }
-                  }}
-                />
-              </div>
-              <div>
-                <button
-                  onClick={() => {
-                    localStorage.setItem('courses', JSON.stringify(courses));
-                    localStorage.setItem('calendarItems', JSON.stringify(calendarItems));
-                    alert('已儲存到本機！');
-                  }}
-                  className="bg-blue-600 text-white px-4 py-2 rounded"
-                >
-                  儲存到本機
-                </button>
-              </div>
-            </div>
-          </div> {/* End Export/Import Section */}
-
-          {/* Course Editing Modal */}
-          {editingCourse && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-                <h2 className="text-xl font-bold mb-4">編輯課程</h2>
-
-                <div className="mb-4">
-                  <label className="block text-sm font-semibold mb-1">課程名稱：</label>
+            {/* Export/Import Section */}
+            <div className="bg-gray-50 p-4 rounded-lg border mb-6">
+              <h2 className="text-lg font-bold mb-3">資料匯出/匯入</h2>
+              <div className="flex flex-col md:flex-row gap-4 items-center">
+                <div>
+                  <h3 className="font-semibold mb-1">匯入資料：</h3>
                   <input
-                    type="text"
-                    value={editingCourse.name}
-                    onChange={(e) => setEditingCourse({ ...editingCourse, name: e.target.value })}
-                    className="border w-full p-2 rounded"
+                    type="file"
+                    accept="application/json"
+                    className="border px-3 py-2 rounded text-sm"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          try {
+                            const data = JSON.parse(event.target.result);
+                            if (data.courses && data.calendarItems) {
+                              // 確保所有課程都有 duration 和 color 屬性
+                              const coursesWithProps = data.courses.map(course => ({
+                                ...course,
+                                duration: course.duration || 1,
+                                color: course.color || courseColors[0]
+                              }));
+                               
+                              const calendarWithProps = data.calendarItems;
+                              Object.keys(calendarWithProps).forEach(day => {
+                                  Object.keys(calendarWithProps[day]).forEach(hour => {
+                                      calendarWithProps[day][hour] = calendarWithProps[day][hour].map(c => ({
+                                          ...c,
+                                          duration: c.duration || 1,
+                                          color: c.color || courseColors[0]
+                                      }));
+                                  });
+                              });
+
+                              setCourses(coursesWithProps);
+                              setCalendarItems(calendarWithProps);
+                              alert('資料匯入成功！');
+                            } else {
+                              alert('格式錯誤，請確認檔案包含 courses 與 calendarItems。');
+                            }
+                          } catch(error) {
+                             console.error("Import Error:", error);
+                            alert('無法解析 JSON 檔案，請確認格式正確。');
+                          }
+                        };
+                        reader.readAsText(file);
+                        // Clear the input value so the same file can be loaded again
+                        e.target.value = null;
+                      }
+                    }}
                   />
                 </div>
-
-                {/* Course Duration Dropdown in Edit Modal */}
-                <div className="mb-4">
-                  <label className="block text-sm font-semibold mb-1">課程時長：</label>
-                  <select
-                    value={editingCourse.duration}
-                    onChange={(e) => setEditingCourse({
-                      ...editingCourse,
-                      duration: parseFloat(e.target.value)
-                    })}
-                    className="border w-full p-2 rounded"
+                <div>
+                  <button
+                    onClick={handleExportData}
+                    className="bg-blue-600 text-white px-4 py-2 rounded"
                   >
-                    {courseDurations.map(option => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                    下載排課資料
+                  </button>
                 </div>
+              </div>
+            </div> {/* End Export/Import Section */}
 
-                {/* Course Color Selection in Edit Modal */}
-                <div className="mb-4">
-                  <label className="block text-sm font-semibold mb-1">課程顏色：</label>
-                  <div className="flex flex-wrap gap-2">
-                    {courseColors.map((colorOption, idx) => (
-                      <div 
-                        key={idx}
-                        onClick={() => setEditingCourse({...editingCourse, color: colorOption})}
-                        className={`w-8 h-8 rounded cursor-pointer ${colorOption.bg} border ${colorOption.border} 
-                                  ${editingCourse.color && editingCourse.color.bg === colorOption.bg ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
-                      />
-                    ))}
-                  </div>
-                </div>
+            {/* Course Editing Modal */}
+            {editingCourse && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+                  <h2 className="text-xl font-bold mb-4">編輯課程</h2>
 
-                {/* Student List in Edit Modal */}
-                <div className="mb-4">
-                  <h3 className="font-semibold mb-2">學生名單：</h3>
-                  <div className="max-h-40 overflow-y-auto mb-2 border rounded p-2">
-                    {editingCourse.students.length === 0 ? (
-                      <p className="text-gray-500">（尚無學生）</p>
-                    ) : (
-                      editingCourse.students.map((student, idx) => (
-                        <div key={idx} className="flex justify-between items-center p-2 bg-gray-50 mb-1 rounded">
-                          <span className="text-sm">
-                            {student.name}｜{student.school}｜{student.grade}
-                          </span>
-                          <button
-                            onClick={() => removeStudentFromEditingCourse(idx)}
-                            className="text-red-500 hover:text-red-700 text-xs"
-                          >
-                            刪除
-                          </button>
-                        </div>
-                      ))
-                    )}
+                  <div className="mb-4">
+                    <label className="block text-sm font-semibold mb-1">課程名稱：</label>
+                    <input
+                      type="text"
+                      value={editingCourse.name}
+                      onChange={(e) => setEditingCourse({ ...editingCourse, name: e.target.value })}
+                      className="border w-full p-2 rounded"
+                    />
                   </div>
 
-                  {/* Add Student Form in Edit Modal */}
-                  <div className="border-t pt-3 mt-3">
-                    <h4 className="font-semibold mb-2">新增學生：</h4>
-                    <div className="flex gap-2 flex-wrap mb-2">
-                      <input
-                        type="text"
-                        placeholder="姓名"
-                        value={editStudentName}
-                        onChange={(e) => setEditStudentName(e.target.value)}
-                        className="border p-1 flex-1 min-w-[80px]"
-                      />
-                      <input
-                        type="text"
-                        placeholder="學校"
-                        value={editStudentSchool}
-                        onChange={(e) => setEditStudentSchool(e.target.value)}
-                        className="border p-1 flex-1 min-w-[80px]"
-                      />
-                      <input
-                        type="text"
-                        placeholder="年級"
-                        value={editStudentGrade}
-                        onChange={(e) => setEditStudentGrade(e.target.value)}
-                        className="border p-1 flex-1 min-w-[80px]"
-                      />
-                    </div>
-                    <button
-                      onClick={addStudentToEditingCourse}
-                      className="bg-blue-500 text-white px-3 py-1 rounded w-full text-sm"
+                  {/* Course Duration Dropdown in Edit Modal */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-semibold mb-1">課程時長：</label>
+                    <select
+                      value={editingCourse.duration}
+                      onChange={(e) => setEditingCourse({
+                        ...editingCourse,
+                        duration: parseFloat(e.target.value)
+                      })}
+                      className="border w-full p-2 rounded"
                     >
-                      新增學生到此課程
+                      {courseDurations.map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Course Color Selection in Edit Modal */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-semibold mb-1">課程顏色：</label>
+                    <div className="flex flex-wrap gap-2">
+                      {courseColors.map((colorOption, idx) => (
+                        <div 
+                          key={idx}
+                          onClick={() => setEditingCourse({...editingCourse, color: colorOption})}
+                          className={`w-8 h-8 rounded cursor-pointer ${colorOption.bg} border ${colorOption.border} 
+                                    ${editingCourse.color && editingCourse.color.bg === colorOption.bg ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Student List in Edit Modal */}
+                  <div className="mb-4">
+                    <h3 className="font-semibold mb-2">學生名單：</h3>
+                    <div className="max-h-40 overflow-y-auto mb-2 border rounded p-2">
+                      {editingCourse.students.length === 0 ? (
+                        <p className="text-gray-500">（尚無學生）</p>
+                      ) : (
+                        editingCourse.students.map((student, idx) => (
+                          <div key={idx} className="flex justify-between items-center p-2 bg-gray-50 mb-1 rounded">
+                            <span className="text-sm">
+                              {student.name}｜{student.school}｜{student.grade}
+                            </span>
+                            <button
+                              onClick={() => removeStudentFromEditingCourse(idx)}
+                              className="text-red-500 hover:text-red-700 text-xs"
+                            >
+                              刪除
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Add Student Form in Edit Modal */}
+                    <div className="border-t pt-3 mt-3">
+                      <h4 className="font-semibold mb-2">新增學生：</h4>
+                      <div className="flex gap-2 flex-wrap mb-2">
+                        <input
+                          type="text"
+                          placeholder="姓名"
+                          value={editStudentName}
+                          onChange={(e) => setEditStudentName(e.target.value)}
+                          className="border p-1 flex-1 min-w-[80px]"
+                        />
+                        <input
+                          type="text"
+                          placeholder="學校"
+                          value={editStudentSchool}
+                          onChange={(e) => setEditStudentSchool(e.target.value)}
+                          className="border p-1 flex-1 min-w-[80px]"
+                        />
+                        <input
+                          type="text"
+                          placeholder="年級"
+                          value={editStudentGrade}
+                          onChange={(e) => setEditStudentGrade(e.target.value)}
+                          className="border p-1 flex-1 min-w-[80px]"
+                        />
+                      </div>
+                      <button
+                        onClick={addStudentToEditingCourse}
+                        className="bg-blue-500 text-white px-3 py-1 rounded w-full text-sm"
+                      >
+                        新增學生到此課程
+                      </button>
+                    </div>
+                  </div> {/* End Student List Section */}
+
+                  {/* Modal Action Buttons */}
+                  <div className="flex justify-end gap-3 mt-4">
+                    <button
+                      onClick={() => setEditingCourse(null)}
+                      className="px-4 py-2 border rounded"
+                    >
+                      取消
+                    </button>
+                    <button
+                      onClick={saveEditedCourse}
+                      className="px-4 py-2 bg-green-600 text-white rounded"
+                    >
+                      儲存變更
                     </button>
                   </div>
-                </div> {/* End Student List Section */}
+                </div> {/* End Modal Content */}
+              </div> /* End Modal Backdrop */
+            )} {/* End Editing Modal Conditional Render */}
 
-                {/* Modal Action Buttons */}
-                <div className="flex justify-end gap-3 mt-4">
-                  <button
-                    onClick={() => setEditingCourse(null)}
-                    className="px-4 py-2 border rounded"
-                  >
-                    取消
-                  </button>
-                  <button
-                    onClick={saveEditedCourse}
-                    className="px-4 py-2 bg-green-600 text-white rounded"
-                  >
-                    儲存變更
-                  </button>
-                </div>
-              </div> {/* End Modal Content */}
-            </div> /* End Modal Backdrop */
-          )} {/* End Editing Modal Conditional Render */}
-
-        </div> /* End Outer Container */
+          </div> /* End Outer Container */
+        </div>
       ); // End App return
     } // End App Component
 
