@@ -8,7 +8,7 @@ exports.handler = async function(event, context) {
     { username: "cyc0903cyc", password: "0903" },
     { username: "test", password: "temp" },
     { username: "shelly", password: "1127" },
-    { username: "maggie", password: "yu631" },
+    { username: "maggie", password: "yu629" },
     { username: "yiching", password: "0809" },
     { username: "kniph", password: "jackie" }
   
