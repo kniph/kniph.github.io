@@ -543,6 +543,45 @@
             color: #065f46;
         }
         
+        .stats-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid;
+        }
+        
+        .stat-critical {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+        
+        .stat-moderate {
+            background: #fffbeb;
+            border-color: #f59e0b;
+        }
+        
+        .stat-minor {
+            background: #f0f9ff;
+            border-color: #3b82f6;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-critical .stat-number { color: #dc2626; }
+        .stat-moderate .stat-number { color: #d97706; }
+        .stat-minor .stat-number { color: #2563eb; }
+
         .improved-text {
             background: #f0f9ff;
             padding: 20px;
@@ -1086,17 +1125,23 @@
                 <strong>總字數:</strong> ${wordCount}
             `;
             
-            // 2. 錯誤統計分析
+            // 2. 錯誤統計分析 - Fixed to match fine-tuned model data structure
             const stats = result.error_statistics || {critical: 0, medium: 0, minor: 0};
+            
+            // The fine-tuned model uses 'medium' not 'moderate'
+            const criticalCount = stats.critical || 0;
+            const mediumCount = stats.medium || 0;  
+            const minorCount = stats.minor || 0;
+            
             let statsHTML = '';
-            statsHTML += '<div class="stat-card stat-critical"><div class="stat-number">' + stats.critical + '</div><div>嚴重錯誤</div></div>';
-            statsHTML += '<div class="stat-card stat-moderate"><div class="stat-number">' + stats.medium + '</div><div>中等錯誤</div></div>';
-            statsHTML += '<div class="stat-card stat-minor"><div class="stat-number">' + stats.minor + '</div><div>輕微錯誤</div></div>';
+            statsHTML += '<div class="stat-card stat-critical"><div class="stat-number">' + criticalCount + '</div><div>嚴重錯誤</div></div>';
+            statsHTML += '<div class="stat-card stat-moderate"><div class="stat-number">' + mediumCount + '</div><div>中等錯誤</div></div>';
+            statsHTML += '<div class="stat-card stat-minor"><div class="stat-number">' + minorCount + '</div><div>輕微錯誤</div></div>';
             statsHTML += '<div class="stat-card" style="background:#f8fafc;border-color:#64748b;"><div class="stat-number" style="color:#475569;">' + wordCount + '</div><div>總字數</div></div>';
             
             // Debug: Log the stats to see what we're getting
-            console.log('Stats object:', stats);
-            console.log('Generated HTML:', statsHTML);
+            console.log('Error Statistics:', stats);
+            console.log('Generated Stats HTML:', statsHTML);
             
             document.getElementById('errorStats').innerHTML = statsHTML;
             
