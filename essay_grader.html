@@ -587,44 +587,6 @@
             background: linear-gradient(45deg, #3b82f6, #2563eb);
         }
         
-        .stats-display {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .stat-card {
-            text-align: center;
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid;
-        }
-        
-        .stat-critical {
-            background: #fef2f2;
-            border-color: #ef4444;
-        }
-        
-        .stat-moderate {
-            background: #fffbeb;
-            border-color: #f59e0b;
-        }
-        
-        .stat-minor {
-            background: #f0f9ff;
-            border-color: #3b82f6;
-        }
-        
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .stat-critical .stat-number { color: #dc2626; }
-        .stat-moderate .stat-number { color: #d97706; }
-        .stat-minor .stat-number { color: #2563eb; }
         
         @media (max-width: 768px) {
             .main-content {
@@ -802,22 +764,17 @@
                 </div>
                 
                 <div class="result-section">
-                    <h3>� 2. 錯誤統計</h3>
-                    <div class="stats-display" id="errorStats"></div>
-                </div>
-                
-                <div class="result-section">
-                    <h3>❌ 3. 詳細錯誤分析</h3>
+                    <h3>❌ 2. 詳細錯誤分析</h3>
                     <ul class="error-list" id="errorList"></ul>
                 </div>
                 
                 <div class="result-section">
-                    <h3>✏️ 4. 改寫後版本</h3>
+                    <h3>✏️ 3. 改寫後版本</h3>
                     <div class="improved-text" id="improvedText"></div>
                 </div>
                 
                 <div class="result-section">
-                    <h3>🎯 5. 整題評級</h3>
+                    <h3>🎯 4. 整題評級</h3>
                     <div class="grade-display">
                         <div class="grade-number" id="gradeNumber">-</div>
                         <div class="grade-text" id="gradeText">等待分析...</div>
@@ -825,12 +782,12 @@
                 </div>
                 
                 <div class="result-section">
-                    <h3>💡 6. 建議改進方式</h3>
+                    <h3>💡 5. 建議改進方式</h3>
                     <div class="suggestions" id="suggestions"></div>
                 </div>
                 
                 <div class="result-section">
-                    <h3>🏷️ 7. 主要錯誤類型</h3>
+                    <h3>🏷️ 6. 主要錯誤類型</h3>
                     <div class="error-types" id="errorTypes"></div>
                 </div>
             </div>
@@ -846,7 +803,7 @@
         // ===============================
         // 🤖 後端 API 評分系統
         // ===============================
-        const BACKEND_API_URL = 'https://railway-backend-production-55cf.up.railway.app/grade-claude';
+        const BACKEND_API_URL = 'https://railway-backend-production-55cf.up.railway.app/grade-fine-tuned';
         
         // 全域變數
         let currentImage = null;
@@ -1177,15 +1134,9 @@
         
         // 顯示結果
         function displayResults(result) {
-            document.getElementById('recognizedText').textContent = result.originalText;
-            
-            const errorStats = document.getElementById('errorStats');
-            errorStats.innerHTML = `
-                <div class="stat-card stat-critical"><div class="stat-number">${result.stats.critical}</div><div>嚴重錯誤</div></div>
-                <div class="stat-card stat-moderate"><div class="stat-number">${result.stats.moderate}</div><div>中等錯誤</div></div>
-                <div class="stat-card stat-minor"><div class="stat-number">${result.stats.minor}</div><div>輕微錯誤</div></div>
-                <div class="stat-card" style="background:#f8fafc;border-color:#64748b;"><div class="stat-number" style="color:#475569;">${result.stats.wordCount}</div><div>總字數</div></div>
-            `;
+            // Count words in original text
+            const wordCount = result.originalText.trim().split(/\s+/).length;
+            document.getElementById('recognizedText').textContent = `${result.originalText} 總字數:${wordCount}`;
             
             const errorList = document.getElementById('errorList');
             errorList.innerHTML = '';
