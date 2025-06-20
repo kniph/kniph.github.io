@@ -1059,11 +1059,14 @@
         // 顯示結果
         function displayResults(result, originalText) {
             // 1. 內容完整度檢核
-            const wordCount = originalText.trim().split(/\s+/).length;
+            // Count only English words, excluding punctuation
+            const wordCount = originalText.trim().split(/\s+/).filter(word => 
+                word.replace(/[^\w]/g, '').length > 0
+            ).length;
+            
             document.getElementById('contentSummary').innerHTML = `
                 ${originalText}<br>
-                <strong>總字數:</strong> ${result.content_summary?.total_words || wordCount}<br>
-                <strong>評論:</strong> ${result.content_summary?.comment || '內容完整'}
+                <strong>總字數:</strong> ${wordCount}
             `;
             
             // 2. 錯誤統計分析
@@ -1149,7 +1152,4 @@
             if (e.ctrlKey && e.key === 'Enter') {
                 gradeEssay();
             }
-        });
-    </script>
-</body>
-</html>
+       
