@@ -762,7 +762,7 @@
                 
                 <div class="result-section">
                     <h3>📊 2. 錯誤統計分析</h3>
-                    <div class="error-types" id="errorStats"></div>
+                    <div class="stats-display" id="errorStats"></div>
                 </div>
                 
                 <div class="result-section">
@@ -1088,11 +1088,12 @@
             
             // 2. 錯誤統計分析
             const stats = result.error_statistics || {critical: 0, medium: 0, minor: 0};
-            document.getElementById('errorStats').innerHTML = `
-                <strong>嚴重錯誤:</strong> ${stats.critical} 個<br>
-                <strong>中等錯誤:</strong> ${stats.medium} 個<br>
-                <strong>輕微錯誤:</strong> ${stats.minor} 個
-            `;
+            let statsHTML = '';
+            statsHTML += '<div class="stat-card stat-critical"><div class="stat-number">' + stats.critical + '</div><div>嚴重錯誤</div></div>';
+            statsHTML += '<div class="stat-card stat-moderate"><div class="stat-number">' + stats.medium + '</div><div>中等錯誤</div></div>';
+            statsHTML += '<div class="stat-card stat-minor"><div class="stat-number">' + stats.minor + '</div><div>輕微錯誤</div></div>';
+            statsHTML += '<div class="stat-card" style="background:#f8fafc;border-color:#64748b;"><div class="stat-number" style="color:#475569;">' + wordCount + '</div><div>總字數</div></div>';
+            document.getElementById('errorStats').innerHTML = statsHTML;
             
             // 3. 逐句錯誤分析
             const errorList = document.getElementById('errorList');
