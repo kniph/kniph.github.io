@@ -1092,26 +1092,15 @@
             errorList.innerHTML = '';
             
             if (result.sentence_error_analysis && result.sentence_error_analysis.length > 0) {
-                result.sentence_error_analysis.forEach(sentence => {
-                    if (sentence.errors && sentence.errors.length > 0) {
-                        const li = document.createElement('li');
-                        li.className = 'error-item';
-                        
-                        let errorsHtml = '';
-                        sentence.errors.forEach(error => {
-                            errorsHtml += `
-                                <div><strong>${error.type}錯誤 (${error.severity}):</strong> ${error.description}</div>
-                                <div><strong>建議:</strong> ${error.suggestion}</div>
-                            `;
-                        });
-                        
-                        li.innerHTML = `
-                            <div><strong>原句:</strong> ${sentence.sentence}</div>
-                            ${errorsHtml}
-                            <div><strong>修正句:</strong> ${sentence.corrected_sentence}</div>
-                        `;
-                        errorList.appendChild(li);
-                    }
+                result.sentence_error_analysis.forEach(error => {
+                    const li = document.createElement('li');
+                    li.className = 'error-item error-moderate';
+                    
+                    li.innerHTML = `
+                        <div><strong>位置:</strong> ${error.location || '未指定'}</div>
+                        <div><strong>問題:</strong> ${error.issue || '無說明'}</div>
+                    `;
+                    errorList.appendChild(li);
                 });
             } else {
                 errorList.innerHTML = '<li class="error-item minor"><div style="color:#059669;font-weight:bold;">🎉 分析完成：所有句子已檢查</div></li>';
