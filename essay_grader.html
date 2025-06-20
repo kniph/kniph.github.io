@@ -705,7 +705,7 @@
             </div>
             
             <div class="action-buttons">
-                <button class="btn btn-primary" onclick="gradeEssay()">
+                <button class="btn btn-primary" onclick="testFunction(); gradeEssay()">
                     🎯 開始評分
                 </button>
             </div>
@@ -988,9 +988,25 @@
             }
         }
         
+        // 測試函數
+        function testFunction() {
+            alert('按鈕點擊成功！');
+            console.log('testFunction called');
+        }
+        
         // 評分函數
         async function gradeEssay() {
-            const essayText = document.getElementById('essayInput').value.trim();
+            console.log('gradeEssay function called');
+            const essayInput = document.getElementById('essayInput');
+            console.log('essayInput element:', essayInput);
+            
+            if (!essayInput) {
+                alert('找不到作文輸入框！');
+                return;
+            }
+            
+            const essayText = essayInput.value.trim();
+            console.log('Essay text:', essayText);
             
             if (!essayText) {
                 alert('請輸入作文內容！');
@@ -1152,4 +1168,7 @@
             if (e.ctrlKey && e.key === 'Enter') {
                 gradeEssay();
             }
-       
+        });
+    </script>
+</body>
+</html>
