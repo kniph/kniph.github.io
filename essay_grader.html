@@ -1166,13 +1166,6 @@
             document.getElementById('downloadBtn').disabled = false;
         }
         
-        // Enter 鍵提交
-        document.getElementById('essayInput').addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'Enter') {
-                gradeEssay();
-            }
-        });
-
         // ===============================
         // PDF Download Functionality
         // ===============================
@@ -1211,30 +1204,40 @@
                 <h2>📖 原始作文</h2><div class="content-box">${result.originalText}</div>
                 <h2>❌ AI 錯誤分析</h2>`;
 
-            if (result.sentence_error_analysis.length === 0) {
+            if (result.sentence_error_analysis && result.sentence_error_analysis.length === 0) {
                 htmlContent += '<div class="error-item" style="background:#ecfdf5;border-left-color:#22c55e;"><div style="color:#059669;font-weight:bold">🎉 表現優秀，未發現重大錯誤！</div></div>';
-            } else {
+            } else if (result.sentence_error_analysis) {
                 result.sentence_error_analysis.forEach((error, i) => {
-                    htmlContent += `<div class="error-item"><div class="error-original">錯誤 ${i+1}：「${error.location}」</div><div class="error-correct">問題：${error.issue}</div></div>`;
+                    htmlContent += `<div class="error-item"><div class="error-original">錯誤 ${i+1}：「${error.location || '未指定'}」</div><div class="error-correct">問題：${error.issue || '無說明'}</div></div>`;
                 });
             }
 
+            const revised = result.revised_versions || {};
             htmlContent += `<h2>✏️ AI 改寫版本</h2>
                 <div class="content-box" style="background:#f0f9ff;border-color:#0ea5e9">
                     <div><strong>基礎修正版:</strong></div>
-                    <div style="margin: 10px 0;">${result.revised_versions.basic_correction}</div>
+                    <div style="margin: 10px 0;">${revised.basic_correction || result.originalText}</div>
                     <div><strong>進階建議版:</strong></div>
-                    <div style="margin: 10px 0;">${result.revised_versions.advanced_model_answer}</div>
+                    <div style="margin: 10px 0;">${revised.advanced_model_answer || result.originalText}</div>
                 </div>
-                <h2>💡 AI 改進建議</h2>
-                <div class="suggestion-item"><strong>立即改進：</strong> ${result.improvement_suggestions.immediate}</div>
-                <div class="suggestion-item"><strong>中期目標：</strong> ${result.improvement_suggestions.mid_term}</div>
-                <div class="suggestion-item"><strong>長期發展：</strong> ${result.improvement_suggestions.long_term}</div>`;
+                <h2>💡 AI 改進建議</h2>`;
+
+            const suggestions = result.improvement_suggestions || {};
+            htmlContent += `<div class="suggestion-item"><strong>立即改進：</strong> ${suggestions.immediate || '無特別建議'}</div>
+                <div class="suggestion-item"><strong>中期目標：</strong> ${suggestions.mid_term || '持續練習'}</div>
+                <div class="suggestion-item"><strong>長期發展：</strong> ${suggestions.long_term || '擴展詞彙和表達'}</div>`;
 
             htmlContent += `<div style="margin-top:40px;padding-top:20px;border-top:1px solid #ccc;text-align:center;color:#666;font-size:10px"><p>本報告由 Fine-tuned GPT-4o 智能評分系統生成</p></div>
                 <script>window.onload=function(){setTimeout(function(){window.print()},1000)};window.onafterprint=function(){setTimeout(function(){window.close()},500)};<\/script></body></html>`;
             return htmlContent;
         }
+        
+        // Enter 鍵提交
+        document.getElementById('essayInput').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                gradeEssay();
+            }
+        });
     </script>
 </body>
 </html>
