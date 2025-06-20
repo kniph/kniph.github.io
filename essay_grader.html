@@ -1134,10 +1134,20 @@
             
             // 7. 主要錯誤類型統計
             const errorTypes = result.main_error_types_statistics || {};
+            const errorTypeLabels = {
+                'grammar': '文法錯誤',
+                'word_choice': '用字錯誤', 
+                'logic': '邏輯錯誤',
+                'spelling': '拼字錯誤',
+                'punctuation': '標點錯誤',
+                'chinglish': '中式英文'
+            };
+            
             let errorTypesHtml = '';
             Object.entries(errorTypes).forEach(([type, count]) => {
                 if (count > 0) {
-                    errorTypesHtml += `<div><strong>${type}:</strong> ${count} 處</div>`;
+                    const chineseLabel = errorTypeLabels[type] || type;
+                    errorTypesHtml += `<div><strong>${chineseLabel}:</strong> ${count} 處</div>`;
                 }
             });
             document.getElementById('errorTypes').innerHTML = errorTypesHtml || '無明顯錯誤類型';
