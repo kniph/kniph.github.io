@@ -449,7 +449,7 @@
         .result-section {
             background: white;
             border-radius: 15px;
-            padding: 25px;
+            padding: 15px 20px;
             margin-bottom: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             border-left: 5px solid #4f46e5;
@@ -581,17 +581,6 @@
         .stat-critical .stat-number { color: #dc2626; }
         .stat-moderate .stat-number { color: #d97706; }
         .stat-minor .stat-number { color: #2563eb; }
-
-        .recognized-text-content {
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            font-family: 'Courier New', monospace;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
 
         .improved-text {
             background: #f0f9ff;
@@ -806,7 +795,7 @@
             
             <div class="results" id="results">
                 <div class="result-section">
-                    <h3>📝 1. 內容完整度檢核</h3>
+                    <h3>📖 1. 辨識文字</h3>
                     <div class="recognized-text" id="contentSummary"></div>
                 </div>
                 
@@ -1131,9 +1120,7 @@
                 word.replace(/[^\w]/g, '').length > 0
             ).length;
             
-            document.getElementById('contentSummary').innerHTML = `
-                <div class="recognized-text-content">${originalText}</div>
-            `;
+            document.getElementById('contentSummary').textContent = originalText;
             
             // 2. 錯誤統計分析 - Fixed to match fine-tuned model data structure
             const stats = result.error_statistics || {critical: 0, medium: 0, minor: 0};
