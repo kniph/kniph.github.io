@@ -582,6 +582,17 @@
         .stat-moderate .stat-number { color: #d97706; }
         .stat-minor .stat-number { color: #2563eb; }
 
+        .recognized-text-content {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
         .improved-text {
             background: #f0f9ff;
             padding: 20px;
@@ -1121,8 +1132,7 @@
             ).length;
             
             document.getElementById('contentSummary').innerHTML = `
-                ${originalText}<br>
-                <strong>總字數:</strong> ${wordCount}
+                <div class="recognized-text-content">${originalText}</div>
             `;
             
             // 2. 錯誤統計分析 - Fixed to match fine-tuned model data structure
