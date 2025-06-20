@@ -1063,7 +1063,6 @@
             document.getElementById('contentSummary').innerHTML = `
                 ${originalText}<br>
                 <strong>總字數:</strong> ${result.content_summary?.total_words || wordCount}<br>
-                <strong>有效字數比例:</strong> ${result.content_summary?.effective_word_ratio || 100}%<br>
                 <strong>評論:</strong> ${result.content_summary?.comment || '內容完整'}
             `;
             
