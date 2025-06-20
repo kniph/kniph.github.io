@@ -1026,14 +1026,24 @@
                 console.log('API 回應內容:', data.result); // Debug: 看看實際回應
                 let result;
                 try {
-                    result = JSON.parse(data.result);
+                    // 嘗試清理可能的JSON格式問題
+                    let cleanedJson = data.result;
+                    
+                    // 移除可能的前後多餘文字
+                    if (cleanedJson.includes('{')) {
+                        const startIndex = cleanedJson.indexOf('{');
+                        const endIndex = cleanedJson.lastIndexOf('}') + 1;
+                        cleanedJson = cleanedJson.substring(startIndex, endIndex);
+                    }
+                    
+                    result = JSON.parse(cleanedJson);
                 } catch (e) {
                     console.error('JSON 解析錯誤:', e);
                     console.error('原始回應:', data.result);
                     
-                    // 如果不是JSON格式，嘗試作為純文字處理
-                    alert('模型回應非JSON格式，請檢查fine-tuned模型設定。\n\n原始回應:\n' + data.result.substring(0, 500));
-                    throw new Error('API 回應格式錯誤');
+                    // 提供更詳細的錯誤信息
+                    alert('JSON解析失敗。請檢查模型回應中的引號和逗號是否正確。\n\n錯誤: ' + e.message + '\n\n原始回應前500字符:\n' + data.result.substring(0, 500));
+                    throw new Error('JSON格式錯誤: ' + e.message);
                 }
                 
                 displayResults(result, essayText);
