@@ -4,7 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>英文單字背誦練習</title>
-    <style>
+    <script>
+    // 檢查使用者是否已登入
+    if (localStorage.getItem('loggedIn') !== 'yes') {
+        // 若未登入，則導向到登入頁面
+        // 使用根相對路徑 '/login.html' 更為保險
+        window.location.href = '/login.html';
+    }
+    </script><style>
         * {
             margin: 0;
             padding: 0;
