@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的學習工具集</title>
+    <script>
+        // 檢查使用者是否已登入
+        if (localStorage.getItem('loggedIn') !== 'yes') {
+            // 若未登入，則導向到登入頁面
+            window.location.href = 'login.html';
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', '微軟正黑體', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .main-title {
+            color: white;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .schedule-icon {
+            font-size: 0.6em;
+            margin-left: 0.2em;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .schedule-icon:hover {
+            transform: scale(1.2);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.3rem;
+            font-weight: 300;
+            margin-top: -1.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+            animation: fadeInDown 1s ease-out 0.3s both;
+            letter-spacing: 0.5px;
+        }
+        
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .tool-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .tool-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .tool-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .tool-card:nth-child(1) .tool-icon {
+            color: #4CAF50;
+        }
+
+        .tool-card:nth-child(2) .tool-icon {
+            color: #FF9800;
+        }
+
+        .tool-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .tool-description {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .tool-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .tool-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            background: linear-gradient(45deg, #764ba2, #667eea);
+        }
+
+        .footer {
+            margin-top: 3rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2.2rem;
+                margin-bottom: 2rem;
+            }
+
+            .tools-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .tool-card {
+                padding: 2rem;
+            }
+
+            .tool-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 6s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-100px) rotate(180deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles">
+        <div class="particle" style="left: 10%; width: 4px; height: 4px; animation-delay: 0s;"></div>
+        <div class="particle" style="left: 20%; width: 6px; height: 6px; animation-delay: 1s;"></div>
+        <div class="particle" style="left: 30%; width: 3px; height: 3px; animation-delay: 2s;"></div>
+        <div class="particle" style="left: 40%; width: 5px; height: 5px; animation-delay: 3s;"></div>
+        <div class="particle" style="left: 50%; width: 4px; height: 4px; animation-delay: 4s;"></div>
+        <div class="particle" style="left: 60%; width: 6px; height: 6px; animation-delay: 5s;"></div>
+        <div class="particle" style="left: 70%; width: 3px; height: 3px; animation-delay: 6s;"></div>
+        <div class="particle" style="left: 80%; width: 5px; height: 5px; animation-delay: 7s;"></div>
+        <div class="particle" style="left: 90%; width: 4px; height: 4px; animation-delay: 8s;"></div>
+    </div>
+
+    <div class="container">
+        <h1 class="main-title">英語快寫快記站<a href="schedule.html" class="schedule-icon">📅</a></h1>
+        <p class="subtitle">記憶優化 x 批改神器</p>
+        
+        <div class="tools-grid">
+            <div class="tool-card">
+                <span class="tool-icon">⌨️</span>
+                <h2 class="tool-title">TypinGo</h2>
+                <p class="tool-description">間隔學習 打字背單字</p>
+                <a href="Howdy Word Typing v3.html" class="tool-button">開始練習</a>
+            </div>
+            
+            <div class="tool-card">
+                <span class="tool-icon">📝</span>
+                <h2 class="tool-title">AI作文批改</h2>
+                <p class="tool-description">自學、輔導一站解決</p>
+                <a href="essay_grader.html" class="tool-button">開始批改</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>選擇您想要使用的學習工具，開始您的學習之旅！</p>
+        </div>
+        <button onclick="logout()">登出</button>
+    </div>
+    <script>
+        // 登出功能
+        function logout() {
+            localStorage.removeItem('loggedIn');
+            localStorage.removeItem('expireAt');
+            window.location.href = "login.html";
+        }
+    </script>
+</body>
+</html>
