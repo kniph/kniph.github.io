@@ -452,7 +452,6 @@
             padding: 15px 20px;
             margin-bottom: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border-left: 5px solid #4f46e5;
         }
         
         .result-section h3 {
@@ -584,12 +583,24 @@
 
         .improved-text {
             background: #f0f9ff;
-            padding: 20px;
+            padding: 5px 20px;
             border-radius: 10px;
             border: 1px solid #0ea5e9;
             line-height: 1.8;
             white-space: pre-wrap;
             word-wrap: break-word;
+        }
+        
+        .revision-label {
+            text-align: left;
+        }
+        
+        .revised-text-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-top: 1px;
         }
         
         .suggestions {
@@ -710,7 +721,8 @@
     <div class="container">
         <div class="header">
             <h1>🎯 學生作文評分系統</h1>
-            <p>Fine-tuned GPT-4o 專業評分</p>
+            <h3>GEPT Elementary 全民英檢 初級</h3>
+            <p>AI系統：4o fine-tuned</p>
         </div>
         
         <div class="main-content">
@@ -810,7 +822,7 @@
                 </div>
                 
                 <div class="result-section">
-                    <h3>✏️ 4. 改寫版本</h3>
+                    <h3>✏️ 4. 改寫後版本</h3>
                     <div class="improved-text" id="improvedText"></div>
                 </div>
                 
@@ -1164,14 +1176,10 @@
             // 4. 改寫版本
             const revised = result.revised_versions || {};
             document.getElementById('improvedText').innerHTML = `
-                <div><strong>基礎修正版:</strong></div>
-                <div style="margin: 10px 0; padding: 10px; background: #f9fafb; border-radius: 5px;">
-                    ${revised.basic_correction || originalText}
-                </div>
-                <div><strong>進階建議版:</strong></div>
-                <div style="margin: 10px 0; padding: 10px; background: #f0fdf4; border-radius: 5px;">
-                    ${revised.advanced_model_answer || originalText}
-                </div>
+                <div class="revision-label" style="margin-top: -30px;"><strong>基礎修正版:</strong></div>
+                <div class="revised-text-box" style="margin-top: -50px;margin-bottom: -50px;">${revised.basic_correction || originalText}</div>
+                <div class="revision-label"><strong>進階建議版:</strong></div>
+                <div class="revised-text-box" style="margin-top: -50px;margin-bottom: -20px;">${revised.advanced_model_answer || originalText}</div>
             `;
             
             // 5. GEPT評級
@@ -1182,9 +1190,9 @@
             // 6. 分層改進建議
             const suggestions = result.improvement_suggestions || {};
             document.getElementById('suggestions').innerHTML = `
-                <div><strong>立即改進:</strong> ${suggestions.immediate || '無特別建議'}</div>
-                <div><strong>中期目標:</strong> ${suggestions.mid_term || '持續練習'}</div>
-                <div><strong>長期發展:</strong> ${suggestions.long_term || '擴展詞彙和表達'}</div>
+                <div><strong>立即改進：</strong> ${suggestions.immediate || '無特別建議'}</div>
+                <div><strong>中期目標：</strong> ${suggestions.mid_term || '持續練習'}</div>
+                <div><strong>長期發展：</strong> ${suggestions.long_term || '擴展詞彙和表達'}</div>
             `;
             
             // 7. 主要錯誤類型統計
@@ -1264,9 +1272,9 @@
             htmlContent += `<h2>✏️ AI 改寫版本</h2>
                 <div class="content-box" style="background:#f0f9ff;border-color:#0ea5e9">
                     <div><strong>基礎修正版:</strong></div>
-                    <div style="margin: 10px 0;">${revised.basic_correction || result.originalText}</div>
+                    <div style="margin: 1px 0;">${revised.basic_correction || result.originalText}</div>
                     <div><strong>進階建議版:</strong></div>
-                    <div style="margin: 10px 0;">${revised.advanced_model_answer || result.originalText}</div>
+                    <div style="margin: 1px 0;">${revised.advanced_model_answer || result.originalText}</div>
                 </div>
                 <h2>💡 AI 改進建議</h2>`;
 
