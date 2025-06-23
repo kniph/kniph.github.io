@@ -856,15 +856,11 @@
     </div>
 
     <script>
-        // ==========================================
-        // 🔑 在此處設定您的 API Keys
-        // ==========================================
-        const GOOGLE_CLOUD_VISION_API_KEY = 'AIzaSyC_aGiEVd9oYiDZcQMXavb9kXYmnNHljdk'; // 提醒：請替換成您的有效金鑰
-        
         // ===============================
         // 🤖 後端 API 評分系統
         // ===============================
         const BACKEND_API_URL = 'https://railway-backend-production-55cf.up.railway.app/grade-fine-tuned';
+        const BACKEND_OCR_API_URL = 'https://railway-backend-production-55cf.up.railway.app/OCR';
         
         // 全域變數
         let currentImage = null;
@@ -902,71 +898,52 @@
                 reader.onerror = error => reject(error);
             });
         }
-
         // ===============================
-        // Google Cloud Vision OCR
+        // 後端 OCR 處理
         // ===============================
-        async function performCloudVisionOCR(imageFile) {
-            if (!GOOGLE_CLOUD_VISION_API_KEY || GOOGLE_CLOUD_VISION_API_KEY === 'YOUR_API_KEY_HERE') {
-                alert('請先設定 Google Cloud Vision API Key！');
-                return;
-            }
-
+        async function performBackendOCR(imageFile) {
             try {
-                // 顯示載入狀態
-                document.getElementById('loading').style.display = 'block';
-                
-                // 將圖片轉換為 base64
-                const base64Data = await fileToBase64(imageFile);
-                const base64Image = base64Data.split(',')[1]; // 移除 data:image/...;base64, 前綴
-                
-                // 準備 Cloud Vision API 請求
-                const requestBody = {
-                    requests: [{
-                        image: {
-                            content: base64Image
-                        },
-                        features: [{
-                            type: 'TEXT_DETECTION',
-                            maxResults: 1
-                        }]
-                    }]
-                };
-                
-                // 調用 Cloud Vision API
-                const apiUrl = `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_CLOUD_VISION_API_KEY}`;
-                
-                const response = await fetch(apiUrl, {
+              // 顯示載入狀態
+              document.getElementById('loading').style.display = 'block';
+        
+             // 將圖片轉換為 base64
+              const base64Data = await fileToBase64(imageFile);
+               const base64Image = base64Data.split(',')[1]; // 移除 data:image/...;base64, 前綴
+        
+              // 準備發送到後端的請求體
+              const requestBody = {
+                 image: base64Image
+              };
+        
+              // 調用後端 OCR API
+              const response = await fetch(BACKEND_OCR_API_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                   headers: {
+                       'Content-Type': 'application/json',
+                   },
                     body: JSON.stringify(requestBody)
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Cloud Vision API 錯誤: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.responses && data.responses[0] && data.responses[0].textAnnotations) {
-                    const detectedText = data.responses[0].textAnnotations[0].description;
-                    
-                    // 將辨識的文字填入文字框
-                    document.getElementById('essayInput').value = detectedText;
-                    
-                    alert('文字辨識完成！已自動填入文字框，請檢查並修正後開始評分。');
-                } else {
-                    alert('未能辨識出文字，請檢查圖片清晰度或手動輸入文字。');
-                }
-                
-            } catch (error) {
-                console.error('Cloud Vision OCR 錯誤:', error);
+              });
+        
+              if (!response.ok) {
+                  throw new Error(`後端 OCR API 錯誤: ${response.status}`);
+               }
+                // 解析回應
+               const data = await response.json();
+        
+               if (data.success && data.text) {
+                  // 將辨識的文字填入文字框
+                    document.getElementById('essayInput').value = data.text;
+                   alert('文字辨識完成！已自動填入文字框，請檢查並修正後開始評分。');
+               } else {
+                   alert('未能辨識出文字，請檢查圖片清晰度或手動輸入文字。');
+               }
+        
+           } catch (error) {
+               console.error('OCR 錯誤:', error);
                 alert(`文字辨識失敗: ${error.message}`);
-            } finally {
-                document.getElementById('loading').style.display = 'none';
-            }
+           } finally {
+               document.getElementById('loading').style.display = 'none';
+           }
         }
 
         // ===============================
