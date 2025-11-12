@@ -75,10 +75,10 @@
             animation: fadeInDown 1s ease-out 0.3s both;
             letter-spacing: 0.5px;
         }
-        
+
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 2rem;
             margin-top: 2rem;
         }
@@ -98,6 +98,10 @@
             animation-delay: 0.2s;
         }
 
+        .tool-card:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
         .tool-card:hover {
             transform: translateY(-10px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
@@ -115,6 +119,10 @@
 
         .tool-card:nth-child(2) .tool-icon {
             color: #FF9800;
+        }
+
+        .tool-card:nth-child(3) .tool-icon {
+            color: #667eea;
         }
 
         .tool-title {
@@ -254,6 +262,12 @@
                 <h2 class="tool-title">Essay Grader</h2>
                 <p class="tool-description">AI 助教 批改作文</p>
                 <a href="essay_grader.html" class="tool-button">開始評分</a>
+            </div>
+            <div class="tool-card">
+                <span class="tool-icon">🧠</span>
+                <h2 class="tool-title">MindFlow</h2>
+                <p class="tool-description">AI 智能心智圖 視覺化思維</p>
+                <a href="mindmap.html" class="tool-button">開始創作</a>
             </div>
         </div>
 
