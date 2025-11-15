@@ -139,6 +139,7 @@
             font-size: 0.85rem;
             color: #92400e;
             opacity: 0.8;
+            text-align: center;
         }
 
         .upload-section {
@@ -803,8 +804,8 @@
                     <label for="modelSelect">模型:</label>
                     <select id="modelSelect">
                         <option value="fine-tuned">Fine-tuned GPT-4o (自訂模型 - 高品質)</option>
-                        <option value="gpt-4o">GPT-4o (標準模型 - 省33%)</option>
-                        <option value="gpt-4o-mini">GPT-4o-mini (經濟模型 - 省94%)</option>
+                        <option value="gpt-4o">GPT-4o (標準模型)</option>
+                        <option value="gpt-4o-mini">GPT-4o-mini (經濟模型)</option>
                     </select>
                 </div>
                 <div class="model-info" id="modelInfo">
@@ -957,8 +958,8 @@
 
             const modelInfoText = {
                 'fine-tuned': '💰 使用自訂 fine-tuned 模型 | 針對 GEPT 初級作文優化',
-                'gpt-4o': '⚡ 使用標準 GPT-4o 模型 | 高品質且省 33% 費用',
-                'gpt-4o-mini': '🚀 使用經濟型 GPT-4o-mini | 快速且省 94% 費用'
+                'gpt-4o': '⚡ 使用標準 GPT-4o 模型 | 高品質評分',
+                'gpt-4o-mini': '🚀 使用經濟型 GPT-4o-mini | 快速回應'
             };
 
             modelInfo.textContent = modelInfoText[selectedValue] || modelInfoText['fine-tuned'];
