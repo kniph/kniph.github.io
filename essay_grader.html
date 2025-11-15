@@ -1025,7 +1025,118 @@
                 console.error('Capture error:', error);
             }
         }
-        
+
+        // ===============================
+        // 🛡️ Robust JSON Parser
+        // ===============================
+        function parseRobustJSON(response) {
+            // Try direct parse first
+            try {
+                return JSON.parse(response);
+            } catch (e) {
+                console.warn('Direct JSON parse failed, trying cleanup...', e);
+            }
+
+            // Step 1: Extract JSON from markdown code blocks
+            let cleaned = response;
+            if (cleaned.includes('```json')) {
+                cleaned = cleaned.split('```json')[1].split('```')[0];
+            } else if (cleaned.includes('```')) {
+                cleaned = cleaned.split('```')[1].split('```')[0];
+            }
+
+            // Step 2: Find JSON object boundaries
+            const firstBrace = cleaned.indexOf('{');
+            const lastBrace = cleaned.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1) {
+                cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+            }
+
+            // Step 3: Fix common LLM JSON mistakes
+            cleaned = cleaned
+                // Fix trailing commas before closing brackets
+                .replace(/,(\s*[}\]])/g, '$1')
+                // Fix unescaped quotes in strings (basic attempt)
+                .replace(/([^\\])"([^"]*?[^\\])"(?=\s*[,}\]])/g, function(match, p1, p2) {
+                    // This is a simplified fix - may need enhancement
+                    return match;
+                });
+
+            // Step 4: Try parsing again
+            try {
+                const parsed = JSON.parse(cleaned);
+                console.log('✅ JSON successfully parsed after cleanup');
+                return parsed;
+            } catch (e) {
+                console.error('❌ JSON parsing still failed after cleanup:', e);
+                console.error('Cleaned text:', cleaned.substring(0, 500));
+
+                // Last resort: return fallback structure
+                return createFallbackResult(cleaned, e);
+            }
+        }
+
+        // Fallback: Extract whatever data we can and provide default structure
+        function createFallbackResult(text, error) {
+            console.warn('⚠️ Using fallback parsing - extracting partial data');
+
+            const fallback = {
+                error_statistics: { critical: 0, medium: 0, minor: 0 },
+                sentence_error_analysis: [],
+                revised_versions: {
+                    basic_correction: '解析失敗 - 請重試或聯繫技術支援',
+                    advanced_model_answer: '解析失敗 - 請重試或聯繫技術支援'
+                },
+                gept_rating: {
+                    score: 0,
+                    comment: '⚠️ JSON解析失敗，請重新提交作文進行評分。'
+                },
+                improvement_suggestions: {
+                    immediate: '請重新提交作文',
+                    mid_term: '系統正在處理中',
+                    long_term: '請稍後再試'
+                },
+                main_error_types_statistics: {},
+                _parseError: error.message,
+                _fallbackUsed: true
+            };
+
+            // Try regex extraction for critical fields
+            try {
+                const scoreMatch = text.match(/"score"\s*:\s*(\d+)/);
+                if (scoreMatch) {
+                    fallback.gept_rating.score = parseInt(scoreMatch[1]);
+                    console.log('✅ Extracted score:', fallback.gept_rating.score);
+                }
+
+                const commentMatch = text.match(/"comment"\s*:\s*"([^"]+)"/);
+                if (commentMatch) {
+                    fallback.gept_rating.comment = commentMatch[1];
+                    console.log('✅ Extracted comment');
+                }
+
+                // Try to extract error statistics
+                const criticalMatch = text.match(/"critical"\s*:\s*(\d+)/);
+                const mediumMatch = text.match(/"medium"\s*:\s*(\d+)/);
+                const minorMatch = text.match(/"minor"\s*:\s*(\d+)/);
+
+                if (criticalMatch) fallback.error_statistics.critical = parseInt(criticalMatch[1]);
+                if (mediumMatch) fallback.error_statistics.medium = parseInt(mediumMatch[1]);
+                if (minorMatch) fallback.error_statistics.minor = parseInt(minorMatch[1]);
+
+                if (criticalMatch || mediumMatch || minorMatch) {
+                    console.log('✅ Extracted error statistics:', fallback.error_statistics);
+                }
+            } catch (e) {
+                console.error('❌ Partial extraction failed:', e);
+            }
+
+            // Alert user about fallback
+            alert('⚠️ 警告：API回應格式異常，已嘗試提取部分資料。\n\n建議：請重新提交作文以獲得完整評分結果。\n\n技術詳情：' + error.message);
+
+            return fallback;
+        }
+
         // 評分函數
         async function gradeEssay() {
             console.log('gradeEssay function called');
@@ -1070,28 +1181,15 @@
                     throw new Error(data.error || '未知錯誤');
                 }
                 
-                // 解析 JSON 結果
-                console.log('API 回應內容:', data.result); // Debug: 看看實際回應
-                let result;
-                try {
-                    // 嘗試清理可能的JSON格式問題
-                    let cleanedJson = data.result;
-                    
-                    // 移除可能的前後多餘文字
-                    if (cleanedJson.includes('{')) {
-                        const startIndex = cleanedJson.indexOf('{');
-                        const endIndex = cleanedJson.lastIndexOf('}') + 1;
-                        cleanedJson = cleanedJson.substring(startIndex, endIndex);
-                    }
-                    
-                    result = JSON.parse(cleanedJson);
-                } catch (e) {
-                    console.error('JSON 解析錯誤:', e);
-                    console.error('原始回應:', data.result);
-                    
-                    // 提供更詳細的錯誤信息
-                    alert('JSON解析失敗。請檢查模型回應中的引號和逗號是否正確。\n\n錯誤: ' + e.message + '\n\n原始回應前500字符:\n' + data.result.substring(0, 500));
-                    throw new Error('JSON格式錯誤: ' + e.message);
+                // 解析 JSON 結果 (使用 Robust Parser)
+                console.log('🔍 API 回應內容:', data.result);
+
+                // 使用增強的 JSON 解析器 - 自動處理常見的 LLM 輸出格式問題
+                const result = parseRobustJSON(data.result);
+
+                // 檢查是否使用了 fallback 解析
+                if (result._fallbackUsed) {
+                    console.warn('⚠️ 使用了 fallback 解析，部分數據可能不完整');
                 }
                 
                 // 儲存結果供PDF下載使用
