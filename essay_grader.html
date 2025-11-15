@@ -77,7 +77,70 @@
             color: #0277bd;
             line-height: 1.6;
         }
-        
+
+        .model-selector {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid #f59e0b;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .model-selector h3 {
+            color: #92400e;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .model-select-wrapper {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .model-select-wrapper label {
+            font-weight: 600;
+            color: #78350f;
+            font-size: 1rem;
+        }
+
+        #modelSelect {
+            padding: 10px 20px;
+            border: 2px solid #f59e0b;
+            border-radius: 10px;
+            background: white;
+            color: #92400e;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 250px;
+        }
+
+        #modelSelect:hover {
+            border-color: #d97706;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        #modelSelect:focus {
+            outline: none;
+            border-color: #d97706;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+
+        .model-info {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #92400e;
+            opacity: 0.8;
+        }
+
         .upload-section {
             background: linear-gradient(135deg, #f8fafc, #e2e8f0);
             border: 3px dashed #cbd5e1;
@@ -734,12 +797,27 @@
         </div>
         
         <div class="main-content">
+            <div class="model-selector">
+                <h3>🤖 選擇 AI 評分模型</h3>
+                <div class="model-select-wrapper">
+                    <label for="modelSelect">模型:</label>
+                    <select id="modelSelect">
+                        <option value="fine-tuned">Fine-tuned GPT-4o (自訂模型 - 高品質)</option>
+                        <option value="gpt-4o">GPT-4o (標準模型 - 省33%)</option>
+                        <option value="gpt-4o-mini">GPT-4o-mini (經濟模型 - 省94%)</option>
+                    </select>
+                </div>
+                <div class="model-info" id="modelInfo">
+                    💰 使用自訂 fine-tuned 模型 | 針對 GEPT 初級作文優化
+                </div>
+            </div>
+
             <div class="feature-notice">
                 <h3>🚀 Google Cloud Vision API</h3>
                 <p>本系統使用 Google Cloud Vision API 進行文字辨識，支援手寫和印刷體英文。<br>
                 上傳照片後將自動進行文字辨識，分析完成後可下載專業的評分報告。</p>
             </div>
-            
+
             <div class="upload-section">
                 <div class="upload-options">
                     <div class="upload-option" onclick="document.getElementById('imageInput').click()">
@@ -871,6 +949,22 @@
         // ===============================
         // Event Listeners & Basic UI
         // ===============================
+
+        // Model selector change handler
+        document.getElementById('modelSelect').addEventListener('change', function(e) {
+            const modelInfo = document.getElementById('modelInfo');
+            const selectedValue = e.target.value;
+
+            const modelInfoText = {
+                'fine-tuned': '💰 使用自訂 fine-tuned 模型 | 針對 GEPT 初級作文優化',
+                'gpt-4o': '⚡ 使用標準 GPT-4o 模型 | 高品質且省 33% 費用',
+                'gpt-4o-mini': '🚀 使用經濟型 GPT-4o-mini | 快速且省 94% 費用'
+            };
+
+            modelInfo.textContent = modelInfoText[selectedValue] || modelInfoText['fine-tuned'];
+            console.log('Model changed to:', selectedValue);
+        });
+
         document.getElementById('imageInput').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -1156,10 +1250,14 @@
                 return;
             }
             
+            // Get selected model
+            const selectedModel = document.getElementById('modelSelect').value;
+            console.log('Selected model:', selectedModel);
+
             // 顯示載入狀態
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').style.display = 'none';
-            
+
             try {
                 const response = await fetch(BACKEND_API_URL, {
                     method: 'POST',
@@ -1167,7 +1265,8 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        essay: essayText
+                        essay: essayText,
+                        model: selectedModel  // Send selected model to backend
                     })
                 });
                 
