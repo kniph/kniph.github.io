@@ -803,13 +803,13 @@
                 <div class="model-select-wrapper">
                     <label for="modelSelect">模型:</label>
                     <select id="modelSelect">
-                        <option value="gpt-4o">GPT-4o (標準模型 - 推薦)</option>
-                        <option value="gpt-4o-mini">GPT-4o-mini (經濟模型)</option>
-                        <option value="fine-tuned">Fine-tuned GPT-4o (自訂模型 - 詳細但較慢)</option>
+                        <option value="gpt-5.1">GPT-5.1 (推薦 - 更快更強)</option>
+                        <option value="gpt-5-mini">GPT-5 mini (經濟實惠)</option>
+                        <option value="fine-tuned">Fine-tuned GPT-4o (詳細分析 - 較慢)</option>
                     </select>
                 </div>
                 <div class="model-info" id="modelInfo">
-                    ⚡ 使用標準 GPT-4o 模型 | 高品質評分
+                    🚀 使用 GPT-5.1 模型 | 最新AI技術，更快更準確
                 </div>
             </div>
 
@@ -957,12 +957,12 @@
             const selectedValue = e.target.value;
 
             const modelInfoText = {
-                'fine-tuned': '💰 使用自訂 fine-tuned 模型 | 針對 GEPT 初級作文優化',
-                'gpt-4o': '⚡ 使用標準 GPT-4o 模型 | 高品質評分',
-                'gpt-4o-mini': '🚀 使用經濟型 GPT-4o-mini | 快速回應'
+                'gpt-5.1': '🚀 使用 GPT-5.1 模型 | 最新AI技術，更快更準確',
+                'gpt-5-mini': '💰 使用 GPT-5 mini 模型 | 經濟實惠，快速回應',
+                'fine-tuned': '🎯 使用自訂 fine-tuned 模型 | 針對 GEPT 初級作文優化'
             };
 
-            modelInfo.textContent = modelInfoText[selectedValue] || modelInfoText['gpt-4o'];
+            modelInfo.textContent = modelInfoText[selectedValue] || modelInfoText['gpt-5.1'];
             console.log('Model changed to:', selectedValue);
         });
 
