@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI作文評分報告</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            color: #333;
+            font-size: 12px;
+        }
+
+        h1 {
+            color: #4f46e5;
+            border-bottom: 3px solid #4f46e5;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        h2 {
+            color: #4f46e5;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-left: 4px solid #4f46e5;
+            padding-left: 10px;
+        }
+
+        .grade-box {
+            background: #f0fdf4;
+            border: 2px solid #22c55e;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .grade-number {
+            font-size: 36px;
+            color: #059669;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .content-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .error-item {
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 4px solid #f59e0b;
+            background: #fffbeb;
+        }
+
+        .error-original {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #d97706;
+        }
+
+        .error-correct {
+            color: #059669;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .suggestion-item {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+
+        .qr-section {
+            background: linear-gradient(135deg, #e0f2fe, #b3e5fc);
+            border: 2px solid #0288d1;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 8px;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+
+        .qr-section h3 {
+            color: #01579b;
+            margin-bottom: 15px;
+        }
+
+        .qr-code {
+            margin: 15px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .qr-url {
+            font-size: 11px;
+            color: #0277bd;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+
+        .print-instruction {
+            background: #e0f2fe;
+            border: 2px solid #0288d1;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                margin: 0;
+            }
+        }
+
+        @page {
+            margin: 2cm;
+            size: A4;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">
+        <p>📄 正在載入批改報告...</p>
+    </div>
+
+    <div id="content" style="display: none;">
+        <div class="print-instruction no-print">
+            <h3>📋 如何儲存為PDF：</h3>
+            <p>1. 按下 Ctrl+P (Windows) 或 Cmd+P (Mac)</p>
+            <p>2. 在印表機選項中選擇「另存為PDF」</p>
+            <p>3. 點擊「列印」按鈕即可下載PDF檔案</p>
+        </div>
+
+        <h1>🤖 AI作文評分報告</h1>
+        <div id="metadata" style="color:#6b7280;font-size:11px;margin-bottom:30px"></div>
+
+        <div id="gradeBox" class="grade-box"></div>
+
+        <h2>📖 原始作文</h2>
+        <div id="originalText" class="content-box"></div>
+
+        <h2>❌ AI 錯誤分析</h2>
+        <div id="errorAnalysis"></div>
+
+        <h2>✏️ AI 改寫版本</h2>
+        <div id="revisedVersions" class="content-box" style="background:#f0f9ff;border-color:#0ea5e9"></div>
+
+        <h2>💡 AI 改進建議</h2>
+        <div id="suggestions"></div>
+
+        <div class="qr-section">
+            <h3>📱 互動式線上批改（30天內有效）</h3>
+            <p style="color:#0277bd;margin-bottom:15px;">掃描下方 QR Code 進行互動學習</p>
+            <div class="qr-code">
+                <canvas id="qrcode"></canvas>
+                <div class="qr-url" id="qrUrl"></div>
+            </div>
+        </div>
+
+        <div style="margin-top:40px;padding-top:20px;border-top:1px solid #ccc;text-align:center;color:#666;font-size:10px">
+            <p>本報告由 GPT-5.1 / Claude 4.5 智能評分系統生成</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://railway-backend-production-55cf.up.railway.app';
+
+        async function loadReport() {
+            try {
+                // Get session ID from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const sessionId = urlParams.get('session');
+
+                if (!sessionId) {
+                    document.getElementById('loading').innerHTML = '<p style="color:red;">❌ 找不到批改記錄ID</p>';
+                    return;
+                }
+
+                // Fetch grading data
+                const response = await fetch(`${API_BASE_URL}/api/get-session/${sessionId}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || '載入失敗');
+                }
+
+                const result = data.data;
+                console.log('Loaded result:', result);
+
+                // Display report
+                displayReport(result, sessionId);
+
+                // Hide loading, show content
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+
+                // Auto print after 1 second
+                setTimeout(() => {
+                    window.print();
+                }, 1000);
+
+            } catch (error) {
+                console.error('Error loading report:', error);
+                document.getElementById('loading').innerHTML = `<p style="color:red;">❌ 載入失敗：${error.message}</p>`;
+            }
+        }
+
+        function displayReport(result, sessionId) {
+            const currentTime = new Date().toLocaleString('zh-TW');
+
+            // Metadata
+            document.getElementById('metadata').innerHTML = `
+                <strong>生成時間：</strong>${currentTime}<br>
+                <strong>評分技術：</strong>GPT-5.1 / Claude 4.5 + Railway Backend
+            `;
+
+            // Grade box
+            const rating = result.gept_rating || {score: 0, comment: '評分中...'};
+            document.getElementById('gradeBox').innerHTML = `
+                <h2 style="margin-top:0;border:none;padding:0">🎯 AI 評級結果</h2>
+                <div class="grade-number">${rating.score}/5 級分</div>
+                <div style="font-size:14px;color:#065f46;margin-top:10px">${rating.comment}</div>
+            `;
+
+            // Original text
+            document.getElementById('originalText').textContent = result.originalEssay || '';
+
+            // Error analysis
+            let errorHTML = '';
+            if (result.sentence_error_analysis && result.sentence_error_analysis.length === 0) {
+                errorHTML = '<div class="error-item" style="background:#ecfdf5;border-left-color:#22c55e;"><div style="color:#059669;font-weight:bold">🎉 表現優秀，未發現重大錯誤！</div></div>';
+            } else if (result.sentence_error_analysis) {
+                result.sentence_error_analysis.forEach((error, i) => {
+                    errorHTML += `<div class="error-item"><div class="error-original">錯誤 ${i+1}：「${error.location || '未指定'}」</div><div class="error-correct">問題：${error.issue || '無說明'}</div></div>`;
+                });
+            }
+            document.getElementById('errorAnalysis').innerHTML = errorHTML;
+
+            // Revised versions
+            const revised = result.revised_versions || {};
+            document.getElementById('revisedVersions').innerHTML = `
+                <div><strong>基礎修正版:</strong></div>
+                <div style="margin: 10px 0;">${revised.basic_correction || result.originalEssay}</div>
+                <div><strong>進階建議版:</strong></div>
+                <div style="margin: 10px 0;">${revised.advanced_model_answer || result.originalEssay}</div>
+            `;
+
+            // Suggestions
+            const suggestions = result.improvement_suggestions || {};
+            document.getElementById('suggestions').innerHTML = `
+                <div class="suggestion-item"><strong>立即改進：</strong> ${suggestions.immediate || '無特別建議'}</div>
+                <div class="suggestion-item"><strong>中期目標：</strong> ${suggestions.mid_term || '持續練習'}</div>
+                <div class="suggestion-item"><strong>長期發展：</strong> ${suggestions.long_term || '擴展詞彙和表達'}</div>
+            `;
+
+            // Generate QR code
+            const studentUrl = `${window.location.origin}/student_review.html?session=${sessionId}`;
+            document.getElementById('qrUrl').textContent = studentUrl;
+
+            QRCode.toCanvas(document.getElementById('qrcode'), studentUrl, {
+                width: 200,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function (error) {
+                if (error) console.error('QR Code generation error:', error);
+                else console.log('QR Code generated successfully!');
+            });
+        }
+
+        // Load report on page load
+        loadReport();
+    </script>
+</body>
+</html>

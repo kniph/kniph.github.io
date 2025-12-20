@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互動式批改檢視</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .three-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .column {
+            padding: 30px;
+            overflow-y: auto;
+            max-height: 700px;
+        }
+
+        .column-original {
+            background: #f8fafc;
+            border-right: 2px solid #e2e8f0;
+        }
+
+        .column-detail {
+            background: #ffffff;
+            border-right: 2px solid #e2e8f0;
+        }
+
+        .column-list {
+            background: #f8fafc;
+        }
+
+        .column h3 {
+            color: #4f46e5;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #4f46e5;
+            padding-bottom: 10px;
+        }
+
+        .essay-text {
+            line-height: 2;
+            font-size: 1.05rem;
+            color: #1f2937;
+        }
+
+        .highlight {
+            background: #fef3c7;
+            border-bottom: 2px solid #f59e0b;
+            cursor: pointer;
+            padding: 2px 0;
+            transition: all 0.2s;
+        }
+
+        .highlight:hover {
+            background: #fde68a;
+            border-bottom-color: #d97706;
+        }
+
+        .highlight.active {
+            background: #fecaca;
+            border-bottom-color: #ef4444;
+        }
+
+        .error-card {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .error-card:hover {
+            background: #fef3c7;
+            transform: translateX(5px);
+        }
+
+        .error-card.active {
+            background: #fecaca;
+            border-left-color: #ef4444;
+        }
+
+        .error-type {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .type-grammar {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .type-word {
+            background: #fed7aa;
+            color: #9a3412;
+        }
+
+        .type-logic {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .detail-placeholder {
+            text-align: center;
+            color: #9ca3af;
+            padding: 50px 20px;
+        }
+
+        .detail-content {
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-section h4 {
+            color: #4f46e5;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .detail-box {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .original-text {
+            color: #dc2626;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .corrected-text {
+            color: #059669;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .explanation {
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .btn-complete {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-complete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 100px 20px;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        @media (max-width: 1024px) {
+            .three-column {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto 1fr;
+            }
+            .column-detail {
+                grid-column: 1 / -1;
+                border-right: none;
+                border-bottom: 2px solid #e2e8f0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .three-column {
+                grid-template-columns: 1fr;
+            }
+            .column {
+                border-right: none;
+                border-bottom: 2px solid #e2e8f0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <p>📚 正在載入批改內容...</p>
+    </div>
+
+    <div class="container" id="content" style="display: none;">
+        <div class="header">
+            <h1>🎯 互動式批改檢視</h1>
+            <p>點擊左側標記處或右側列表查看詳細批改</p>
+        </div>
+
+        <div class="three-column">
+            <!-- Left: Original Essay -->
+            <div class="column column-original">
+                <h3>📖 原文</h3>
+                <div class="essay-text" id="essayText"></div>
+            </div>
+
+            <!-- Middle: Detail View -->
+            <div class="column column-detail">
+                <h3>📝 修改詳情</h3>
+                <div id="detailView">
+                    <div class="detail-placeholder">
+                        <p>👆 點擊左側標記文字查看修改建議</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Error List -->
+            <div class="column column-list">
+                <h3>📋 所有建議</h3>
+                <div id="errorList"></div>
+            </div>
+        </div>
+
+        <button class="btn-complete" onclick="showSummary()">
+            ✅ 完成檢視，查看總評
+        </button>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://railway-backend-production-55cf.up.railway.app';
+        let gradingData = null;
+        let currentErrorIndex = -1;
+
+        async function loadGradingData() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const sessionId = urlParams.get('session');
+
+                if (!sessionId) {
+                    document.getElementById('loading').innerHTML = '<p style="color:red;">❌ 找不到批改記錄ID</p>';
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/api/get-session/${sessionId}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || '載入失敗');
+                }
+
+                gradingData = data.data;
+                console.log('Loaded grading data:', gradingData);
+
+                renderInterface();
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('loading').innerHTML = `<p style="color:red;">❌ 載入失敗：${error.message}</p>`;
+            }
+        }
+
+        function renderInterface() {
+            renderEssayText();
+            renderErrorList();
+        }
+
+        function renderEssayText() {
+            const essay = gradingData.originalEssay || '';
+            const errors = gradingData.sentence_error_analysis || [];
+
+            let highlightedText = essay;
+
+            // Highlight error locations
+            errors.forEach((error, index) => {
+                const location = error.location;
+                if (location && highlightedText.includes(location)) {
+                    highlightedText = highlightedText.replace(
+                        location,
+                        `<span class="highlight" data-error-index="${index}">${location}</span>`
+                    );
+                }
+            });
+
+            document.getElementById('essayText').innerHTML = highlightedText;
+
+            // Add click handlers
+            document.querySelectorAll('.highlight').forEach(el => {
+                el.addEventListener('click', function() {
+                    const errorIndex = parseInt(this.getAttribute('data-error-index'));
+                    showErrorDetail(errorIndex);
+                });
+            });
+        }
+
+        function renderErrorList() {
+            const errors = gradingData.sentence_error_analysis || [];
+            const errorListDiv = document.getElementById('errorList');
+
+            if (errors.length === 0) {
+                errorListDiv.innerHTML = '<div class="error-card" style="border-left-color:#22c55e;background:#ecfdf5;"><div style="color:#059669;font-weight:bold;">🎉 表現優秀，未發現錯誤！</div></div>';
+                return;
+            }
+
+            let html = '';
+            errors.forEach((error, index) => {
+                const errorType = getErrorType(error.issue);
+                html += `
+                    <div class="error-card" data-error-index="${index}" onclick="showErrorDetail(${index})">
+                        <div class="error-type ${errorType.class}">${errorType.label}</div>
+                        <div style="font-weight:bold;margin-bottom:5px;">位置：${error.location || '未指定'}</div>
+                        <div style="color:#6b7280;font-size:0.9rem;">${error.issue?.substring(0, 50) || '無說明'}...</div>
+                    </div>
+                `;
+            });
+
+            errorListDiv.innerHTML = html;
+        }
+
+        function getErrorType(issue) {
+            if (!issue) return { label: '其他', class: 'type-logic' };
+
+            if (issue.includes('文法') || issue.includes('時態') || issue.includes('單複數')) {
+                return { label: '文法錯誤', class: 'type-grammar' };
+            } else if (issue.includes('用字') || issue.includes('詞彙') || issue.includes('單字')) {
+                return { label: '用詞不當', class: 'type-word' };
+            } else {
+                return { label: '語句不順', class: 'type-logic' };
+            }
+        }
+
+        function showErrorDetail(index) {
+            currentErrorIndex = index;
+            const errors = gradingData.sentence_error_analysis || [];
+            const error = errors[index];
+
+            if (!error) return;
+
+            // Update active state
+            document.querySelectorAll('.highlight').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.error-card').forEach(el => el.classList.remove('active'));
+
+            const activeHighlight = document.querySelector(`[data-error-index="${index}"]`);
+            if (activeHighlight) {
+                activeHighlight.classList.add('active');
+            }
+
+            const activeCard = document.querySelectorAll('.error-card')[index];
+            if (activeCard) {
+                activeCard.classList.add('active');
+                activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            // Show detail
+            const detailView = document.getElementById('detailView');
+            detailView.innerHTML = `
+                <div class="detail-content">
+                    <div class="detail-section">
+                        <h4>📍 錯誤位置</h4>
+                        <div class="detail-box original-text">
+                            "${error.location || '未指定'}"
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>❌ 問題說明</h4>
+                        <div class="detail-box explanation">
+                            ${error.issue || '無說明'}
+                        </div>
+                    </div>
+
+                    ${getSuggestion(error, index)}
+                </div>
+            `;
+        }
+
+        function getSuggestion(error, index) {
+            // Try to extract suggestion from issue text
+            const revised = gradingData.revised_versions;
+            if (revised && revised.basic_correction) {
+                return `
+                    <div class="detail-section">
+                        <h4>✅ 參考修正</h4>
+                        <div class="detail-box">
+                            <div style="color:#6b7280;font-size:0.9rem;margin-bottom:8px;">請參考修正版本中的對應句子</div>
+                        </div>
+                    </div>
+                `;
+            }
+            return '';
+        }
+
+        function showSummary() {
+            // Redirect to comprehensive summary
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionId = urlParams.get('session');
+            window.location.href = `printable_report.html?session=${sessionId}`;
+        }
+
+        // Load data on page load
+        loadGradingData();
+    </script>
+</body>
+</html>

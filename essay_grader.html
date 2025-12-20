@@ -939,12 +939,14 @@
         // ===============================
         // 🤖 後端 API 評分系統
         // ===============================
+        const API_BASE_URL = 'https://railway-backend-production-55cf.up.railway.app';
         const BACKEND_API_URL = 'https://railway-backend-production-55cf.up.railway.app/grade-fine-tuned';
         const BACKEND_OCR_API_URL = 'https://railway-backend-production-55cf.up.railway.app/OCR';
-        
+
         // 全域變數
         let currentImage = null;
         let analysisResult = null;
+        let essayText = '';
         let cameraStream = null;
         let currentFacingMode = 'environment';
         
@@ -1245,7 +1247,7 @@
                 return;
             }
             
-            const essayText = essayInput.value.trim();
+            essayText = essayInput.value.trim();
             console.log('Essay text:', essayText);
             
             if (!essayText) {
@@ -1410,16 +1412,42 @@
         // PDF Download Functionality
         // ===============================
         
-        // 下載PDF報告
-        function downloadPDF() {
+        // 下載PDF報告 (with session saving)
+        async function downloadPDF() {
             if (!analysisResult) {
                 alert('沒有分析結果可以下載');
                 return;
             }
-            const htmlContent = generatePDFContent(analysisResult);
-            const newWindow = window.open('', '_blank');
-            newWindow.document.write(htmlContent);
-            newWindow.document.close();
+
+            try {
+                // Save session to backend
+                const response = await fetch(`${API_BASE_URL}/api/save-session`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        gradingData: analysisResult,
+                        originalEssay: essayText
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || '儲存失敗');
+                }
+
+                console.log('✅ Session saved:', data.sessionId);
+
+                // Open printable report with session ID
+                const printUrl = `printable_report.html?session=${data.sessionId}`;
+                window.open(printUrl, '_blank');
+
+            } catch (error) {
+                console.error('Error saving session:', error);
+                alert('儲存批改記錄失敗，請稍後再試');
+            }
         }
         
         // 生成PDF內容
