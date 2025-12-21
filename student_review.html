@@ -336,20 +336,51 @@
             const essay = gradingData.originalEssay || '';
             const errors = gradingData.sentence_error_analysis || [];
 
-            let highlightedText = essay;
+            // Split essay into sentences (by period, exclamation, question mark)
+            const sentences = essay.split(/([.!?]+\s+)/).filter(s => s.trim().length > 0);
 
-            // Highlight error locations
+            // Build error map: sentence number -> error index
+            const errorMap = {};
             errors.forEach((error, index) => {
-                const location = error.location;
-                if (location && highlightedText.includes(location)) {
-                    highlightedText = highlightedText.replace(
-                        location,
-                        `<span class="highlight" data-error-index="${index}">${location}</span>`
-                    );
+                const location = error.location || '';
+                // Extract sentence number from location like "第一句", "第二句"
+                const match = location.match(/第(.+?)句/);
+                if (match) {
+                    const numMap = {
+                        '一': 1, '二': 2, '三': 3, '四': 4, '五': 5,
+                        '六': 6, '七': 7, '八': 8, '九': 9, '十': 10
+                    };
+                    const sentenceNum = numMap[match[1]];
+                    if (sentenceNum) {
+                        errorMap[sentenceNum] = index;
+                    }
                 }
             });
 
-            document.getElementById('essayText').innerHTML = highlightedText;
+            // Build highlighted HTML
+            let html = '';
+            let sentenceCount = 0;
+
+            for (let i = 0; i < sentences.length; i++) {
+                const part = sentences[i];
+
+                // Check if this is actual sentence content (not just punctuation/space)
+                if (/[a-zA-Z]/.test(part)) {
+                    sentenceCount++;
+
+                    // Check if this sentence has an error
+                    if (errorMap[sentenceCount] !== undefined) {
+                        const errorIndex = errorMap[sentenceCount];
+                        html += `<span class="highlight" data-error-index="${errorIndex}">${part}</span>`;
+                    } else {
+                        html += part;
+                    }
+                } else {
+                    html += part;
+                }
+            }
+
+            document.getElementById('essayText').innerHTML = html;
 
             // Add click handlers
             document.querySelectorAll('.highlight').forEach(el => {
