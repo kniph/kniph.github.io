@@ -799,6 +799,21 @@
         
         <div class="main-content">
             <div class="model-selector">
+                <h3>📊 選擇 GEPT 程度</h3>
+                <div class="model-select-wrapper">
+                    <label for="levelSelect">程度:</label>
+                    <select id="levelSelect">
+                        <option value="elementary">Elementary (A2) - 初級 ~50字</option>
+                        <option value="intermediate">Intermediate (B1) - 中級 ~80字</option>
+                        <option value="high-intermediate">High-Intermediate (B2) - 中高級 ~120字</option>
+                    </select>
+                </div>
+                <div class="model-info" id="levelInfo">
+                    📝 使用 Elementary (A2) 初級程度 | 預期字數約 50 字
+                </div>
+            </div>
+
+            <div class="model-selector">
                 <h3>🤖 選擇 AI 評分模型</h3>
                 <div class="model-select-wrapper">
                     <label for="modelSelect">模型:</label>
@@ -953,6 +968,21 @@
         // ===============================
         // Event Listeners & Basic UI
         // ===============================
+
+        // Level selector change handler
+        document.getElementById('levelSelect').addEventListener('change', function(e) {
+            const levelInfo = document.getElementById('levelInfo');
+            const selectedValue = e.target.value;
+
+            const levelInfoText = {
+                'elementary': '📝 使用 Elementary (A2) 初級程度 | 預期字數約 50 字',
+                'intermediate': '📝 使用 Intermediate (B1) 中級程度 | 預期字數約 80 字',
+                'high-intermediate': '📝 使用 High-Intermediate (B2) 中高級程度 | 預期字數約 120 字'
+            };
+
+            levelInfo.textContent = levelInfoText[selectedValue] || levelInfoText['elementary'];
+            console.log('Level changed to:', selectedValue);
+        });
 
         // Model selector change handler
         document.getElementById('modelSelect').addEventListener('change', function(e) {
@@ -1259,6 +1289,10 @@
             const selectedModel = document.getElementById('modelSelect').value;
             console.log('Selected model:', selectedModel);
 
+            // Get selected level
+            const selectedLevel = document.getElementById('levelSelect').value;
+            console.log('Selected level:', selectedLevel);
+
             // 顯示載入狀態
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').style.display = 'none';
@@ -1271,7 +1305,8 @@
                     },
                     body: JSON.stringify({
                         essay: essayText,
-                        model: selectedModel  // Send selected model to backend
+                        model: selectedModel,  // Send selected model to backend
+                        level: selectedLevel   // Send selected level to backend
                     })
                 });
                 
