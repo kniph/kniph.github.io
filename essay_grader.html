@@ -804,8 +804,8 @@
                     <label for="levelSelect">程度:</label>
                     <select id="levelSelect">
                         <option value="elementary">Elementary (A2) - 初級 ~50字</option>
-                        <option value="intermediate">Intermediate (B1) - 中級 ~80字</option>
-                        <option value="high-intermediate">High-Intermediate (B2) - 中高級 ~120字</option>
+                        <option value="intermediate">Intermediate (B1) - 中級 ~120字</option>
+                        <option value="high-intermediate">High-Intermediate (B2) - 中高級 ~150-180字</option>
                     </select>
                 </div>
                 <div class="model-info" id="levelInfo">
@@ -976,8 +976,8 @@
 
             const levelInfoText = {
                 'elementary': '📝 使用 Elementary (A2) 初級程度 | 預期字數約 50 字',
-                'intermediate': '📝 使用 Intermediate (B1) 中級程度 | 預期字數約 80 字',
-                'high-intermediate': '📝 使用 High-Intermediate (B2) 中高級程度 | 預期字數約 120 字'
+                'intermediate': '📝 使用 Intermediate (B1) 中級程度 | 預期字數約 120 字',
+                'high-intermediate': '📝 使用 High-Intermediate (B2) 中高級程度 | 預期字數約 150-180 字'
             };
 
             levelInfo.textContent = levelInfoText[selectedValue] || levelInfoText['elementary'];
