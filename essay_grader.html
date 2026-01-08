@@ -1454,6 +1454,62 @@
                 return;
             }
 
+            // CRITICAL FIX for iOS Safari: Open window IMMEDIATELY before async operations
+            // This prevents iOS Safari from blocking the popup
+            const printWindow = window.open('about:blank', '_blank');
+
+            if (!printWindow) {
+                alert('請允許彈出式視窗以下載PDF報告');
+                return;
+            }
+
+            // Show loading message in the new window
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>載入中...</title>
+                    <style>
+                        body {
+                            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            height: 100vh;
+                            margin: 0;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        }
+                        .loading {
+                            text-align: center;
+                            color: white;
+                        }
+                        .spinner {
+                            border: 4px solid rgba(255, 255, 255, 0.3);
+                            border-top: 4px solid white;
+                            border-radius: 50%;
+                            width: 50px;
+                            height: 50px;
+                            animation: spin 1s linear infinite;
+                            margin: 0 auto 20px;
+                        }
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <h2>正在準備PDF報告...</h2>
+                        <p>請稍候</p>
+                    </div>
+                </body>
+                </html>
+            `);
+
             try {
                 // Save session to backend
                 const response = await fetch(`${API_BASE_URL}/api/save-session`, {
@@ -1475,13 +1531,21 @@
 
                 console.log('✅ Session saved:', data.sessionId);
 
-                // Open printable report with session ID
+                // Navigate the already-opened window to the print page
                 const printUrl = `printable_report.html?session=${data.sessionId}`;
-                window.open(printUrl, '_blank');
+                printWindow.location.href = printUrl;
 
             } catch (error) {
                 console.error('Error saving session:', error);
-                alert('儲存批改記錄失敗，請稍後再試');
+
+                // Show error in the opened window
+                printWindow.document.body.innerHTML = `
+                    <div style="text-align:center;padding:40px;font-family:Arial,sans-serif;">
+                        <h2 style="color:#dc2626;">❌ 錯誤</h2>
+                        <p>儲存批改記錄失敗，請稍後再試</p>
+                        <button onclick="window.close()" style="margin-top:20px;padding:10px 20px;background:#4f46e5;color:white;border:none;border-radius:6px;cursor:pointer;">關閉</button>
+                    </div>
+                `;
             }
         }
         
