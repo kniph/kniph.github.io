@@ -328,6 +328,14 @@
         }
 
         function renderInterface() {
+            // Update title with student name if provided
+            const studentName = gradingData.studentName;
+            if (studentName) {
+                const titleElement = document.querySelector('h1');
+                titleElement.textContent = `🎯 互動式批改檢視 - ${studentName}`;
+                document.title = `互動式批改檢視 - ${studentName}`;
+            }
+
             renderEssayText();
             renderErrorList();
         }

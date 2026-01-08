@@ -236,6 +236,14 @@
         function displayReport(result, sessionId, qrCodeDataUrl, studentUrl) {
             const currentTime = new Date().toLocaleString('zh-TW');
 
+            // Update title with student name if provided
+            const studentName = result.studentName;
+            const titleElement = document.querySelector('h1');
+            if (studentName) {
+                titleElement.textContent = `🤖 AI作文評分報告 - ${studentName}`;
+                document.title = `AI作文評分報告 - ${studentName}`;
+            }
+
             // Metadata
             document.getElementById('metadata').innerHTML = `
                 <strong>生成時間：</strong>${currentTime}<br>

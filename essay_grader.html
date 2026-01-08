@@ -854,10 +854,15 @@
             </div>
             
             <div class="manual-input">
+                <h3>👤 學生姓名 (選填)：</h3>
+                <input type="text" id="studentName" placeholder="例如：王小明 (不填則不顯示於報告中)" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; font-family: 'Microsoft JhengHei', Arial, sans-serif; margin-bottom: 20px;">
+            </div>
+
+            <div class="manual-input">
                 <h3>📝 或直接輸入學生作文：</h3>
                 <textarea id="essayInput" placeholder="請在此輸入學生的英文作文，或使用上方照片辨識功能..."></textarea>
             </div>
-            
+
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="gradeEssay()">
                     🎯 開始評分
@@ -1511,6 +1516,9 @@
             `);
 
             try {
+                // Get student name (optional)
+                const studentName = document.getElementById('studentName').value.trim();
+
                 // Save session to backend
                 const response = await fetch(`${API_BASE_URL}/api/save-session`, {
                     method: 'POST',
@@ -1519,7 +1527,8 @@
                     },
                     body: JSON.stringify({
                         gradingData: analysisResult,
-                        originalEssay: essayText
+                        originalEssay: essayText,
+                        studentName: studentName || null
                     })
                 });
 
