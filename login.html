@@ -58,10 +58,12 @@
         <div class="error" id="error"></div>
     </div>
     <script>
+        const API_BASE_URL = 'https://railway-backend-production-55cf.up.railway.app';
+
         function login() {
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
-            fetch('/.netlify/functions/login', {
+            fetch(`${API_BASE_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: u, password: p })
@@ -75,10 +77,11 @@
                     localStorage.setItem('expireAt', expireTime);
                     window.location.href = "index.html";
                 } else {
-                    document.getElementById('error').innerText = data.message;
+                    document.getElementById('error').innerText = data.message || "帳號或密碼錯誤";
                 }
             })
             .catch(err => {
+                console.error('Login error:', err);
                 document.getElementById('error').innerText = "登入服務異常，請稍後再試";
             });
         }
