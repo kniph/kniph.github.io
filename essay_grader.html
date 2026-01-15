@@ -818,6 +818,7 @@
                 <div class="model-select-wrapper">
                     <label for="modelSelect">模型:</label>
                     <select id="modelSelect">
+                        <option value="gpt-5.2">GPT-5.2 (最新 - 更少幻覺)</option>
                         <option value="gpt-5.1">GPT-5.1 (推薦 - 更快更強)</option>
                         <option value="gpt-5-mini">GPT-5 mini (經濟實惠)</option>
                         <option value="claude-sonnet-4.5">Claude 4.5 Sonnet (Anthropic - 深度分析)</option>
@@ -825,7 +826,7 @@
                     </select>
                 </div>
                 <div class="model-info" id="modelInfo">
-                    🚀 使用 GPT-5.1 模型 | 最新AI技術，更快更準確
+                    ✨ 使用 GPT-5.2 模型 | 最新旗艦，30% 更少幻覺
                 </div>
             </div>
 
@@ -995,13 +996,14 @@
             const selectedValue = e.target.value;
 
             const modelInfoText = {
-                'gpt-5.1': '🚀 使用 GPT-5.1 模型 | 最新AI技術，更快更準確',
+                'gpt-5.2': '✨ 使用 GPT-5.2 模型 | 最新旗艦，30% 更少幻覺',
+                'gpt-5.1': '🚀 使用 GPT-5.1 模型 | 穩定可靠，更快更強',
                 'gpt-5-mini': '💰 使用 GPT-5 mini 模型 | 經濟實惠，快速回應',
                 'claude-sonnet-4.5': '🔵 使用 Claude 4.5 Sonnet | Anthropic AI，擅長深度語言分析',
                 'fine-tuned': '🎯 使用自訂 fine-tuned 模型 | 針對 GEPT 初級作文優化'
             };
 
-            modelInfo.textContent = modelInfoText[selectedValue] || modelInfoText['gpt-5.1'];
+            modelInfo.textContent = modelInfoText[selectedValue] || modelInfoText['gpt-5.2'];
             console.log('Model changed to:', selectedValue);
         });
 
