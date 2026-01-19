@@ -768,7 +768,7 @@
             document.getElementById('batchInputSection').style.display = mode === 'batch' ? 'block' : 'none';
         }
 
-        function loadQuestions() {
+        async function loadQuestions() {
             const testId = document.getElementById('testSelect').value;
             const container = document.getElementById('questionsContainer');
 
@@ -778,23 +778,63 @@
             }
 
             if (testId === 'AI') {
+                // Show loading state
                 container.innerHTML = `
-                    <div class="question-item">
-                        <div style="text-align: center; padding: 20px; color: #6b7280;">
-                            🤖 AI 題目生成功能即將推出！<br>目前請使用預設題組進行評分。
-                        </div>
+                    <div class="question-item" style="text-align: center; padding: 40px;">
+                        <div class="spinner" style="margin: 0 auto 20px;"></div>
+                        <h3 style="color: #4f46e5; margin-bottom: 10px;">🤖 AI 正在生成題目...</h3>
+                        <p style="color: #6b7280;">這可能需要 10-20 秒，請稍候</p>
                     </div>
                 `;
                 container.style.display = 'block';
-                currentTest = null;
-                currentQuestions = [];
+
+                try {
+                    // Call AI generation endpoint
+                    const response = await fetch(`${API_BASE_URL}/api/generate-questions`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ model: selectedModel })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API error: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error(data.error || '生成失敗');
+                    }
+
+                    // Store AI-generated questions
+                    currentTest = 'AI';
+                    currentQuestions = data.questions;
+
+                    // Display generated questions
+                    displayQuestions();
+
+                } catch (error) {
+                    console.error('AI generation error:', error);
+                    container.innerHTML = `
+                        <div class="question-item" style="text-align: center; padding: 40px;">
+                            <h3 style="color: #dc2626; margin-bottom: 10px;">❌ 生成失敗</h3>
+                            <p style="color: #6b7280;">${error.message}</p>
+                            <button onclick="loadQuestions()" style="margin-top: 20px; padding: 10px 20px; background: #4f46e5; color: white; border: none; border-radius: 8px; cursor: pointer;">重試</button>
+                        </div>
+                    `;
+                }
                 return;
             }
 
             currentTest = testId;
             currentQuestions = questionBank[testId];
+            displayQuestions();
+        }
 
+        function displayQuestions() {
+            const container = document.getElementById('questionsContainer');
             let html = '';
+
             currentQuestions.forEach((q, index) => {
                 html += `
                 <div class="question-item">
