@@ -21,7 +21,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
@@ -88,7 +88,7 @@
             color: #4f46e5;
         }
 
-        /* Question Selector */
+        /* Selector Section */
         .selector-section {
             background: linear-gradient(135deg, #fef3c7, #fde68a);
             border: 2px solid #f59e0b;
@@ -127,44 +127,47 @@
             cursor: pointer;
         }
 
-        /* Question Display */
-        .question-display {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 25px;
+        /* Questions Display */
+        .questions-container {
+            display: none;
         }
 
-        .question-display h3 {
-            color: #1e293b;
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-        }
-
-        .question-box {
+        .question-item {
             background: white;
-            border: 1px solid #cbd5e1;
-            border-radius: 10px;
-            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
             margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        .question-type {
-            display: inline-block;
-            background: #ddd6fe;
-            color: #5b21b6;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-bottom: 10px;
+        .question-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
         }
 
         .question-num {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
             font-weight: bold;
-            color: #4f46e5;
-            margin-right: 8px;
+            font-size: 1rem;
+        }
+
+        .question-type {
+            background: #ddd6fe;
+            color: #5b21b6;
+            padding: 6px 14px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .question-content {
+            margin-bottom: 12px;
         }
 
         .question-original {
@@ -177,19 +180,49 @@
             color: #1e293b;
             font-weight: 500;
             background: #fef3c7;
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin-top: 8px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin: 10px 0;
         }
 
         .given-words {
             color: #059669;
             font-style: italic;
-            margin-top: 5px;
+            margin-top: 8px;
+            font-size: 0.95rem;
         }
 
-        /* Answer Input */
-        .input-section {
+        .answer-input-wrapper {
+            margin-top: 12px;
+        }
+
+        .answer-input-wrapper label {
+            display: block;
+            font-weight: 600;
+            color: #065f46;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+        }
+
+        .answer-input-wrapper input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #10b981;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            background: linear-gradient(135deg, #ecfdf5, #ffffff);
+        }
+
+        .answer-input-wrapper input:focus {
+            outline: none;
+            border-color: #059669;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        /* Batch Mode */
+        .batch-input-section {
+            display: none;
             background: linear-gradient(135deg, #ecfdf5, #d1fae5);
             border: 2px solid #10b981;
             border-radius: 15px;
@@ -197,33 +230,28 @@
             margin-bottom: 25px;
         }
 
-        .input-section h3 {
+        .batch-input-section h3 {
             color: #065f46;
             margin-bottom: 15px;
             font-size: 1.1rem;
         }
 
-        .input-section textarea {
+        .batch-input-section textarea {
             width: 100%;
-            min-height: 100px;
+            min-height: 200px;
             padding: 15px;
             border: 1px solid #10b981;
             border-radius: 10px;
             font-size: 1rem;
-            font-family: inherit;
+            font-family: 'Courier New', monospace;
             resize: vertical;
-        }
-
-        .input-section textarea:focus {
-            outline: none;
-            border-color: #059669;
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
         }
 
         .batch-hint {
             color: #065f46;
             font-size: 0.85rem;
             margin-top: 10px;
+            line-height: 1.5;
         }
 
         /* Buttons */
@@ -236,10 +264,10 @@
         }
 
         .btn {
-            padding: 12px 30px;
+            padding: 14px 35px;
             border: none;
             border-radius: 25px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
@@ -300,7 +328,7 @@
         .results h2 {
             color: #1e293b;
             margin-bottom: 20px;
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             text-align: center;
         }
 
@@ -322,7 +350,7 @@
             border-bottom: 1px solid #e2e8f0;
         }
 
-        .student-name {
+        .question-title {
             font-weight: 600;
             color: #374151;
         }
@@ -376,30 +404,37 @@
         /* Summary Stats */
         .summary-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         .stat-card {
             text-align: center;
-            padding: 15px;
-            border-radius: 10px;
+            padding: 20px;
+            border-radius: 12px;
             border: 2px solid;
         }
 
         .stat-card.green { background: #ecfdf5; border-color: #10b981; }
         .stat-card.yellow { background: #fefce8; border-color: #eab308; }
         .stat-card.red { background: #fef2f2; border-color: #ef4444; }
+        .stat-card.blue { background: #eff6ff; border-color: #3b82f6; }
 
         .stat-number {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            margin-top: 5px;
         }
 
         .stat-card.green .stat-number { color: #059669; }
         .stat-card.yellow .stat-number { color: #ca8a04; }
         .stat-card.red .stat-number { color: #dc2626; }
+        .stat-card.blue .stat-number { color: #2563eb; }
 
         @media (max-width: 600px) {
             .main-content { padding: 20px; }
@@ -415,7 +450,7 @@
         <div class="header">
             <a href="sentence_grader.html" class="back-btn">← 返回</a>
             <h1>✏️ GEPT 句子寫作評分</h1>
-            <p>教師批改模式 | AI: Claude Sonnet 4</p>
+            <p id="headerSubtitle">教師批改模式 | AI: Claude Sonnet 4.5</p>
         </div>
 
         <div class="main-content">
@@ -425,13 +460,13 @@
                 <button class="mode-btn" onclick="setMode('batch')" id="batchModeBtn">批次模式</button>
             </div>
 
-            <!-- Question Selector -->
+            <!-- Test & Model Selector -->
             <div class="selector-section">
-                <h3>📋 選擇題目來源</h3>
+                <h3>📋 選擇題組與AI模型</h3>
                 <div class="selector-row">
                     <label for="testSelect">題組：</label>
                     <select id="testSelect" onchange="loadQuestions()">
-                        <option value="">-- 請選擇 --</option>
+                        <option value="">-- 請選擇題組 --</option>
                         <option value="A-1">A-1 AMC 模擬試題 1</option>
                         <option value="A-2">A-2 AMC 模擬試題 2</option>
                         <option value="A-3">A-3 AMC 模擬試題 3</option>
@@ -444,28 +479,39 @@
                         <option value="AI">🤖 AI 生成題目</option>
                     </select>
 
-                    <label for="questionSelect">題號：</label>
-                    <select id="questionSelect" onchange="displayQuestion()">
-                        <option value="">-- 先選題組 --</option>
+                    <label for="modelSelect">AI 模型：</label>
+                    <select id="modelSelect" onchange="updateModelDisplay()">
+                        <option value="claude-sonnet-4.5">Claude Sonnet 4.5</option>
+                        <option value="gpt-5.2">GPT 5.2</option>
                     </select>
                 </div>
             </div>
 
-            <!-- Question Display -->
-            <div class="question-display" id="questionDisplay" style="display: none;">
-                <h3>📝 題目內容</h3>
-                <div id="questionContent"></div>
+            <!-- Single Person Mode - 15 Questions -->
+            <div class="questions-container" id="questionsContainer">
+                <!-- Questions will be dynamically loaded here -->
             </div>
 
-            <!-- Answer Input -->
-            <div class="input-section">
-                <h3 id="inputTitle">✍️ 學生答案</h3>
-                <textarea id="answerInput" placeholder="請輸入學生的答案..."></textarea>
-                <div class="batch-hint" id="batchHint" style="display: none;">
-                    💡 批次模式：每行輸入一位學生的答案，格式：學生姓名: 答案<br>
-                    例如：<br>
-                    王小明: David will get up early tomorrow.<br>
-                    李小華: David is going to get up early tomorrow.
+            <!-- Batch Mode Input -->
+            <div class="batch-input-section" id="batchInputSection">
+                <h3>✍️ 批次輸入 (每位學生15題答案)</h3>
+                <textarea id="batchInput" placeholder="格式範例：
+學生姓名
+答案1
+答案2
+答案3
+...
+答案15
+
+下一位學生姓名
+答案1
+答案2
+..."></textarea>
+                <div class="batch-hint">
+                    💡 批次模式說明：<br>
+                    - 每位學生先輸入姓名，接下來15行為15題答案（依序對應第1-15題）<br>
+                    - 空一行後可輸入下一位學生<br>
+                    - 系統會自動批改所有學生的所有題目
                 </div>
             </div>
 
@@ -499,10 +545,12 @@
         const API_BASE_URL = 'https://railway-backend-production-55cf.up.railway.app';
 
         let currentMode = 'single';
-        let currentQuestion = null;
+        let currentTest = null;
+        let currentQuestions = [];
         let gradingResults = [];
+        let selectedModel = 'claude-sonnet-4.5';
 
-        // Question Bank (will be expanded)
+        // Question Bank
         const questionBank = {
             'G-1': [
                 {
@@ -598,129 +646,106 @@
             ]
         };
 
-        // Copy G-1 as placeholder for other tests (to be expanded)
+        // Copy G-1 as placeholder for other tests
         ['A-1', 'A-2', 'A-3', 'A-4', 'A-5', 'A-6', 'A-7', 'A-8'].forEach(key => {
-            questionBank[key] = questionBank['G-1']; // Placeholder
+            questionBank[key] = questionBank['G-1'];
         });
+
+        function updateModelDisplay() {
+            selectedModel = document.getElementById('modelSelect').value;
+            const modelName = selectedModel === 'claude-sonnet-4.5' ? 'Claude Sonnet 4.5' : 'GPT 5.2';
+            document.getElementById('headerSubtitle').textContent = `教師批改模式 | AI: ${modelName}`;
+        }
 
         function setMode(mode) {
             currentMode = mode;
             document.getElementById('singleModeBtn').classList.toggle('active', mode === 'single');
             document.getElementById('batchModeBtn').classList.toggle('active', mode === 'batch');
-            document.getElementById('batchHint').style.display = mode === 'batch' ? 'block' : 'none';
-            document.getElementById('inputTitle').textContent = mode === 'batch' ? '✍️ 學生答案 (批次輸入)' : '✍️ 學生答案';
-            document.getElementById('answerInput').placeholder = mode === 'batch'
-                ? '每行一位學生，格式：姓名: 答案\n例如：\n王小明: David will get up early tomorrow.\n李小華: David is going to get up early tomorrow.'
-                : '請輸入學生的答案...';
+            document.getElementById('questionsContainer').style.display = mode === 'single' ? 'block' : 'none';
+            document.getElementById('batchInputSection').style.display = mode === 'batch' ? 'block' : 'none';
         }
 
         function loadQuestions() {
             const testId = document.getElementById('testSelect').value;
-            const questionSelect = document.getElementById('questionSelect');
-            questionSelect.innerHTML = '<option value="">-- 請選擇題號 --</option>';
+            const container = document.getElementById('questionsContainer');
+
+            if (!testId) {
+                container.style.display = 'none';
+                return;
+            }
 
             if (testId === 'AI') {
-                questionSelect.innerHTML = '<option value="ai-generate">🤖 生成新題目</option>';
-                displayQuestion();
-                return;
-            }
-
-            if (testId && questionBank[testId]) {
-                questionBank[testId].forEach((q, i) => {
-                    const opt = document.createElement('option');
-                    opt.value = i;
-                    opt.textContent = `第 ${q.num} 題 - ${q.type}`;
-                    questionSelect.appendChild(opt);
-                });
-            }
-
-            document.getElementById('questionDisplay').style.display = 'none';
-        }
-
-        function displayQuestion() {
-            const testId = document.getElementById('testSelect').value;
-            const qIndex = document.getElementById('questionSelect').value;
-
-            if (testId === 'AI' && qIndex === 'ai-generate') {
-                document.getElementById('questionDisplay').style.display = 'block';
-                document.getElementById('questionContent').innerHTML = `
-                    <div class="question-box">
-                        <div class="question-type">🤖 AI 生成</div>
-                        <p style="color: #6b7280; margin-top: 10px;">AI 題目生成功能即將推出！<br>目前請使用預設題組進行評分。</p>
+                container.innerHTML = `
+                    <div class="question-item">
+                        <div style="text-align: center; padding: 20px; color: #6b7280;">
+                            🤖 AI 題目生成功能即將推出！<br>目前請使用預設題組進行評分。
+                        </div>
                     </div>
                 `;
-                currentQuestion = null;
+                container.style.display = 'block';
+                currentTest = null;
+                currentQuestions = [];
                 return;
             }
 
-            if (!testId || qIndex === '') {
-                document.getElementById('questionDisplay').style.display = 'none';
-                return;
-            }
+            currentTest = testId;
+            currentQuestions = questionBank[testId];
 
-            const question = questionBank[testId][parseInt(qIndex)];
-            currentQuestion = question;
+            let html = '';
+            currentQuestions.forEach((q, index) => {
+                html += `
+                <div class="question-item">
+                    <div class="question-header">
+                        <span class="question-num">Q${q.num}</span>
+                        <span class="question-type">${q.type}</span>
+                    </div>
+                    <div class="question-content">
+                        ${q.original ? `
+                            <div class="question-original">
+                                ${Array.isArray(q.original) ? q.original.join('<br>') : q.original}
+                            </div>
+                        ` : ''}
+                        <div class="question-prompt">${q.prompt}</div>
+                        ${q.given_words ? `
+                            <div class="given-words">提示字詞: ${q.given_words.join(' / ')}</div>
+                        ` : ''}
+                    </div>
+                    <div class="answer-input-wrapper">
+                        <label for="answer${index}">✍️ 學生答案：</label>
+                        <input type="text" id="answer${index}" placeholder="請輸入答案...">
+                    </div>
+                </div>
+                `;
+            });
 
-            let html = `<div class="question-box">`;
-            html += `<div class="question-type">${question.type}</div>`;
-            html += `<div><span class="question-num">Q${question.num}.</span>`;
-
-            if (question.original) {
-                if (Array.isArray(question.original)) {
-                    html += `<span class="question-original">${question.original.join('<br>')}</span>`;
-                } else {
-                    html += `<span class="question-original">${question.original}</span>`;
-                }
-            }
-            html += `</div>`;
-
-            html += `<div class="question-prompt">${question.prompt}</div>`;
-
-            if (question.given_words) {
-                html += `<div class="given-words">提示字詞: ${question.given_words.join(' / ')}</div>`;
-            }
-
-            html += `</div>`;
-
-            document.getElementById('questionContent').innerHTML = html;
-            document.getElementById('questionDisplay').style.display = 'block';
+            container.innerHTML = html;
+            container.style.display = 'block';
         }
 
         async function gradeAnswers() {
-            if (!currentQuestion) {
-                alert('請先選擇題目！');
+            if (currentMode === 'single' && !currentTest) {
+                alert('請先選擇題組！');
                 return;
             }
 
-            const input = document.getElementById('answerInput').value.trim();
-            if (!input) {
-                alert('請輸入學生答案！');
-                return;
-            }
-
-            // Parse answers
-            let answers = [];
-            if (currentMode === 'batch') {
-                const lines = input.split('\n').filter(l => l.trim());
-                lines.forEach((line, i) => {
-                    const colonIndex = line.indexOf(':');
-                    if (colonIndex > 0) {
-                        answers.push({
-                            name: line.substring(0, colonIndex).trim(),
-                            answer: line.substring(colonIndex + 1).trim()
-                        });
-                    } else {
-                        answers.push({
-                            name: `學生 ${i + 1}`,
-                            answer: line.trim()
-                        });
-                    }
-                });
+            if (currentMode === 'single') {
+                await gradeSingleMode();
             } else {
-                answers.push({
-                    name: '學生',
-                    answer: input
-                });
+                await gradeBatchMode();
+            }
+        }
+
+        async function gradeSingleMode() {
+            // Collect all 15 answers
+            const answers = [];
+            for (let i = 0; i < currentQuestions.length; i++) {
+                const input = document.getElementById(`answer${i}`);
+                const answer = input ? input.value.trim() : '';
+                if (!answer) {
+                    alert(`請填寫第 ${i + 1} 題答案！`);
+                    return;
+                }
+                answers.push(answer);
             }
 
             // Show loading
@@ -731,20 +756,20 @@
             gradingResults = [];
 
             try {
-                for (let i = 0; i < answers.length; i++) {
+                for (let i = 0; i < currentQuestions.length; i++) {
                     document.getElementById('loadingProgress').textContent =
-                        `正在評分 ${i + 1} / ${answers.length}...`;
+                        `正在評分第 ${i + 1} / ${currentQuestions.length} 題...`;
 
-                    const result = await gradeOneAnswer(answers[i], currentQuestion);
+                    const result = await gradeOneAnswer(currentQuestions[i], answers[i], i + 1);
                     gradingResults.push(result);
 
                     // Small delay to avoid rate limiting
-                    if (i < answers.length - 1) {
-                        await new Promise(r => setTimeout(r, 300));
+                    if (i < currentQuestions.length - 1) {
+                        await new Promise(r => setTimeout(r, 500));
                     }
                 }
 
-                displayResults();
+                displayResults('single');
 
             } catch (error) {
                 console.error('Grading error:', error);
@@ -755,7 +780,74 @@
             }
         }
 
-        async function gradeOneAnswer(student, question) {
+        async function gradeBatchMode() {
+            const input = document.getElementById('batchInput').value.trim();
+            if (!input) {
+                alert('請輸入學生答案！');
+                return;
+            }
+
+            // Parse batch input
+            const lines = input.split('\n').map(l => l.trim()).filter(l => l);
+            const students = [];
+            let currentStudent = null;
+
+            for (const line of lines) {
+                // If we have 15 answers already, this should be a new student name
+                if (!currentStudent || currentStudent.answers.length === 15) {
+                    currentStudent = { name: line, answers: [] };
+                    students.push(currentStudent);
+                } else {
+                    currentStudent.answers.push(line);
+                }
+            }
+
+            // Validate
+            const invalidStudents = students.filter(s => s.answers.length !== 15);
+            if (invalidStudents.length > 0) {
+                alert(`以下學生答案數量不正確（需要15題）：\n${invalidStudents.map(s => `${s.name}: ${s.answers.length}題`).join('\n')}`);
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('gradeBtn').disabled = true;
+
+            gradingResults = [];
+
+            try {
+                const totalGradings = students.length * 15;
+                let currentGrading = 0;
+
+                for (const student of students) {
+                    for (let i = 0; i < currentQuestions.length; i++) {
+                        currentGrading++;
+                        document.getElementById('loadingProgress').textContent =
+                            `正在評分 ${student.name} 第 ${i + 1} 題 (${currentGrading} / ${totalGradings})...`;
+
+                        const result = await gradeOneAnswer(currentQuestions[i], student.answers[i], i + 1, student.name);
+                        gradingResults.push(result);
+
+                        // Small delay
+                        if (currentGrading < totalGradings) {
+                            await new Promise(r => setTimeout(r, 300));
+                        }
+                    }
+                }
+
+                displayResults('batch');
+
+            } catch (error) {
+                console.error('Grading error:', error);
+                alert('評分過程發生錯誤: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('gradeBtn').disabled = false;
+            }
+        }
+
+        async function gradeOneAnswer(question, answer, questionNum, studentName = '學生') {
             const response = await fetch(`${API_BASE_URL}/api/grade-sentence`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -765,7 +857,8 @@
                     prompt: question.prompt,
                     given_words: question.given_words,
                     correct_answers: question.correct_answers,
-                    student_answer: student.answer
+                    student_answer: answer,
+                    model: selectedModel
                 })
             });
 
@@ -776,69 +869,112 @@
             const data = await response.json();
 
             return {
-                name: student.name,
-                answer: student.answer,
+                studentName: studentName,
+                questionNum: questionNum,
+                questionType: question.type,
+                answer: answer,
                 ...data.result
             };
         }
 
-        function displayResults() {
-            // Summary stats
+        function displayResults(mode) {
+            // Calculate statistics
             const scores = gradingResults.map(r => r.score);
             const count2 = scores.filter(s => s === 2).length;
             const count1 = scores.filter(s => s === 1).length;
             const count0 = scores.filter(s => s === 0).length;
+            const totalScore = scores.reduce((a, b) => a + b, 0);
+            const maxScore = scores.length * 2;
+            const percentage = ((totalScore / maxScore) * 100).toFixed(1);
 
             document.getElementById('summaryStats').innerHTML = `
                 <div class="stat-card green">
                     <div class="stat-number">${count2}</div>
-                    <div>滿分 (2分)</div>
+                    <div class="stat-label">滿分 (2分)</div>
                 </div>
                 <div class="stat-card yellow">
                     <div class="stat-number">${count1}</div>
-                    <div>部分 (1分)</div>
+                    <div class="stat-label">部分 (1分)</div>
                 </div>
                 <div class="stat-card red">
                     <div class="stat-number">${count0}</div>
-                    <div>零分 (0分)</div>
+                    <div class="stat-label">零分 (0分)</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="stat-number">${totalScore}/${maxScore}</div>
+                    <div class="stat-label">總分 (${percentage}%)</div>
                 </div>
             `;
 
-            // Individual results
+            // Display individual results
             let html = '';
-            gradingResults.forEach(r => {
-                html += `
-                <div class="result-card">
-                    <div class="result-header">
-                        <span class="student-name">${r.name}</span>
-                        <span class="score-badge score-${r.score}">${r.score} 分</span>
-                    </div>
-                    <div class="result-answer">${r.answer}</div>
-                    <div class="result-feedback">
-                        ${r.grammar_errors && r.grammar_errors.length > 0 ? `
-                            <div class="grammar-errors">
-                                <div class="feedback-label">❌ 文法錯誤：</div>
-                                ${r.grammar_errors.join('<br>')}
-                            </div>
-                        ` : ''}
-                        ${r.minor_errors && r.minor_errors.length > 0 ? `
-                            <div class="minor-errors">
-                                <div class="feedback-label">⚠️ 小錯誤：</div>
-                                ${r.minor_errors.join('<br>')}
-                            </div>
-                        ` : ''}
-                        <div style="margin-top: 10px;">
-                            <div class="feedback-label">💬 說明：</div>
-                            <div>${r.explanation_zh || r.explanation_en || '無'}</div>
-                        </div>
-                    </div>
-                </div>
-                `;
-            });
+            if (mode === 'batch') {
+                // Group by student
+                const studentMap = {};
+                gradingResults.forEach(r => {
+                    if (!studentMap[r.studentName]) {
+                        studentMap[r.studentName] = [];
+                    }
+                    studentMap[r.studentName].push(r);
+                });
+
+                Object.keys(studentMap).forEach(studentName => {
+                    const results = studentMap[studentName];
+                    const studentTotal = results.reduce((sum, r) => sum + r.score, 0);
+                    const studentMax = results.length * 2;
+                    const studentPercent = ((studentTotal / studentMax) * 100).toFixed(1);
+
+                    html += `
+                    <div style="background: linear-gradient(135deg, #f3f4f6, #e5e7eb); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <h3 style="color: #1f2937; margin-bottom: 15px;">${studentName} - ${studentTotal}/${studentMax} (${studentPercent}%)</h3>
+                    `;
+
+                    results.forEach(r => {
+                        html += generateResultCard(r);
+                    });
+
+                    html += '</div>';
+                });
+            } else {
+                // Single mode - show all questions
+                gradingResults.forEach(r => {
+                    html += generateResultCard(r);
+                });
+            }
 
             document.getElementById('resultsList').innerHTML = html;
             document.getElementById('results').style.display = 'block';
             document.getElementById('exportBtn').disabled = false;
+        }
+
+        function generateResultCard(r) {
+            return `
+            <div class="result-card">
+                <div class="result-header">
+                    <span class="question-title">第 ${r.questionNum} 題 - ${r.questionType}</span>
+                    <span class="score-badge score-${r.score}">${r.score} 分</span>
+                </div>
+                <div class="result-answer">${r.answer}</div>
+                <div class="result-feedback">
+                    ${r.grammar_errors && r.grammar_errors.length > 0 ? `
+                        <div class="grammar-errors">
+                            <div class="feedback-label">❌ 文法錯誤：</div>
+                            ${r.grammar_errors.join('<br>')}
+                        </div>
+                    ` : ''}
+                    ${r.minor_errors && r.minor_errors.length > 0 ? `
+                        <div class="minor-errors">
+                            <div class="feedback-label">⚠️ 小錯誤：</div>
+                            ${r.minor_errors.join('<br>')}
+                        </div>
+                    ` : ''}
+                    <div style="margin-top: 10px;">
+                        <div class="feedback-label">💬 說明：</div>
+                        <div>${r.explanation_zh || r.explanation_en || '無'}</div>
+                    </div>
+                </div>
+            </div>
+            `;
         }
 
         function exportResults() {
@@ -848,11 +984,11 @@
             }
 
             // Generate CSV
-            let csv = '姓名,答案,分數,說明\n';
+            let csv = '學生姓名,題號,題型,答案,分數,說明\n';
             gradingResults.forEach(r => {
                 const answer = r.answer.replace(/"/g, '""');
                 const explanation = (r.explanation_zh || r.explanation_en || '').replace(/"/g, '""');
-                csv += `"${r.name}","${answer}",${r.score},"${explanation}"\n`;
+                csv += `"${r.studentName}",${r.questionNum},"${r.questionType}","${answer}",${r.score},"${explanation}"\n`;
             });
 
             // Download
