@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEPT句子寫作評分報告</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            color: #333;
+            font-size: 12px;
+        }
+
+        h1 {
+            color: #4f46e5;
+            border-bottom: 3px solid #4f46e5;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        h2 {
+            color: #4f46e5;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-left: 4px solid #4f46e5;
+            padding-left: 10px;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border: 2px solid #22c55e;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid;
+        }
+
+        .stat-card.green { background: #ecfdf5; border-color: #10b981; }
+        .stat-card.yellow { background: #fefce8; border-color: #eab308; }
+        .stat-card.red { background: #fef2f2; border-color: #ef4444; }
+        .stat-card.blue { background: #eff6ff; border-color: #3b82f6; }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .stat-card.green .stat-number { color: #059669; }
+        .stat-card.yellow .stat-number { color: #ca8a04; }
+        .stat-card.red .stat-number { color: #dc2626; }
+        .stat-card.blue .stat-number { color: #2563eb; }
+
+        .question-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            page-break-inside: avoid;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .question-num {
+            font-weight: bold;
+            color: #4f46e5;
+            font-size: 14px;
+        }
+
+        .score-badge {
+            font-size: 20px;
+            font-weight: bold;
+            padding: 4px 12px;
+            border-radius: 15px;
+        }
+
+        .score-2 { background: #d1fae5; color: #059669; }
+        .score-1 { background: #fef3c7; color: #d97706; }
+        .score-0 { background: #fee2e2; color: #dc2626; }
+
+        .student-answer {
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .feedback-section {
+            margin-top: 10px;
+            font-size: 11px;
+        }
+
+        .grammar-errors {
+            background: #fef2f2;
+            border-left: 3px solid #ef4444;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .minor-errors {
+            background: #fefce8;
+            border-left: 3px solid #eab308;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .explanation {
+            background: #eff6ff;
+            border-left: 3px solid #3b82f6;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .feedback-label {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .qr-section {
+            background: linear-gradient(135deg, #e0f2fe, #b3e5fc);
+            border: 2px solid #0288d1;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 8px;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+
+        .qr-section h3 {
+            color: #01579b;
+            margin-bottom: 15px;
+        }
+
+        .qr-code {
+            margin: 15px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .qr-url {
+            font-size: 11px;
+            color: #0277bd;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+
+        .print-instruction {
+            background: #e0f2fe;
+            border: 2px solid #0288d1;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                margin: 0;
+            }
+        }
+
+        @page {
+            margin: 2cm;
+            size: A4;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">
+        <p>📄 正在載入批改報告...</p>
+    </div>
+
+    <div id="content" style="display: none;">
+        <div class="print-instruction no-print">
+            <h3>📋 如何儲存為PDF：</h3>
+            <p>1. 按下 Ctrl+P (Windows) 或 Cmd+P (Mac)</p>
+            <p>2. 在印表機選項中選擇「另存為PDF」</p>
+            <p>3. 點擊「列印」按鈕即可下載PDF檔案</p>
+        </div>
+
+        <h1>📝 GEPT句子寫作評分報告</h1>
+        <div id="metadata" style="color:#6b7280;font-size:11px;margin-bottom:30px"></div>
+
+        <div class="summary-box">
+            <h3 style="margin-top:0;color:#059669;font-size:18px;">📊 總體成績</h3>
+            <div class="summary-stats" id="summaryStats"></div>
+        </div>
+
+        <h2>📋 逐題評分詳情</h2>
+        <div id="questionsList"></div>
+
+        <div class="qr-section">
+            <h3>📱 互動式線上批改（30天內有效）</h3>
+            <p style="color:#0277bd;margin-bottom:15px;">掃描下方 QR Code 進行互動學習</p>
+            <div class="qr-code">
+                <img id="qrcode" alt="QR Code" style="display:block;margin:0 auto;">
+                <div class="qr-url" id="qrUrl"></div>
+            </div>
+        </div>
+
+        <div style="margin-top:40px;padding-top:20px;border-top:1px solid #ccc;text-align:center;color:#666;font-size:10px">
+            <p>本報告由 Claude Sonnet 4.5 / GPT 5.2 智能評分系統生成</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://railway-backend-production-55cf.up.railway.app';
+
+        async function loadReport() {
+            try {
+                // Get session ID from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const sessionId = urlParams.get('session');
+
+                if (!sessionId) {
+                    document.getElementById('loading').innerHTML = '<p style="color:red;">❌ 找不到批改記錄ID</p>';
+                    return;
+                }
+
+                // Fetch grading data
+                const response = await fetch(`${API_BASE_URL}/api/get-sentence-session/${sessionId}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || '載入失敗');
+                }
+
+                const sessionData = data.data;
+                const qrCodeDataUrl = data.qrCodeDataUrl;
+                const studentUrl = data.studentUrl;
+
+                // Display report
+                displayReport(sessionData, sessionId, qrCodeDataUrl, studentUrl);
+
+                // Hide loading, show content
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+
+                // Auto print after 1 second
+                setTimeout(() => {
+                    window.print();
+                }, 1000);
+
+            } catch (error) {
+                console.error('Error loading report:', error);
+                document.getElementById('loading').innerHTML = `<p style="color:red;">❌ 載入失敗：${error.message}</p>`;
+            }
+        }
+
+        function displayReport(sessionData, sessionId, qrCodeDataUrl, studentUrl) {
+            const currentTime = new Date().toLocaleString('zh-TW');
+            const studentName = sessionData.studentName;
+            const gradingResults = sessionData.gradingResults;
+            const testId = sessionData.testId;
+
+            // Update title with student name if provided
+            const titleElement = document.querySelector('h1');
+            if (studentName) {
+                titleElement.textContent = `📝 GEPT句子寫作評分報告 - ${studentName}`;
+                document.title = `GEPT句子寫作評分報告 - ${studentName}`;
+            }
+
+            // Metadata
+            document.getElementById('metadata').innerHTML = `
+                <strong>學生姓名：</strong>${studentName || '未提供'}<br>
+                <strong>題組：</strong>${testId}<br>
+                <strong>生成時間：</strong>${currentTime}<br>
+                <strong>批改ID：</strong>${sessionId}
+            `;
+
+            // Calculate summary statistics
+            const scores = gradingResults.map(r => r.score);
+            const count2 = scores.filter(s => s === 2).length;
+            const count1 = scores.filter(s => s === 1).length;
+            const count0 = scores.filter(s => s === 0).length;
+            const totalScore = scores.reduce((a, b) => a + b, 0);
+            const maxScore = scores.length * 2;
+            const percentage = ((totalScore / maxScore) * 100).toFixed(1);
+
+            document.getElementById('summaryStats').innerHTML = `
+                <div class="stat-card green">
+                    <div class="stat-number">${count2}</div>
+                    <div class="stat-label">滿分 (2分)</div>
+                </div>
+                <div class="stat-card yellow">
+                    <div class="stat-number">${count1}</div>
+                    <div class="stat-label">部分 (1分)</div>
+                </div>
+                <div class="stat-card red">
+                    <div class="stat-number">${count0}</div>
+                    <div class="stat-label">零分 (0分)</div>
+                </div>
+                <div class="stat-card blue">
+                    <div class="stat-number">${totalScore}/${maxScore}</div>
+                    <div class="stat-label">總分 (${percentage}%)</div>
+                </div>
+            `;
+
+            // Display individual questions
+            let questionsHtml = '';
+            gradingResults.forEach(r => {
+                questionsHtml += `
+                <div class="question-card">
+                    <div class="question-header">
+                        <span class="question-num">第 ${r.questionNum} 題 - ${r.questionType}</span>
+                        <span class="score-badge score-${r.score}">${r.score} 分</span>
+                    </div>
+                    <div class="student-answer"><strong>學生答案：</strong>${r.answer}</div>
+                    <div class="feedback-section">
+                        ${r.grammar_errors && r.grammar_errors.length > 0 ? `
+                            <div class="grammar-errors">
+                                <div class="feedback-label">❌ 文法錯誤：</div>
+                                ${r.grammar_errors.join('<br>')}
+                            </div>
+                        ` : ''}
+                        ${r.minor_errors && r.minor_errors.length > 0 ? `
+                            <div class="minor-errors">
+                                <div class="feedback-label">⚠️ 小錯誤：</div>
+                                ${r.minor_errors.join('<br>')}
+                            </div>
+                        ` : ''}
+                        ${r.explanation_zh || r.explanation_en ? `
+                            <div class="explanation">
+                                <div class="feedback-label">💬 AI 說明：</div>
+                                ${r.explanation_zh || r.explanation_en}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                `;
+            });
+
+            document.getElementById('questionsList').innerHTML = questionsHtml;
+
+            // QR Code
+            document.getElementById('qrcode').src = qrCodeDataUrl;
+            document.getElementById('qrUrl').textContent = studentUrl;
+        }
+
+        // Load report on page load
+        window.addEventListener('DOMContentLoaded', loadReport);
+    </script>
+</body>
+</html>

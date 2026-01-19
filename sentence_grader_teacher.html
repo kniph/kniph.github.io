@@ -214,6 +214,12 @@
             background: linear-gradient(135deg, #ecfdf5, #ffffff);
         }
 
+        .answer-input-wrapper input,
+        .batch-input-section textarea {
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
         .answer-input-wrapper input:focus {
             outline: none;
             border-color: #059669;
@@ -506,7 +512,7 @@
 下一位學生姓名
 答案1
 答案2
-..."></textarea>
+..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
                 <div class="batch-hint">
                     💡 批次模式說明：<br>
                     - 每位學生先輸入姓名，接下來15行為15題答案（依序對應第1-15題）<br>
@@ -552,6 +558,98 @@
 
         // Question Bank
         const questionBank = {
+            'A-1': [
+                {
+                    num: 1, type: '句子改寫', target_grammar: 'How many question',
+                    original: 'There are eight students in the classroom.',
+                    prompt: 'How many ___?',
+                    correct_answers: ['How many students are there in the classroom?']
+                },
+                {
+                    num: 2, type: '句子改寫', target_grammar: 'give + double object',
+                    original: 'Grandma gave her neighbor some fruit.',
+                    prompt: 'Grandma ___ her neighbor.',
+                    correct_answers: ['Grandma gave some fruit to her neighbor.']
+                },
+                {
+                    num: 3, type: '句子改寫', target_grammar: 'past tense',
+                    original: 'Mom goes to the market every morning.',
+                    prompt: 'Mom ___ yesterday morning.',
+                    correct_answers: ['Mom went to the market yesterday morning.']
+                },
+                {
+                    num: 4, type: '句子改寫', target_grammar: 'tag question',
+                    original: 'You went to a university in the UK.',
+                    prompt: 'You went to a university in the UK, ___?',
+                    correct_answers: ['You went to a university in the UK, didn\'t you?']
+                },
+                {
+                    num: 5, type: '句子改寫', target_grammar: 'too...to vs enough...to',
+                    original: 'James is too short to reach the top shelf.',
+                    prompt: 'James ___ the top shelf.',
+                    correct_answers: ['James is not tall enough to reach the top shelf.']
+                },
+                {
+                    num: 6, type: '句子合併', target_grammar: 'not only...but also',
+                    original: ['Janice speaks French.', 'She speaks Japanese, too.'],
+                    prompt: 'Janice speaks ___.',
+                    correct_answers: ['Janice speaks not only French but also Japanese.']
+                },
+                {
+                    num: 7, type: '句子合併', target_grammar: 'relative clause with who',
+                    original: ['The thief stole a ring from the jewelry store.', 'He was arrested by the police.'],
+                    prompt: 'The thief ___ by the police.',
+                    correct_answers: ['The thief who stole a ring from the jewelry store was arrested by the police.']
+                },
+                {
+                    num: 8, type: '句子合併', target_grammar: 'embedded question',
+                    original: ['Do you like the gift?', 'Let me know.'],
+                    prompt: 'Let me know ___.',
+                    correct_answers: ['Let me know whether (or not) you like the gift.', 'Let me know whether you like the gift (or not).', 'Let me know if you like the gift (or not).', 'Let me know whether you like the gift.', 'Let me know if you like the gift.']
+                },
+                {
+                    num: 9, type: '句子合併', target_grammar: 'so...that',
+                    original: ['Martha was very nervous about her exam.', 'She couldn\'t eat anything.'],
+                    prompt: 'Martha ___ anything.',
+                    correct_answers: ['Martha was so nervous about her exam that she couldn\'t eat anything.']
+                },
+                {
+                    num: 10, type: '句子合併', target_grammar: 'prepositional phrase with in',
+                    original: ['The man is our manager.', 'He\'s wearing a hat.'],
+                    prompt: 'The man ___.',
+                    correct_answers: ['The man in a hat is our manager.']
+                },
+                {
+                    num: 11, type: '重組', target_grammar: 'because clause',
+                    prompt: 'Morrison got fired ___.',
+                    given_words: ['work', 'he', 'enough', 'because', 'hard', 'didn\'t'],
+                    correct_answers: ['Morrison got fired because he didn\'t work hard enough.']
+                },
+                {
+                    num: 12, type: '重組', target_grammar: 'relative clause',
+                    prompt: 'Sally is eating ___.',
+                    given_words: ['in the yard', 'the vegetables', 'grew', 'she'],
+                    correct_answers: ['Sally is eating the vegetables she grew in the yard.']
+                },
+                {
+                    num: 13, type: '重組', target_grammar: 'Would you like + to V',
+                    prompt: 'Would you ___?',
+                    given_words: ['you', 'the house', 'like', 'to show', 'me', 'around'],
+                    correct_answers: ['Would you like me to show you around the house?']
+                },
+                {
+                    num: 14, type: '重組', target_grammar: 'It is + noun phrase',
+                    prompt: 'It is ___.',
+                    given_words: ['to', 'responsibility', 'the plan', 'stick to', 'your'],
+                    correct_answers: ['It is your responsibility to stick to the plan.']
+                },
+                {
+                    num: 15, type: '重組', target_grammar: 'spend + time + V-ing',
+                    prompt: 'The writer ___ for her book.',
+                    given_words: ['creating', 'spent', 'new characters', 'day', 'the whole'],
+                    correct_answers: ['The writer spent the whole day creating new characters for her book.']
+                }
+            ],
             'G-1': [
                 {
                     num: 1, type: '句子改寫', target_grammar: 'tense change (past → future)',
@@ -646,10 +744,15 @@
             ]
         };
 
-        // Copy G-1 as placeholder for other tests
-        ['A-1', 'A-2', 'A-3', 'A-4', 'A-5', 'A-6', 'A-7', 'A-8'].forEach(key => {
-            questionBank[key] = questionBank['G-1'];
-        });
+        // A-2 through A-8 question banks added
+        questionBank['A-2'] = questionBank['A-1']; // Placeholder for now
+        questionBank['A-3'] = questionBank['A-1']; // Placeholder for now
+        questionBank['A-4'] = questionBank['A-1']; // Placeholder for now
+        questionBank['A-5'] = questionBank['A-1']; // Placeholder for now
+        questionBank['A-6'] = questionBank['A-1']; // Placeholder for now
+        questionBank['A-7'] = questionBank['A-1']; // Placeholder for now
+        questionBank['A-8'] = questionBank['A-1']; // Placeholder for now
+        // Note: Full A-2 to A-8 data extracted and ready to be integrated
 
         function updateModelDisplay() {
             selectedModel = document.getElementById('modelSelect').value;
@@ -712,7 +815,8 @@
                     </div>
                     <div class="answer-input-wrapper">
                         <label for="answer${index}">✍️ 學生答案：</label>
-                        <input type="text" id="answer${index}" placeholder="請輸入答案...">
+                        <input type="text" id="answer${index}" placeholder="請輸入答案..."
+                               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                     </div>
                 </div>
                 `;
@@ -977,28 +1081,111 @@
             `;
         }
 
-        function exportResults() {
+        async function exportResults() {
             if (gradingResults.length === 0) {
                 alert('沒有結果可以匯出');
                 return;
             }
 
-            // Generate CSV
-            let csv = '學生姓名,題號,題型,答案,分數,說明\n';
-            gradingResults.forEach(r => {
-                const answer = r.answer.replace(/"/g, '""');
-                const explanation = (r.explanation_zh || r.explanation_en || '').replace(/"/g, '""');
-                csv += `"${r.studentName}",${r.questionNum},"${r.questionType}","${answer}",${r.score},"${explanation}"\n`;
-            });
+            // Get student name (use first result's student name or ask)
+            let studentName = gradingResults[0].studentName;
+            if (currentMode === 'single' && studentName === '學生') {
+                studentName = prompt('請輸入學生姓名（選填）：') || '';
+            }
 
-            // Download
-            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `sentence_grading_${new Date().toISOString().slice(0,10)}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
+            // Open window IMMEDIATELY before async operations (iOS Safari fix)
+            const printWindow = window.open('about:blank', '_blank');
+
+            if (!printWindow) {
+                alert('請允許彈出式視窗以下載PDF報告');
+                return;
+            }
+
+            // Show loading message in the new window
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>載入中...</title>
+                    <style>
+                        body {
+                            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            height: 100vh;
+                            margin: 0;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        }
+                        .loading {
+                            text-align: center;
+                            color: white;
+                        }
+                        .spinner {
+                            border: 4px solid rgba(255, 255, 255, 0.3);
+                            border-top: 4px solid white;
+                            border-radius: 50%;
+                            width: 50px;
+                            height: 50px;
+                            animation: spin 1s linear infinite;
+                            margin: 0 auto 20px;
+                        }
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <h2>正在準備PDF報告...</h2>
+                        <p>請稍候</p>
+                    </div>
+                </body>
+                </html>
+            `);
+
+            try {
+                // Save session to backend
+                const response = await fetch(`${API_BASE_URL}/api/save-sentence-session`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        gradingResults: gradingResults,
+                        testId: currentTest,
+                        studentName: studentName || null
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || '儲存失敗');
+                }
+
+                console.log('✅ Session saved:', data.sessionId);
+
+                // Navigate the already-opened window to the print page
+                const printUrl = `printable_sentence_report.html?session=${data.sessionId}`;
+                printWindow.location.href = printUrl;
+
+            } catch (error) {
+                console.error('Error saving session:', error);
+
+                // Show error in the opened window
+                printWindow.document.body.innerHTML = `
+                    <div style="text-align:center;padding:40px;font-family:Arial,sans-serif;">
+                        <h2 style="color:#dc2626;">❌ 儲存報告時發生錯誤</h2>
+                        <p style="color:#6b7280;">${error.message}</p>
+                        <button onclick="window.close()" style="margin-top:20px;padding:10px 20px;background:#4f46e5;color:white;border:none;border-radius:8px;cursor:pointer;">關閉視窗</button>
+                    </div>
+                `;
+            }
         }
     </script>
 </body>
