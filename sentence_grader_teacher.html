@@ -529,6 +529,9 @@
                 <button class="btn btn-secondary" onclick="exportResults()" id="exportBtn" disabled>
                     📄 匯出結果
                 </button>
+                <button class="btn" onclick="regenerateAIQuestions()" id="regenerateBtn" style="display:none;background:linear-gradient(45deg,#8b5cf6,#a78bfa);color:white;">
+                    🔄 生成新題目
+                </button>
             </div>
 
             <!-- Loading -->
@@ -813,6 +816,9 @@
                     // Display generated questions
                     displayQuestions();
 
+                    // Show regenerate button for AI tests
+                    document.getElementById('regenerateBtn').style.display = 'inline-block';
+
                 } catch (error) {
                     console.error('AI generation error:', error);
                     container.innerHTML = `
@@ -864,6 +870,21 @@
 
             container.innerHTML = html;
             container.style.display = 'block';
+
+            // Show/hide regenerate button based on test type
+            document.getElementById('regenerateBtn').style.display = currentTest === 'AI' ? 'inline-block' : 'none';
+        }
+
+        async function regenerateAIQuestions() {
+            // Clear results
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('exportBtn').disabled = true;
+            gradingResults = [];
+
+            // Trigger AI generation by calling loadQuestions for AI test
+            const testSelect = document.getElementById('testSelect');
+            testSelect.value = 'AI';
+            await loadQuestions();
         }
 
         async function gradeAnswers() {
@@ -896,22 +917,54 @@
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').style.display = 'none';
             document.getElementById('gradeBtn').disabled = true;
+            document.getElementById('loadingProgress').textContent = '正在批次評分 15 題...';
 
             gradingResults = [];
 
             try {
-                for (let i = 0; i < currentQuestions.length; i++) {
-                    document.getElementById('loadingProgress').textContent =
-                        `正在評分第 ${i + 1} / ${currentQuestions.length} 題...`;
+                // Prepare batch request
+                const questionsToGrade = currentQuestions.map((q, i) => ({
+                    questionNum: q.num,
+                    question_type: q.type,
+                    original: q.original,
+                    prompt: q.prompt,
+                    given_words: q.given_words,
+                    correct_answers: q.correct_answers,
+                    student_answer: answers[i]
+                }));
 
-                    const result = await gradeOneAnswer(currentQuestions[i], answers[i], i + 1);
-                    gradingResults.push(result);
+                // Single batch API call
+                const response = await fetch(`${API_BASE_URL}/api/grade-sentence-batch`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        questions: questionsToGrade,
+                        model: selectedModel
+                    })
+                });
 
-                    // Small delay to avoid rate limiting
-                    if (i < currentQuestions.length - 1) {
-                        await new Promise(r => setTimeout(r, 500));
-                    }
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
                 }
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || '評分失敗');
+                }
+
+                // Store results
+                gradingResults = data.results.map(r => ({
+                    studentName: '學生',
+                    questionNum: r.questionNum,
+                    questionType: r.questionType,
+                    answer: r.answer,
+                    score: r.score,
+                    grammar_errors: r.grammar_errors,
+                    minor_errors: r.minor_errors,
+                    explanation_zh: r.explanation_zh,
+                    explanation_en: r.explanation_en
+                }));
 
                 displayResults('single');
 
@@ -961,22 +1014,61 @@
             gradingResults = [];
 
             try {
-                const totalGradings = students.length * 15;
-                let currentGrading = 0;
+                // Process each student with batch grading
+                for (let studentIndex = 0; studentIndex < students.length; studentIndex++) {
+                    const student = students[studentIndex];
+                    document.getElementById('loadingProgress').textContent =
+                        `正在批次評分 ${student.name} (${studentIndex + 1} / ${students.length})...`;
 
-                for (const student of students) {
-                    for (let i = 0; i < currentQuestions.length; i++) {
-                        currentGrading++;
-                        document.getElementById('loadingProgress').textContent =
-                            `正在評分 ${student.name} 第 ${i + 1} 題 (${currentGrading} / ${totalGradings})...`;
+                    // Prepare batch request for this student
+                    const questionsToGrade = currentQuestions.map((q, i) => ({
+                        questionNum: q.num,
+                        question_type: q.type,
+                        original: q.original,
+                        prompt: q.prompt,
+                        given_words: q.given_words,
+                        correct_answers: q.correct_answers,
+                        student_answer: student.answers[i]
+                    }));
 
-                        const result = await gradeOneAnswer(currentQuestions[i], student.answers[i], i + 1, student.name);
-                        gradingResults.push(result);
+                    // Single batch API call per student
+                    const response = await fetch(`${API_BASE_URL}/api/grade-sentence-batch`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            questions: questionsToGrade,
+                            model: selectedModel
+                        })
+                    });
 
-                        // Small delay
-                        if (currentGrading < totalGradings) {
-                            await new Promise(r => setTimeout(r, 300));
-                        }
+                    if (!response.ok) {
+                        throw new Error(`API error: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error(data.error || '評分失敗');
+                    }
+
+                    // Store results for this student
+                    data.results.forEach(r => {
+                        gradingResults.push({
+                            studentName: student.name,
+                            questionNum: r.questionNum,
+                            questionType: r.questionType,
+                            answer: r.answer,
+                            score: r.score,
+                            grammar_errors: r.grammar_errors,
+                            minor_errors: r.minor_errors,
+                            explanation_zh: r.explanation_zh,
+                            explanation_en: r.explanation_en
+                        });
+                    });
+
+                    // Small delay between students to avoid rate limiting
+                    if (studentIndex < students.length - 1) {
+                        await new Promise(r => setTimeout(r, 500));
                     }
                 }
 
