@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEPT 句子評分 - 教師模式</title>
+    <script>
+    if (localStorage.getItem('loggedIn') !== 'yes') {
+        window.location.href = '/login.html';
+    }
+    </script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✏️</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            text-align: center;
+            padding: 25px;
+        }
+
+        .header h1 { font-size: 1.8rem; margin-bottom: 5px; }
+        .header p { font-size: 0.95rem; opacity: 0.9; }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.3); }
+        .header { position: relative; }
+
+        .main-content { padding: 30px; }
+
+        /* Mode Toggle */
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .mode-btn {
+            padding: 12px 30px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            border-color: #4f46e5;
+        }
+
+        .mode-btn:hover:not(.active) {
+            border-color: #4f46e5;
+            color: #4f46e5;
+        }
+
+        /* Question Selector */
+        .selector-section {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid #f59e0b;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .selector-section h3 {
+            color: #92400e;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .selector-row {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .selector-row label {
+            font-weight: 600;
+            color: #78350f;
+        }
+
+        .selector-row select {
+            padding: 10px 20px;
+            border: 2px solid #f59e0b;
+            border-radius: 10px;
+            background: white;
+            font-size: 1rem;
+            min-width: 200px;
+            cursor: pointer;
+        }
+
+        /* Question Display */
+        .question-display {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .question-display h3 {
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .question-box {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .question-type {
+            display: inline-block;
+            background: #ddd6fe;
+            color: #5b21b6;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .question-num {
+            font-weight: bold;
+            color: #4f46e5;
+            margin-right: 8px;
+        }
+
+        .question-original {
+            color: #374151;
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .question-prompt {
+            color: #1e293b;
+            font-weight: 500;
+            background: #fef3c7;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+
+        .given-words {
+            color: #059669;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        /* Answer Input */
+        .input-section {
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border: 2px solid #10b981;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .input-section h3 {
+            color: #065f46;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .input-section textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border: 1px solid #10b981;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .input-section textarea:focus {
+            outline: none;
+            border-color: #059669;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .batch-hint {
+            color: #065f46;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+
+        /* Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Results */
+        .results {
+            display: none;
+            margin-top: 25px;
+        }
+
+        .results h2 {
+            color: #1e293b;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            text-align: center;
+        }
+
+        .result-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .student-name {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .score-badge {
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .score-2 { background: #d1fae5; color: #059669; }
+        .score-1 { background: #fef3c7; color: #d97706; }
+        .score-0 { background: #fee2e2; color: #dc2626; }
+
+        .result-answer {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-family: monospace;
+        }
+
+        .result-feedback {
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .feedback-label {
+            font-weight: 600;
+            color: #4f46e5;
+            margin-bottom: 5px;
+        }
+
+        .grammar-errors {
+            background: #fef2f2;
+            border-left: 3px solid #ef4444;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .minor-errors {
+            background: #fefce8;
+            border-left: 3px solid #eab308;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Summary Stats */
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid;
+        }
+
+        .stat-card.green { background: #ecfdf5; border-color: #10b981; }
+        .stat-card.yellow { background: #fefce8; border-color: #eab308; }
+        .stat-card.red { background: #fef2f2; border-color: #ef4444; }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .stat-card.green .stat-number { color: #059669; }
+        .stat-card.yellow .stat-number { color: #ca8a04; }
+        .stat-card.red .stat-number { color: #dc2626; }
+
+        @media (max-width: 600px) {
+            .main-content { padding: 20px; }
+            .header h1 { font-size: 1.4rem; }
+            .mode-btn { padding: 10px 20px; font-size: 0.9rem; }
+            .selector-row { flex-direction: column; }
+            .selector-row select { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="sentence_grader.html" class="back-btn">← 返回</a>
+            <h1>✏️ GEPT 句子寫作評分</h1>
+            <p>教師批改模式 | AI: Claude Sonnet 4</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Mode Toggle -->
+            <div class="mode-toggle">
+                <button class="mode-btn active" onclick="setMode('single')" id="singleModeBtn">單人模式</button>
+                <button class="mode-btn" onclick="setMode('batch')" id="batchModeBtn">批次模式</button>
+            </div>
+
+            <!-- Question Selector -->
+            <div class="selector-section">
+                <h3>📋 選擇題目來源</h3>
+                <div class="selector-row">
+                    <label for="testSelect">題組：</label>
+                    <select id="testSelect" onchange="loadQuestions()">
+                        <option value="">-- 請選擇 --</option>
+                        <option value="A-1">A-1 AMC 模擬試題 1</option>
+                        <option value="A-2">A-2 AMC 模擬試題 2</option>
+                        <option value="A-3">A-3 AMC 模擬試題 3</option>
+                        <option value="A-4">A-4 AMC 模擬試題 4</option>
+                        <option value="A-5">A-5 AMC 模擬試題 5</option>
+                        <option value="A-6">A-6 AMC 模擬試題 6</option>
+                        <option value="A-7">A-7 AMC 模擬試題 7</option>
+                        <option value="A-8">A-8 AMC 模擬試題 8</option>
+                        <option value="G-1">G-1 GEPT 官方範例</option>
+                        <option value="AI">🤖 AI 生成題目</option>
+                    </select>
+
+                    <label for="questionSelect">題號：</label>
+                    <select id="questionSelect" onchange="displayQuestion()">
+                        <option value="">-- 先選題組 --</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Question Display -->
+            <div class="question-display" id="questionDisplay" style="display: none;">
+                <h3>📝 題目內容</h3>
+                <div id="questionContent"></div>
+            </div>
+
+            <!-- Answer Input -->
+            <div class="input-section">
+                <h3 id="inputTitle">✍️ 學生答案</h3>
+                <textarea id="answerInput" placeholder="請輸入學生的答案..."></textarea>
+                <div class="batch-hint" id="batchHint" style="display: none;">
+                    💡 批次模式：每行輸入一位學生的答案，格式：學生姓名: 答案<br>
+                    例如：<br>
+                    王小明: David will get up early tomorrow.<br>
+                    李小華: David is going to get up early tomorrow.
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="gradeAnswers()" id="gradeBtn">
+                    🎯 開始評分
+                </button>
+                <button class="btn btn-secondary" onclick="exportResults()" id="exportBtn" disabled>
+                    📄 匯出結果
+                </button>
+            </div>
+
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p><strong>AI 正在評分中...</strong></p>
+                <p id="loadingProgress">請稍候</p>
+            </div>
+
+            <!-- Results -->
+            <div class="results" id="results">
+                <h2>📊 評分結果</h2>
+                <div class="summary-stats" id="summaryStats"></div>
+                <div id="resultsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://railway-backend-production-55cf.up.railway.app';
+
+        let currentMode = 'single';
+        let currentQuestion = null;
+        let gradingResults = [];
+
+        // Question Bank (will be expanded)
+        const questionBank = {
+            'G-1': [
+                {
+                    num: 1, type: '句子改寫', target_grammar: 'tense change (past → future)',
+                    original: 'David got up early yesterday.',
+                    prompt: 'David ___ early tomorrow.',
+                    correct_answers: ['David will get up early tomorrow.', 'David is going to get up early tomorrow.', 'David is getting up early tomorrow.']
+                },
+                {
+                    num: 2, type: '句子改寫', target_grammar: 'statement to question',
+                    original: 'Mom is writing her name on the paper.',
+                    prompt: 'What ___ on the paper?',
+                    correct_answers: ['What is Mom writing on the paper?']
+                },
+                {
+                    num: 3, type: '句子改寫', target_grammar: 'comparative transformation',
+                    original: 'Turtles do not swim as fast as dolphins.',
+                    prompt: 'Dolphins ___ than turtles.',
+                    correct_answers: ['Dolphins swim faster than turtles.', 'Dolphins swim more quickly than turtles.']
+                },
+                {
+                    num: 4, type: '句子改寫', target_grammar: 'keep + V-ing',
+                    original: 'Jack complains about the weather all the time.',
+                    prompt: 'Jack keeps ___ the weather.',
+                    correct_answers: ['Jack keeps complaining about the weather.']
+                },
+                {
+                    num: 5, type: '句子改寫', target_grammar: 'passive to active',
+                    original: 'The wall was painted blue by my sister.',
+                    prompt: 'My sister ___ the wall blue.',
+                    correct_answers: ['My sister painted the wall blue.']
+                },
+                {
+                    num: 6, type: '句子合併', target_grammar: 'embedded question',
+                    original: ['When should I finish the history report?', 'Please tell me.'],
+                    prompt: 'Please tell me when ___ the history report.',
+                    correct_answers: ['Please tell me when I should finish the history report.']
+                },
+                {
+                    num: 7, type: '句子合併', target_grammar: 'time sequence with after',
+                    original: ['Lisa walked into her office.', 'Then she sat down at her desk.'],
+                    prompt: 'Lisa ___ after she ___.',
+                    correct_answers: ['Lisa sat down at her desk after she walked into her office.']
+                },
+                {
+                    num: 8, type: '句子合併', target_grammar: 'both...and',
+                    original: ['Eric is practicing the magic trick.', 'Grace is practicing the magic trick.'],
+                    prompt: 'Both ___ practicing the magic trick.',
+                    correct_answers: ['Both Eric and Grace are practicing the magic trick.', 'Both of them are practicing the magic trick.']
+                },
+                {
+                    num: 9, type: '句子合併', target_grammar: 'although concession',
+                    original: ['It was raining.', 'The students had a picnic at the beach.'],
+                    prompt: 'Although ___, ___.',
+                    correct_answers: ['Although it was raining, the students had a picnic at the beach.']
+                },
+                {
+                    num: 10, type: '句子合併', target_grammar: 'It takes + time + to V',
+                    original: ['Tim fixed his bike.', 'It took him two hours.'],
+                    prompt: 'It took Tim ___ his bike.',
+                    correct_answers: ['It took Tim two hours to fix his bike.']
+                },
+                {
+                    num: 11, type: '重組', target_grammar: 'present perfect + never',
+                    prompt: 'I have ___ before.',
+                    given_words: ['so much', 'had', 'homework', 'never'],
+                    correct_answers: ['I have never had so much homework before.']
+                },
+                {
+                    num: 12, type: '重組', target_grammar: 'exclamatory sentence',
+                    prompt: 'What a ___!',
+                    given_words: ['polite', 'Jim', 'is', 'boy'],
+                    correct_answers: ['What a polite boy Jim is!']
+                },
+                {
+                    num: 13, type: '重組', target_grammar: 'be famous for',
+                    prompt: 'This park ___ beautiful roses.',
+                    given_words: ['famous', 'is', 'its', 'for'],
+                    correct_answers: ['This park is famous for its beautiful roses.']
+                },
+                {
+                    num: 14, type: '重組', target_grammar: 'one of + plural',
+                    prompt: 'Only ___ likes this novel.',
+                    given_words: ['of', 'classmates', 'my', 'one'],
+                    correct_answers: ['Only one of my classmates likes this novel.']
+                },
+                {
+                    num: 15, type: '重組', target_grammar: 'had better',
+                    prompt: 'They ___ for the big test.',
+                    given_words: ['better', 'get', 'had', 'ready'],
+                    correct_answers: ['They had better get ready for the big test.']
+                }
+            ]
+        };
+
+        // Copy G-1 as placeholder for other tests (to be expanded)
+        ['A-1', 'A-2', 'A-3', 'A-4', 'A-5', 'A-6', 'A-7', 'A-8'].forEach(key => {
+            questionBank[key] = questionBank['G-1']; // Placeholder
+        });
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('singleModeBtn').classList.toggle('active', mode === 'single');
+            document.getElementById('batchModeBtn').classList.toggle('active', mode === 'batch');
+            document.getElementById('batchHint').style.display = mode === 'batch' ? 'block' : 'none';
+            document.getElementById('inputTitle').textContent = mode === 'batch' ? '✍️ 學生答案 (批次輸入)' : '✍️ 學生答案';
+            document.getElementById('answerInput').placeholder = mode === 'batch'
+                ? '每行一位學生，格式：姓名: 答案\n例如：\n王小明: David will get up early tomorrow.\n李小華: David is going to get up early tomorrow.'
+                : '請輸入學生的答案...';
+        }
+
+        function loadQuestions() {
+            const testId = document.getElementById('testSelect').value;
+            const questionSelect = document.getElementById('questionSelect');
+            questionSelect.innerHTML = '<option value="">-- 請選擇題號 --</option>';
+
+            if (testId === 'AI') {
+                questionSelect.innerHTML = '<option value="ai-generate">🤖 生成新題目</option>';
+                displayQuestion();
+                return;
+            }
+
+            if (testId && questionBank[testId]) {
+                questionBank[testId].forEach((q, i) => {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.textContent = `第 ${q.num} 題 - ${q.type}`;
+                    questionSelect.appendChild(opt);
+                });
+            }
+
+            document.getElementById('questionDisplay').style.display = 'none';
+        }
+
+        function displayQuestion() {
+            const testId = document.getElementById('testSelect').value;
+            const qIndex = document.getElementById('questionSelect').value;
+
+            if (testId === 'AI' && qIndex === 'ai-generate') {
+                document.getElementById('questionDisplay').style.display = 'block';
+                document.getElementById('questionContent').innerHTML = `
+                    <div class="question-box">
+                        <div class="question-type">🤖 AI 生成</div>
+                        <p style="color: #6b7280; margin-top: 10px;">AI 題目生成功能即將推出！<br>目前請使用預設題組進行評分。</p>
+                    </div>
+                `;
+                currentQuestion = null;
+                return;
+            }
+
+            if (!testId || qIndex === '') {
+                document.getElementById('questionDisplay').style.display = 'none';
+                return;
+            }
+
+            const question = questionBank[testId][parseInt(qIndex)];
+            currentQuestion = question;
+
+            let html = `<div class="question-box">`;
+            html += `<div class="question-type">${question.type}</div>`;
+            html += `<div><span class="question-num">Q${question.num}.</span>`;
+
+            if (question.original) {
+                if (Array.isArray(question.original)) {
+                    html += `<span class="question-original">${question.original.join('<br>')}</span>`;
+                } else {
+                    html += `<span class="question-original">${question.original}</span>`;
+                }
+            }
+            html += `</div>`;
+
+            html += `<div class="question-prompt">${question.prompt}</div>`;
+
+            if (question.given_words) {
+                html += `<div class="given-words">提示字詞: ${question.given_words.join(' / ')}</div>`;
+            }
+
+            html += `</div>`;
+
+            document.getElementById('questionContent').innerHTML = html;
+            document.getElementById('questionDisplay').style.display = 'block';
+        }
+
+        async function gradeAnswers() {
+            if (!currentQuestion) {
+                alert('請先選擇題目！');
+                return;
+            }
+
+            const input = document.getElementById('answerInput').value.trim();
+            if (!input) {
+                alert('請輸入學生答案！');
+                return;
+            }
+
+            // Parse answers
+            let answers = [];
+            if (currentMode === 'batch') {
+                const lines = input.split('\n').filter(l => l.trim());
+                lines.forEach((line, i) => {
+                    const colonIndex = line.indexOf(':');
+                    if (colonIndex > 0) {
+                        answers.push({
+                            name: line.substring(0, colonIndex).trim(),
+                            answer: line.substring(colonIndex + 1).trim()
+                        });
+                    } else {
+                        answers.push({
+                            name: `學生 ${i + 1}`,
+                            answer: line.trim()
+                        });
+                    }
+                });
+            } else {
+                answers.push({
+                    name: '學生',
+                    answer: input
+                });
+            }
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('gradeBtn').disabled = true;
+
+            gradingResults = [];
+
+            try {
+                for (let i = 0; i < answers.length; i++) {
+                    document.getElementById('loadingProgress').textContent =
+                        `正在評分 ${i + 1} / ${answers.length}...`;
+
+                    const result = await gradeOneAnswer(answers[i], currentQuestion);
+                    gradingResults.push(result);
+
+                    // Small delay to avoid rate limiting
+                    if (i < answers.length - 1) {
+                        await new Promise(r => setTimeout(r, 300));
+                    }
+                }
+
+                displayResults();
+
+            } catch (error) {
+                console.error('Grading error:', error);
+                alert('評分過程發生錯誤: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('gradeBtn').disabled = false;
+            }
+        }
+
+        async function gradeOneAnswer(student, question) {
+            const response = await fetch(`${API_BASE_URL}/api/grade-sentence`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    question_type: question.type,
+                    original: question.original,
+                    prompt: question.prompt,
+                    given_words: question.given_words,
+                    correct_answers: question.correct_answers,
+                    student_answer: student.answer
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            return {
+                name: student.name,
+                answer: student.answer,
+                ...data.result
+            };
+        }
+
+        function displayResults() {
+            // Summary stats
+            const scores = gradingResults.map(r => r.score);
+            const count2 = scores.filter(s => s === 2).length;
+            const count1 = scores.filter(s => s === 1).length;
+            const count0 = scores.filter(s => s === 0).length;
+
+            document.getElementById('summaryStats').innerHTML = `
+                <div class="stat-card green">
+                    <div class="stat-number">${count2}</div>
+                    <div>滿分 (2分)</div>
+                </div>
+                <div class="stat-card yellow">
+                    <div class="stat-number">${count1}</div>
+                    <div>部分 (1分)</div>
+                </div>
+                <div class="stat-card red">
+                    <div class="stat-number">${count0}</div>
+                    <div>零分 (0分)</div>
+                </div>
+            `;
+
+            // Individual results
+            let html = '';
+            gradingResults.forEach(r => {
+                html += `
+                <div class="result-card">
+                    <div class="result-header">
+                        <span class="student-name">${r.name}</span>
+                        <span class="score-badge score-${r.score}">${r.score} 分</span>
+                    </div>
+                    <div class="result-answer">${r.answer}</div>
+                    <div class="result-feedback">
+                        ${r.grammar_errors && r.grammar_errors.length > 0 ? `
+                            <div class="grammar-errors">
+                                <div class="feedback-label">❌ 文法錯誤：</div>
+                                ${r.grammar_errors.join('<br>')}
+                            </div>
+                        ` : ''}
+                        ${r.minor_errors && r.minor_errors.length > 0 ? `
+                            <div class="minor-errors">
+                                <div class="feedback-label">⚠️ 小錯誤：</div>
+                                ${r.minor_errors.join('<br>')}
+                            </div>
+                        ` : ''}
+                        <div style="margin-top: 10px;">
+                            <div class="feedback-label">💬 說明：</div>
+                            <div>${r.explanation_zh || r.explanation_en || '無'}</div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            });
+
+            document.getElementById('resultsList').innerHTML = html;
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('exportBtn').disabled = false;
+        }
+
+        function exportResults() {
+            if (gradingResults.length === 0) {
+                alert('沒有結果可以匯出');
+                return;
+            }
+
+            // Generate CSV
+            let csv = '姓名,答案,分數,說明\n';
+            gradingResults.forEach(r => {
+                const answer = r.answer.replace(/"/g, '""');
+                const explanation = (r.explanation_zh || r.explanation_en || '').replace(/"/g, '""');
+                csv += `"${r.name}","${answer}",${r.score},"${explanation}"\n`;
+            });
+
+            // Download
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sentence_grading_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

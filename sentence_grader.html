@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEPT 句子寫作評分系統</title>
+    <script>
+    // Check login
+    if (localStorage.getItem('loggedIn') !== 'yes') {
+        window.location.href = '/login.html';
+    }
+    </script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✏️</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+            color: white;
+            text-align: center;
+            padding: 40px 30px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .role-question {
+            text-align: center;
+            font-size: 1.3rem;
+            color: #374151;
+            margin-bottom: 30px;
+        }
+
+        .role-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .role-btn {
+            flex: 1;
+            min-width: 200px;
+            max-width: 250px;
+            padding: 30px 20px;
+            border: 3px solid #e2e8f0;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            text-align: center;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .role-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
+        }
+
+        .role-btn.teacher:hover {
+            border-color: #4f46e5;
+            background: linear-gradient(135deg, #f1f5f9, #ddd6fe);
+        }
+
+        .role-btn.student:hover {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #f1f5f9, #d1fae5);
+        }
+
+        .role-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .role-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .teacher .role-title { color: #4f46e5; }
+        .student .role-title { color: #10b981; }
+
+        .role-desc {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        .coming-soon {
+            display: inline-block;
+            background: #fef3c7;
+            color: #92400e;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-top: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #9ca3af;
+            font-size: 0.85rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        @media (max-width: 500px) {
+            .role-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .role-btn {
+                max-width: none;
+                width: 100%;
+            }
+
+            .header h1 {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✏️ GEPT 句子寫作評分</h1>
+            <p>全民英檢初級 寫作能力測驗 第一部份</p>
+        </div>
+
+        <div class="main-content">
+            <div class="role-question">請選擇您的身份</div>
+
+            <div class="role-buttons">
+                <a href="sentence_grader_teacher.html" class="role-btn teacher">
+                    <div class="role-icon">👩‍🏫</div>
+                    <div class="role-title">TEACHER</div>
+                    <div class="role-desc">批改學生答案<br>單人或批次模式</div>
+                </a>
+
+                <div class="role-btn student" onclick="alert('學生自主練習功能即將推出！\n\nStudent self-practice coming soon!')">
+                    <div class="role-icon">👨‍🎓</div>
+                    <div class="role-title">STUDENT</div>
+                    <div class="role-desc">自主練習與即時回饋</div>
+                    <div class="coming-soon">Coming Soon</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            AI 評分系統：Claude Sonnet 4
+        </div>
+    </div>
+</body>
+</html>
