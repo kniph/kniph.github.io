@@ -781,15 +781,79 @@
             }
 
             if (testId === 'AI') {
-                // Show loading state
+                // Show enhanced loading state with progress, tips, and countdown
                 container.innerHTML = `
                     <div class="question-item" style="text-align: center; padding: 40px;">
                         <div class="spinner" style="margin: 0 auto 20px;"></div>
-                        <h3 style="color: #4f46e5; margin-bottom: 10px;">🤖 AI 正在生成題目...</h3>
-                        <p style="color: #6b7280;">這可能需要 10-20 秒，請稍候</p>
+                        <h3 style="color: #4f46e5; margin-bottom: 15px;">🤖 AI 正在生成題目...</h3>
+
+                        <!-- Progress Bar -->
+                        <div style="background: #e5e7eb; border-radius: 10px; height: 8px; margin: 20px auto; max-width: 400px; overflow: hidden;">
+                            <div id="aiProgressBar" style="background: linear-gradient(45deg, #4f46e5, #7c3aed); height: 100%; width: 0%; transition: width 0.5s;"></div>
+                        </div>
+
+                        <p id="aiProgressText" style="color: #6b7280; font-weight: 600; margin-bottom: 10px;">初始化...</p>
+                        <p id="aiTimeEstimate" style="color: #9ca3af; font-size: 0.9rem;">預計 20 秒</p>
+
+                        <!-- Teaching Tip -->
+                        <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b; border-radius: 12px; padding: 20px; margin-top: 25px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                            <div style="font-weight: 600; color: #92400e; margin-bottom: 8px;">💡 教學小提示</div>
+                            <div id="teachingTip" style="color: #78350f; line-height: 1.6; font-size: 0.95rem;"></div>
+                        </div>
                     </div>
                 `;
                 container.style.display = 'block';
+
+                // Teaching tips array
+                const teachingTips = [
+                    '句子改寫題型：著重時態轉換、語態變化、句型轉換等文法概念的靈活運用',
+                    '句子合併題型：考驗學生使用連接詞、關係子句、介係詞片語等連結句意的能力',
+                    '重組題型：訓練學生對英文句構的理解，包含主詞、動詞、受詞的正確排列順序',
+                    '評分標準：2分表示完全正確，1分表示有小錯誤（如拼寫、標點），0分表示有文法錯誤',
+                    'CEFR A2 程度：相當於國中畢業程度，著重日常生活基本溝通能力',
+                    '建議練習頻率：每週至少練習一組完整題目，持續追蹤學生進步狀況',
+                    '常見錯誤：時態不一致、主詞動詞不一致、介係詞使用錯誤、冠詞遺漏',
+                    'AI 生成優勢：題目多元化、即時產出、符合 GEPT 官方標準格式',
+                    '複習建議：針對得分 0-1 分的題目，讓學生重新作答並說明正確文法概念',
+                    '進階應用：可將 AI 生成題目依文法點分類，建立個人化錯題庫'
+                ];
+
+                // Randomly select a tip
+                const randomTip = teachingTips[Math.floor(Math.random() * teachingTips.length)];
+                document.getElementById('teachingTip').textContent = randomTip;
+
+                // Progress simulation
+                let progress = 0;
+                let timeLeft = 20;
+                const progressStages = [
+                    { percent: 20, text: '分析 GEPT 題型規範...', duration: 3 },
+                    { percent: 40, text: '生成第 1-5 題（句子改寫）...', duration: 5 },
+                    { percent: 60, text: '生成第 6-10 題（句子合併）...', duration: 5 },
+                    { percent: 80, text: '生成第 11-15 題（重組）...', duration: 5 },
+                    { percent: 95, text: '驗證題目品質...', duration: 2 }
+                ];
+
+                let stageIndex = 0;
+                const updateProgress = () => {
+                    if (stageIndex < progressStages.length) {
+                        const stage = progressStages[stageIndex];
+                        document.getElementById('aiProgressBar').style.width = stage.percent + '%';
+                        document.getElementById('aiProgressText').textContent = stage.text;
+                        stageIndex++;
+                    }
+                };
+
+                const progressInterval = setInterval(updateProgress, 4000);
+                updateProgress(); // Start immediately
+
+                const countdownInterval = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft > 0) {
+                        document.getElementById('aiTimeEstimate').textContent = `預計剩餘 ${timeLeft} 秒`;
+                    } else {
+                        document.getElementById('aiTimeEstimate').textContent = '即將完成...';
+                    }
+                }, 1000);
 
                 try {
                     // Call AI generation endpoint
@@ -798,6 +862,9 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ model: selectedModel })
                     });
+
+                    clearInterval(progressInterval);
+                    clearInterval(countdownInterval);
 
                     if (!response.ok) {
                         throw new Error(`API error: ${response.status}`);
@@ -809,9 +876,17 @@
                         throw new Error(data.error || '生成失敗');
                     }
 
+                    // Completion animation
+                    document.getElementById('aiProgressBar').style.width = '100%';
+                    document.getElementById('aiProgressText').textContent = '✅ 生成完成！';
+                    document.getElementById('aiTimeEstimate').textContent = '';
+
                     // Store AI-generated questions
                     currentTest = 'AI';
                     currentQuestions = data.questions;
+
+                    // Small delay to show completion
+                    await new Promise(r => setTimeout(r, 800));
 
                     // Display generated questions
                     displayQuestions();
@@ -820,6 +895,8 @@
                     document.getElementById('regenerateBtn').style.display = 'inline-block';
 
                 } catch (error) {
+                    clearInterval(progressInterval);
+                    clearInterval(countdownInterval);
                     console.error('AI generation error:', error);
                     container.innerHTML = `
                         <div class="question-item" style="text-align: center; padding: 40px;">
@@ -842,6 +919,9 @@
             let html = '';
 
             currentQuestions.forEach((q, index) => {
+                // For 重組 questions, show full sentence input instead of blank filling
+                const isUnscramble = q.type === '重組';
+
                 html += `
                 <div class="question-item">
                     <div class="question-header">
@@ -854,14 +934,21 @@
                                 ${Array.isArray(q.original) ? q.original.join('<br>') : q.original}
                             </div>
                         ` : ''}
-                        <div class="question-prompt">${q.prompt}</div>
-                        ${q.given_words ? `
-                            <div class="given-words">提示字詞: ${q.given_words.join(' / ')}</div>
-                        ` : ''}
+                        ${isUnscramble ? `
+                            <div class="question-prompt" style="background: #e0f2fe; border-left: 4px solid #0284c7;">
+                                📝 請重組以下字詞成完整句子：<br>
+                                <span style="color: #0369a1; font-weight: 600; font-size: 1.05rem;">${q.given_words.join(' / ')}</span>
+                            </div>
+                        ` : `
+                            <div class="question-prompt">${q.prompt}</div>
+                            ${q.given_words ? `
+                                <div class="given-words">提示字詞: ${q.given_words.join(' / ')}</div>
+                            ` : ''}
+                        `}
                     </div>
                     <div class="answer-input-wrapper">
-                        <label for="answer${index}">✍️ 學生答案：</label>
-                        <input type="text" id="answer${index}" placeholder="請輸入答案..."
+                        <label for="answer${index}">✍️ ${isUnscramble ? '完整句子' : '學生答案'}：</label>
+                        <input type="text" id="answer${index}" placeholder="${isUnscramble ? '請輸入完整重組後的句子...' : '請輸入答案...'}"
                                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                     </div>
                 </div>
@@ -1281,6 +1368,17 @@
             `);
 
             try {
+                // Enrich grading results with question data for PDF report
+                const enrichedResults = gradingResults.map((result, index) => {
+                    const question = currentQuestions.find(q => q.num === result.questionNum);
+                    return {
+                        ...result,
+                        original: question ? question.original : null,
+                        prompt: question ? question.prompt : null,
+                        given_words: question ? question.given_words : null
+                    };
+                });
+
                 // Save session to backend
                 const response = await fetch(`${API_BASE_URL}/api/save-sentence-session`, {
                     method: 'POST',
@@ -1288,7 +1386,7 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        gradingResults: gradingResults,
+                        gradingResults: enrichedResults,
                         testId: currentTest,
                         studentName: studentName || null
                     })

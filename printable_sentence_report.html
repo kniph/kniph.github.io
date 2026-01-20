@@ -350,7 +350,33 @@
                         <span class="question-num">第 ${r.questionNum} 題 - ${r.questionType}</span>
                         <span class="score-badge score-${r.score}">${r.score} 分</span>
                     </div>
+
+                    <!-- Original Question (Part a) -->
+                    ${r.original || r.prompt || r.given_words ? `
+                        <div style="background: #f0f9ff; border-left: 3px solid #0284c7; padding: 10px 12px; margin: 10px 0; border-radius: 0 6px 6px 0;">
+                            <div class="feedback-label">📋 題目：</div>
+                            ${r.original ? `
+                                <div style="color: #374151; margin-bottom: 6px;">
+                                    ${Array.isArray(r.original) ? r.original.join('<br>') : r.original}
+                                </div>
+                            ` : ''}
+                            ${r.prompt ? `
+                                <div style="color: #1e293b; font-weight: 500; margin-bottom: 6px;">
+                                    ${r.prompt}
+                                </div>
+                            ` : ''}
+                            ${r.given_words && r.given_words.length > 0 ? `
+                                <div style="color: #059669; font-style: italic; font-size: 0.9rem;">
+                                    提示字詞: ${r.given_words.join(' / ')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+
+                    <!-- Student Answer (Part b) -->
                     <div class="student-answer"><strong>學生答案：</strong>${r.answer}</div>
+
+                    <!-- Feedback (Part c) -->
                     <div class="feedback-section">
                         ${r.grammar_errors && r.grammar_errors.length > 0 ? `
                             <div class="grammar-errors">
