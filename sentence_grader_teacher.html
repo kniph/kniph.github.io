@@ -521,16 +521,10 @@
                 </div>
             </div>
 
-            <!-- Action Buttons -->
+            <!-- Grade Button (Center-aligned) -->
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="gradeAnswers()" id="gradeBtn">
                     🎯 開始評分
-                </button>
-                <button class="btn btn-secondary" onclick="exportResults()" id="exportBtn" disabled>
-                    📄 匯出結果
-                </button>
-                <button class="btn" onclick="regenerateAIQuestions()" id="regenerateBtn" style="display:none;background:linear-gradient(45deg,#8b5cf6,#a78bfa);color:white;">
-                    🔄 生成新題目
                 </button>
             </div>
 
@@ -546,6 +540,16 @@
                 <h2>📊 評分結果</h2>
                 <div class="summary-stats" id="summaryStats"></div>
                 <div id="resultsList"></div>
+            </div>
+
+            <!-- Bottom Action Buttons (After Results) -->
+            <div class="action-buttons" id="bottomButtons" style="display:none; margin-top: 30px; padding-top: 20px; border-top: 2px solid #e5e7eb;">
+                <button class="btn btn-secondary" onclick="exportResults()" id="exportBtn">
+                    📄 產生報告
+                </button>
+                <button class="btn" onclick="regenerateAIQuestions()" id="regenerateBtn" style="display:none;background:linear-gradient(45deg,#8b5cf6,#a78bfa);color:white;">
+                    🔄 生成新題目
+                </button>
             </div>
         </div>
     </div>
@@ -767,13 +771,30 @@
             currentMode = mode;
             document.getElementById('singleModeBtn').classList.toggle('active', mode === 'single');
             document.getElementById('batchModeBtn').classList.toggle('active', mode === 'batch');
-            document.getElementById('questionsContainer').style.display = mode === 'single' ? 'block' : 'none';
-            document.getElementById('batchInputSection').style.display = mode === 'batch' ? 'block' : 'none';
+
+            // Show/hide appropriate sections
+            if (mode === 'single') {
+                document.getElementById('questionsContainer').style.display = currentQuestions.length > 0 ? 'block' : 'none';
+                document.getElementById('batchInputSection').style.display = 'none';
+            } else {
+                document.getElementById('questionsContainer').style.display = 'none';
+                document.getElementById('batchInputSection').style.display = 'block';
+            }
+
+            // Hide results and bottom buttons when switching modes
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('bottomButtons').style.display = 'none';
+            gradingResults = [];
         }
 
         async function loadQuestions() {
             const testId = document.getElementById('testSelect').value;
             const container = document.getElementById('questionsContainer');
+
+            // Hide results and bottom buttons when loading new questions
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('bottomButtons').style.display = 'none';
+            gradingResults = [];
 
             if (!testId) {
                 container.style.display = 'none';
@@ -891,9 +912,6 @@
                     // Display generated questions
                     displayQuestions();
 
-                    // Show regenerate button for AI tests
-                    document.getElementById('regenerateBtn').style.display = 'inline-block';
-
                 } catch (error) {
                     clearInterval(progressInterval);
                     clearInterval(countdownInterval);
@@ -957,15 +975,12 @@
 
             container.innerHTML = html;
             container.style.display = 'block';
-
-            // Show/hide regenerate button based on test type
-            document.getElementById('regenerateBtn').style.display = currentTest === 'AI' ? 'inline-block' : 'none';
         }
 
         async function regenerateAIQuestions() {
-            // Clear results
+            // Clear results and hide bottom buttons
             document.getElementById('results').style.display = 'none';
-            document.getElementById('exportBtn').disabled = true;
+            document.getElementById('bottomButtons').style.display = 'none';
             gradingResults = [];
 
             // Trigger AI generation by calling loadQuestions for AI test
@@ -1003,6 +1018,7 @@
             // Show loading
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').style.display = 'none';
+            document.getElementById('bottomButtons').style.display = 'none';
             document.getElementById('gradeBtn').disabled = true;
             document.getElementById('loadingProgress').textContent = '正在批次評分 15 題...';
 
@@ -1096,6 +1112,7 @@
             // Show loading
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').style.display = 'none';
+            document.getElementById('bottomButtons').style.display = 'none';
             document.getElementById('gradeBtn').disabled = true;
 
             gradingResults = [];
@@ -1267,7 +1284,12 @@
 
             document.getElementById('resultsList').innerHTML = html;
             document.getElementById('results').style.display = 'block';
-            document.getElementById('exportBtn').disabled = false;
+
+            // Show bottom buttons section
+            document.getElementById('bottomButtons').style.display = 'flex';
+
+            // Show regenerate button only for AI tests
+            document.getElementById('regenerateBtn').style.display = currentTest === 'AI' ? 'inline-block' : 'none';
         }
 
         function generateResultCard(r) {
