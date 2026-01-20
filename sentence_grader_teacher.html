@@ -953,8 +953,11 @@
                             </div>
                         ` : ''}
                         ${isUnscramble ? `
-                            <div class="question-prompt" style="background: #e0f2fe; border-left: 4px solid #0284c7;">
-                                📝 請重組以下字詞成完整句子：<br>
+                            ${q.prompt ? `
+                                <div class="question-prompt">${q.prompt}</div>
+                            ` : ''}
+                            <div style="background: #e0f2fe; border-left: 4px solid #0284c7; padding: 10px 14px; border-radius: 8px; margin: 10px 0;">
+                                <div style="color: #0369a1; font-weight: 600; margin-bottom: 6px;">📝 請重組以下字詞${q.prompt ? '完成句子' : '成完整句子'}：</div>
                                 <span style="color: #0369a1; font-weight: 600; font-size: 1.05rem;">${q.given_words.join(' / ')}</span>
                             </div>
                         ` : `
