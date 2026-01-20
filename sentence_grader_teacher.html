@@ -547,8 +547,8 @@
                 <button class="btn btn-secondary" onclick="exportResults()" id="exportBtn">
                     📄 產生報告
                 </button>
-                <button class="btn" onclick="regenerateAIQuestions()" id="regenerateBtn" style="display:none;background:linear-gradient(45deg,#8b5cf6,#a78bfa);color:white;">
-                    🔄 生成新題目
+                <button class="btn" onclick="startFresh()" id="startFreshBtn" style="background:linear-gradient(45deg,#8b5cf6,#a78bfa);color:white;">
+                    🔄 <span id="startFreshText">重新開始</span>
                 </button>
             </div>
         </div>
@@ -980,16 +980,38 @@
             container.style.display = 'block';
         }
 
-        async function regenerateAIQuestions() {
+        async function startFresh() {
             // Clear results and hide bottom buttons
             document.getElementById('results').style.display = 'none';
             document.getElementById('bottomButtons').style.display = 'none';
             gradingResults = [];
 
-            // Trigger AI generation by calling loadQuestions for AI test
-            const testSelect = document.getElementById('testSelect');
-            testSelect.value = 'AI';
-            await loadQuestions();
+            if (currentTest === 'AI') {
+                // For AI tests: regenerate new questions
+                const testSelect = document.getElementById('testSelect');
+                testSelect.value = 'AI';
+                await loadQuestions();
+            } else {
+                // For regular tests: clear all input fields and scroll to top
+                currentQuestions.forEach((q, index) => {
+                    const input = document.getElementById(`answer${index}`);
+                    if (input) {
+                        input.value = '';
+                    }
+                });
+
+                // Scroll to questions container
+                document.getElementById('questionsContainer').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+
+                // Focus on first input
+                const firstInput = document.getElementById('answer0');
+                if (firstInput) {
+                    setTimeout(() => firstInput.focus(), 500);
+                }
+            }
         }
 
         async function gradeAnswers() {
@@ -1291,8 +1313,9 @@
             // Show bottom buttons section
             document.getElementById('bottomButtons').style.display = 'flex';
 
-            // Show regenerate button only for AI tests
-            document.getElementById('regenerateBtn').style.display = currentTest === 'AI' ? 'inline-block' : 'none';
+            // Update start fresh button text based on test type
+            const buttonText = currentTest === 'AI' ? '生成新題目' : '重新開始';
+            document.getElementById('startFreshText').textContent = buttonText;
         }
 
         function generateResultCard(r) {
