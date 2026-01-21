@@ -531,8 +531,21 @@
             <!-- Loading -->
             <div class="loading" id="loading">
                 <div class="spinner"></div>
-                <p><strong>AI 正在評分中...</strong></p>
-                <p id="loadingProgress">請稍候</p>
+                <h3 style="color: #4f46e5; margin-bottom: 15px;"><strong>AI 正在評分中...</strong></h3>
+
+                <!-- Progress Bar -->
+                <div style="background: #e5e7eb; border-radius: 10px; height: 8px; margin: 20px auto; max-width: 400px; overflow: hidden;">
+                    <div id="gradingProgressBar" style="background: linear-gradient(45deg, #4f46e5, #7c3aed); height: 100%; width: 0%; transition: width 0.5s;"></div>
+                </div>
+
+                <p id="loadingProgress" style="color: #6b7280; font-weight: 600; margin-bottom: 10px;">請稍候</p>
+                <p id="gradingTimeEstimate" style="color: #9ca3af; font-size: 0.9rem;"></p>
+
+                <!-- Grading Tip -->
+                <div id="gradingTipBox" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b; border-radius: 12px; padding: 20px; margin-top: 25px; max-width: 500px; margin-left: auto; margin-right: auto; display: none;">
+                    <div style="font-weight: 600; color: #92400e; margin-bottom: 8px;">💡 評分小知識</div>
+                    <div id="gradingTip" style="color: #78350f; line-height: 1.6; font-size: 0.95rem;"></div>
+                </div>
             </div>
 
             <!-- Results -->
@@ -562,6 +575,8 @@
         let currentQuestions = [];
         let gradingResults = [];
         let selectedModel = 'claude-sonnet-4.5';
+        let startTime = null;
+        let elapsedSeconds = 0;
 
         // Question Bank
         const questionBank = {
@@ -978,6 +993,9 @@
 
             container.innerHTML = html;
             container.style.display = 'block';
+
+            // Start stopwatch when questions are loaded
+            startTime = Date.now();
         }
 
         async function startFresh() {
@@ -1040,12 +1058,64 @@
                 answers.push(answer);
             }
 
-            // Show loading
+            // Show enhanced loading with progress and tips
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').style.display = 'none';
             document.getElementById('bottomButtons').style.display = 'none';
             document.getElementById('gradeBtn').disabled = true;
-            document.getElementById('loadingProgress').textContent = '正在批次評分 15 題...';
+
+            // Show grading tip box
+            document.getElementById('gradingTipBox').style.display = 'block';
+
+            // Grading tips array
+            const gradingTips = [
+                '評分標準：2分 = 完全正確，1分 = 文法正確但有小錯誤（拼寫、標點），0分 = 任何文法錯誤',
+                '常見扣分原因：時態錯誤、主詞動詞不一致、介係詞使用錯誤、冠詞遺漏',
+                '重組題型：學生需使用所有提供的字詞，並保留題目中已提供的部分',
+                'AI 評分使用嚴格的 GEPT 標準，確保公平一致的評分結果',
+                '句子改寫題：重點在於文法轉換的正確性，如時態、語態、句型變化',
+                '句子合併題：考驗連接詞、關係子句、嵌入問句的使用能力',
+                '批次評分大幅提升效率：15 題同時評分，只需 5-10 秒',
+                '評分後可產生詳細報告，包含每題的錯誤分析和AI說明',
+                '建議學生針對 0-1 分的題目進行復習，理解正確文法概念'
+            ];
+
+            // Randomly select a tip
+            const randomTip = gradingTips[Math.floor(Math.random() * gradingTips.length)];
+            document.getElementById('gradingTip').textContent = randomTip;
+
+            // Progress simulation
+            let gradingProgress = 0;
+            let timeLeft = 10;
+            const gradingStages = [
+                { percent: 33, text: '評分第 1-5 題...', duration: 2000 },
+                { percent: 66, text: '評分第 6-10 題...', duration: 2000 },
+                { percent: 90, text: '評分第 11-15 題...', duration: 2000 }
+            ];
+
+            let stageIndex = 0;
+            const updateGradingProgress = () => {
+                if (stageIndex < gradingStages.length) {
+                    const stage = gradingStages[stageIndex];
+                    document.getElementById('gradingProgressBar').style.width = stage.percent + '%';
+                    document.getElementById('loadingProgress').textContent = stage.text;
+                    stageIndex++;
+                }
+            };
+
+            const progressInterval = setInterval(updateGradingProgress, 3000);
+            updateGradingProgress(); // Start immediately
+
+            const countdownInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0) {
+                    document.getElementById('gradingTimeEstimate').textContent = `預計剩餘 ${timeLeft} 秒`;
+                } else {
+                    document.getElementById('gradingTimeEstimate').textContent = '即將完成...';
+                }
+            }, 1000);
+
+            document.getElementById('gradingTimeEstimate').textContent = `預計 ${timeLeft} 秒`;
 
             gradingResults = [];
 
@@ -1081,6 +1151,20 @@
                     throw new Error(data.error || '評分失敗');
                 }
 
+                // Clear progress intervals
+                clearInterval(progressInterval);
+                clearInterval(countdownInterval);
+
+                // Complete progress animation
+                document.getElementById('gradingProgressBar').style.width = '100%';
+                document.getElementById('loadingProgress').textContent = '✅ 評分完成！';
+                document.getElementById('gradingTimeEstimate').textContent = '';
+
+                // Calculate elapsed time
+                if (startTime) {
+                    elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                }
+
                 // Store results
                 gradingResults = data.results.map(r => ({
                     studentName: '學生',
@@ -1094,9 +1178,14 @@
                     explanation_en: r.explanation_en
                 }));
 
+                // Small delay to show completion
+                await new Promise(r => setTimeout(r, 800));
+
                 displayResults('single');
 
             } catch (error) {
+                clearInterval(progressInterval);
+                clearInterval(countdownInterval);
                 console.error('Grading error:', error);
                 alert('評分過程發生錯誤: ' + error.message);
             } finally {
@@ -1252,6 +1341,13 @@
             const maxScore = scores.length * 2;
             const percentage = ((totalScore / maxScore) * 100).toFixed(1);
 
+            // Format elapsed time
+            const minutes = Math.floor(elapsedSeconds / 60);
+            const seconds = elapsedSeconds % 60;
+            const timeDisplay = minutes > 0
+                ? `${minutes} 分 ${seconds} 秒`
+                : `${seconds} 秒`;
+
             document.getElementById('summaryStats').innerHTML = `
                 <div class="stat-card green">
                     <div class="stat-number">${count2}</div>
@@ -1269,6 +1365,12 @@
                     <div class="stat-number">${totalScore}/${maxScore}</div>
                     <div class="stat-label">總分 (${percentage}%)</div>
                 </div>
+                ${elapsedSeconds > 0 ? `
+                <div class="stat-card" style="background: #faf5ff; border-color: #a855f7;">
+                    <div class="stat-number" style="color: #9333ea; font-size: 2rem;">⏱️</div>
+                    <div class="stat-label" style="color: #9333ea;">${timeDisplay}</div>
+                </div>
+                ` : ''}
             `;
 
             // Display individual results
@@ -1436,7 +1538,8 @@
                     body: JSON.stringify({
                         gradingResults: enrichedResults,
                         testId: currentTest,
-                        studentName: studentName || null
+                        studentName: studentName || null,
+                        elapsedSeconds: elapsedSeconds
                     })
                 });
 

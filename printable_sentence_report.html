@@ -305,10 +305,19 @@
                 document.title = `GEPT句子寫作評分報告 - ${studentName}`;
             }
 
+            // Format elapsed time
+            const elapsedSeconds = sessionData.elapsedSeconds || 0;
+            const minutes = Math.floor(elapsedSeconds / 60);
+            const seconds = elapsedSeconds % 60;
+            const timeDisplay = elapsedSeconds > 0
+                ? (minutes > 0 ? `${minutes} 分 ${seconds} 秒` : `${seconds} 秒`)
+                : '未記錄';
+
             // Metadata
             document.getElementById('metadata').innerHTML = `
                 <strong>學生姓名：</strong>${studentName || '未提供'}<br>
                 <strong>題組：</strong>${testId}<br>
+                <strong>作答時間：</strong>${timeDisplay}<br>
                 <strong>生成時間：</strong>${currentTime}<br>
                 <strong>批改ID：</strong>${sessionId}
             `;
