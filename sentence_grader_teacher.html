@@ -766,15 +766,138 @@
             ]
         };
 
-        // A-2 through A-8 question banks added
-        questionBank['A-2'] = questionBank['A-1']; // Placeholder for now
-        questionBank['A-3'] = questionBank['A-1']; // Placeholder for now
-        questionBank['A-4'] = questionBank['A-1']; // Placeholder for now
-        questionBank['A-5'] = questionBank['A-1']; // Placeholder for now
-        questionBank['A-6'] = questionBank['A-1']; // Placeholder for now
-        questionBank['A-7'] = questionBank['A-1']; // Placeholder for now
-        questionBank['A-8'] = questionBank['A-1']; // Placeholder for now
-        // Note: Full A-2 to A-8 data extracted and ready to be integrated
+        // AMC-2 Questions
+        questionBank['A-2'] = [
+            { num: 1, type: '句子改寫', target_grammar: 'It is unhealthy to V', original: 'Eating too much fried food is unhealthy.', prompt: '___ too much fried food.', correct_answers: ['It is unhealthy to eat too much fried food'] },
+            { num: 2, type: '句子改寫', target_grammar: 'Wh- 間接問句', original: 'Why are you interested in this job?', prompt: 'Tell me ___.', correct_answers: ['why you are interested in this job'] },
+            { num: 3, type: '句子改寫', target_grammar: 'not as... as...', original: "This writer's new book is better than his first one.", prompt: "This writer's first book ___ his new one.", correct_answers: ['is not as good as his new one'] },
+            { num: 4, type: '句子改寫', target_grammar: 'so 連接詞', original: 'Everyone expected Mason to win because he was the best player.', prompt: '___, so ___.', correct_answers: ['Mason was the best player, so everyone expected him to win'] },
+            { num: 5, type: '句子改寫', target_grammar: 'have + O + V', original: 'Mrs. Jones asked her assistant to check the numbers.', prompt: 'Mrs. Jones had ___ the numbers.', correct_answers: ['her assistant check the numbers'] },
+            { num: 6, type: '句子合併', target_grammar: 'neither... nor...', original: ["Frankie couldn't attend the meeting.", "Paul couldn't attend the meeting, either."], prompt: 'Neither ___ the meeting.', correct_answers: ['Frankie nor Paul could attend the meeting'] },
+            { num: 7, type: '句子合併', target_grammar: 'too... to...', original: ["It's very late.", "We shouldn't go out."], prompt: "It's ___.", correct_answers: ['too late for us to go out'] },
+            { num: 8, type: '句子合併', target_grammar: 'One of + 複數名詞', original: ['There are some books in the bookcase.', 'One book has a green cover.'], prompt: 'One of ___ a green cover.', correct_answers: ['the books in the bookcase has a green cover'] },
+            { num: 9, type: '句子合併', target_grammar: '關係代名詞 (受格)', original: ['Selena wrote a letter.', 'The letter was for her cousin.'], prompt: 'Selena ___ a letter.', correct_answers: ['wrote her cousin a letter', 'wrote a letter to her cousin'] },
+            { num: 10, type: '句子合併', target_grammar: '感官動詞 + O + V-ing', original: ['I saw a cat.', 'It was chasing after a toy mouse.'], prompt: 'I saw ___ a toy mouse.', correct_answers: ['a cat chasing after a toy mouse'] },
+            { num: 11, type: '重組', target_grammar: 'without + V-ing', prompt: 'Jason ___.', given_words: ['saying', 'left', 'goodbye', 'without'], correct_answers: ['left without saying goodbye'] },
+            { num: 12, type: '重組', target_grammar: 'be surprised to V', prompt: 'Everyone was ___.', given_words: ['to see', 'surprised', 'up', 'Bill', 'show'], correct_answers: ['surprised to see Bill show up'] },
+            { num: 13, type: '重組', target_grammar: '關係代名詞 that', prompt: 'I am reading the book ___.', given_words: ['from', 'that', 'borrowed', 'Henry', 'I'], correct_answers: ['that I borrowed from Henry'] },
+            { num: 14, type: '重組', target_grammar: 'Wh- 疑問句', prompt: 'Where ___?', given_words: ['this', 'you', 'did', 'hear', 'funny custom', 'about'], correct_answers: ['did you hear about this funny custom'] },
+            { num: 15, type: '重組', target_grammar: "feel like + V-ing", prompt: 'Danny ___.', given_words: ['to anyone', 'like', "doesn't", 'talking', 'feel', 'right now'], correct_answers: ["doesn't feel like talking to anyone right now"] }
+        ];
+
+        // AMC-3 Questions
+        questionBank['A-3'] = [
+            { num: 1, type: '句子改寫', target_grammar: 'When + 助動詞 + S + V', original: 'The mailman delivered the package to Kenneth this morning.', prompt: 'When ___ to Kenneth?', correct_answers: ['did the mailman deliver the package to Kenneth'] },
+            { num: 2, type: '句子改寫', target_grammar: '時態轉換 (未來式改過去式)', original: 'Barry will bring some books to his classmate tomorrow.', prompt: 'Barry ___ his classmate yesterday.', correct_answers: ['brought some books to his classmate yesterday'] },
+            { num: 3, type: '句子改寫', target_grammar: '被動語態', original: 'Our company has hired several experts.', prompt: '___ our company.', correct_answers: ['Several experts have been hired by our company'] },
+            { num: 4, type: '句子改寫', target_grammar: 'cost', original: 'Tracy paid NT$3,000 for the basketball game tickets.', prompt: '___ NT$3,000.', correct_answers: ['The basketball game tickets cost Tracy NT$3,000'] },
+            { num: 5, type: '句子改寫', target_grammar: '否定句 have anything', original: 'I have nothing to eat tonight.', prompt: "I don't ___ to eat tonight.", correct_answers: ["have anything to eat tonight"] },
+            { num: 6, type: '句子合併', target_grammar: 'by + 交通工具', original: ['Peter goes to work every day.', 'He takes the train to get there.'], prompt: 'Peter goes ___.', correct_answers: ['to work by train every day'] },
+            { num: 7, type: '句子合併', target_grammar: 'before', original: ['Andrew read a lot of travel guides.', 'Then, he planned his trip to New York.'], prompt: '___.', correct_answers: ['Andrew read a lot of travel guides before he planned his trip to New York'] },
+            { num: 8, type: '句子合併', target_grammar: '比較級 + than', original: ['Grace is 160 cm tall.', 'Oliver is 175 cm tall.'], prompt: 'Oliver ___ Grace.', correct_answers: ['is (15 cm) taller than Grace', 'is taller than Grace'] },
+            { num: 9, type: '句子合併', target_grammar: '關係代名詞 which/that', original: ['The movie will be out next week.', 'Everyone is looking forward to it.'], prompt: 'The movie ___ will be out next week.', correct_answers: ['(that/which) everyone is looking forward to will be out next week', 'everyone is looking forward to will be out next week'] },
+            { num: 10, type: '句子合併', target_grammar: 'neither... and...', original: ["Your brother shouldn't lie to your parents.", "You shouldn't lie to your parents, either."], prompt: "Your brother shouldn't lie to your parents, and ___ you.", correct_answers: ['neither should you'] },
+            { num: 11, type: '重組', target_grammar: 'Wh- 疑問句', prompt: "I'm not sure ___.", given_words: ['got', 'the show', 'why', 'canceled'], correct_answers: ['why the show got canceled'] },
+            { num: 12, type: '重組', target_grammar: 'not only... but also...', prompt: 'Michelle plays ___ volleyball.', given_words: ['also', 'tennis', 'but', 'only', 'not'], correct_answers: ['not only tennis but also volleyball'] },
+            { num: 13, type: '重組', target_grammar: 'too... to...', prompt: 'This puzzle is ___.', given_words: ['by', 'too', 'one person', 'to', 'difficult', 'be finished'], correct_answers: ['too difficult to be finished by one person'] },
+            { num: 14, type: '重組', target_grammar: 'It is + adj. + to V', prompt: 'It is ___.', given_words: ['stay', 'during', 'safer', 'home', 'a typhoon', 'to'], correct_answers: ['safer to stay home during a typhoon'] },
+            { num: 15, type: '重組', target_grammar: 'give + 人 + 物', prompt: 'Vivian ___.', given_words: ['long', 'dress', 'me', 'beautiful', 'gave', 'white', 'a'], correct_answers: ['gave me a beautiful long white dress'] }
+        ];
+
+        // AMC-4 Questions
+        questionBank['A-4'] = [
+            { num: 1, type: '句子改寫', target_grammar: '所有格代名詞', original: 'Those are our dogs.', prompt: 'Those dogs ___.', correct_answers: ['are ours'] },
+            { num: 2, type: '句子改寫', target_grammar: 'Wh- 疑問句', original: 'Who did you see at the party?', prompt: 'Can you tell me ___?', correct_answers: ['who you saw at the party'] },
+            { num: 3, type: '句子改寫', target_grammar: 'too... to... / because', original: "Carl was too busy to notice his wife wasn't happy.", prompt: "Carl didn't ___ because ___.", correct_answers: ["notice his wife wasn't happy because he was too busy"] },
+            { num: 4, type: '句子改寫', target_grammar: 'so', original: 'Molly likes dancing, and Sophia does, too.', prompt: 'Molly ___ Sophia.', correct_answers: ['likes dancing, and so does Sophia'] },
+            { num: 5, type: '句子改寫', target_grammar: '現在完成式', original: 'Joe started working on this project two weeks ago.', prompt: 'Joe ___ for two weeks.', correct_answers: ['has been working on this project for two weeks'] },
+            { num: 6, type: '句子合併', target_grammar: 'although', original: ['It was raining heavily.', 'Many people still stayed to watch the baseball game.'], prompt: '___ although ___.', correct_answers: ['Many people still stayed to watch the baseball game although it was raining heavily'] },
+            { num: 7, type: '句子合併', target_grammar: 'buy + 人 + 物', original: ['Jessica wanted a bicycle.', 'Her mother bought her one.'], prompt: "Jessica's mother ___her.", correct_answers: ['bought a bicycle for her', 'bought her a bicycle'] },
+            { num: 8, type: '句子合併', target_grammar: 'but', original: ['Ken felt very tired.', 'He still helped his grandma clean the house.'], prompt: '___.', correct_answers: ['Ken felt very tired but he still helped his grandma clean the house'] },
+            { num: 9, type: '句子合併', target_grammar: 'so... that...', original: ['Trent is afraid of the dark.', "He can't sleep without lights on."], prompt: 'Trent ___.', correct_answers: ["is so afraid of the dark that he can't sleep without lights on"] },
+            { num: 10, type: '句子合併', target_grammar: 'adj./adv. + enough + to V', original: ['Janet is 20 years old.', 'She can vote in the election.'], prompt: 'Janet ___ in the election.', correct_answers: ['is old enough to vote in the election'] },
+            { num: 11, type: '重組', target_grammar: '時間副詞子句', prompt: 'All ___ they turned 30.', given_words: ['got', 'my', 'before', 'best friends', 'married'], correct_answers: ['my best friends got married before they turned 30'] },
+            { num: 12, type: '重組', target_grammar: '關係代名詞', prompt: 'The doughnuts ___.', given_words: ['good', 'tasted', 'Mrs. Jones', 'really', 'baked'], correct_answers: ['Mrs. Jones baked tasted really good', 'that Mrs. Jones baked tasted really good'] },
+            { num: 13, type: '重組', target_grammar: 'Wh- 疑問句', prompt: 'Why ___?', given_words: ['you', 'again', 'are', 'this movie', 'watching'], correct_answers: ['are you watching this movie again'] },
+            { num: 14, type: '重組', target_grammar: 'pay... for...', prompt: 'Mike ___.', given_words: ['for', 'paid', 'his', 'new smartphone', 'NT$20,000'], correct_answers: ['paid NT$20,000 for his new smartphone'] },
+            { num: 15, type: '重組', target_grammar: 'not as... as...', prompt: 'This game ___ last time.', given_words: ['we played', 'not as', 'is', 'the one', 'interesting', 'as'], correct_answers: ['is not as interesting as the one we played last time'] }
+        ];
+
+        // AMC-5 Questions
+        questionBank['A-5'] = [
+            { num: 1, type: '句子改寫', target_grammar: 'How much + 助動詞 + it cost', original: 'Catherine paid NT$1,000 to stay at that hotel.', prompt: 'How much ___ cost ___ at that hotel?', correct_answers: ['did it cost Catherine to stay at that hotel'] },
+            { num: 2, type: '句子改寫', target_grammar: 'because of', original: 'Seth was late for work because he had a car accident.', prompt: 'Because of ___.', correct_answers: ['a car accident (that) he had, Seth was late for work', 'the car accident he had, Seth was late for work'] },
+            { num: 3, type: '句子改寫', target_grammar: 'How + 助動詞 + S + V', original: 'How should we get to the beach?', prompt: 'Do you know ___?', correct_answers: ['how we should / to get to the beach'] },
+            { num: 4, type: '句子改寫', target_grammar: '比較級', original: 'These new chairs are more comfortable than the old ones.', prompt: 'The old chairs are ___ than the new ones.', correct_answers: ['less comfortable than the new ones'] },
+            { num: 5, type: '句子改寫', target_grammar: 'with', original: "The old lady who's carrying a huge backpack is my grandma.", prompt: '___ my grandma.', correct_answers: ['The old lady with a huge backpack is my grandma'] },
+            { num: 6, type: '句子合併', target_grammar: 'which', original: ['Harry wants to buy the bag.', 'The bag has a lot of pockets.'], prompt: 'Harry ___.', correct_answers: ['wants to buy the bag which has a lot of pockets'] },
+            { num: 7, type: '句子合併', target_grammar: 'both', original: ['I have two sisters.', 'They wear glasses.'], prompt: 'Both ___.', correct_answers: ['(of) my sisters wear glasses'] },
+            { num: 8, type: '句子合併', target_grammar: 'with', original: ['Jordan drew a picture.', 'He used crayons to draw it.'], prompt: 'Jordan ___.', correct_answers: ['drew a picture with crayons'] },
+            { num: 9, type: '句子合併', target_grammar: '現在完成式', original: ['Melissa stopped eating meat five years ago.', "She still doesn't eat meat."], prompt: 'Melissa ___ for five years.', correct_answers: ["has not / hasn't eaten (any) meat for five years"] },
+            { num: 10, type: '句子合併', target_grammar: 'for + V-ing', original: ['I was rude to you this morning.', 'I am sorry.'], prompt: 'I am sorry for ___.', correct_answers: ['being rude to you this morning'] },
+            { num: 11, type: '重組', target_grammar: 'How often', prompt: 'How often ___?', given_words: ['travel', 'you', 'do', 'abroad'], correct_answers: ['do you travel abroad'] },
+            { num: 12, type: '重組', target_grammar: '最高級', prompt: 'This is ___.', given_words: ['the best', 'read', "I've", 'ever', 'book'], correct_answers: ["the best book I've ever read"] },
+            { num: 13, type: '重組', target_grammar: 'what + S + think of', prompt: "I'd like to know ___.", given_words: ['what', 'my song', 'think of', 'you'], correct_answers: ['what you think of my song'] },
+            { num: 14, type: '重組', target_grammar: 'be interested in', prompt: 'Benny ___.', given_words: ['in', 'languages', 'is', 'learning', 'interested'], correct_answers: ['is interested in learning languages'] },
+            { num: 15, type: '重組', target_grammar: 'It is + adj. + of + 人 + to V', prompt: 'It ___ her boyfriend told.', given_words: ['of', 'the lies', 'silly', 'to believe', 'was', 'Jill'], correct_answers: ['was silly of Jill to believe the lies her boyfriend told'] }
+        ];
+
+        // AMC-6 Questions
+        questionBank['A-6'] = [
+            { num: 1, type: '句子改寫', target_grammar: 'What + be 動詞 + S + V-ing', original: 'Ralph is watching cartoons on TV.', prompt: 'What ___ on TV?', correct_answers: ['is Ralph watching on TV'] },
+            { num: 2, type: '句子改寫', target_grammar: '過去式', original: 'Max fights with his little brother every day.', prompt: 'Max ___ yesterday.', correct_answers: ['fought with his little brother yesterday'] },
+            { num: 3, type: '句子改寫', target_grammar: '未來式被動', original: 'A new leader will be elected by the group members.', prompt: 'The group members ___.', correct_answers: ['will elect a new leader'] },
+            { num: 4, type: '句子改寫', target_grammar: 'send + 人 + 物', original: 'Shelly sent a picture to me.', prompt: 'Shelly ___ a picture.', correct_answers: ['sent me a picture'] },
+            { num: 5, type: '句子改寫', target_grammar: 'How about + V-ing', original: "Let's throw a party for Dad!", prompt: 'How about ___?', correct_answers: ['throwing a party for Dad'] },
+            { num: 6, type: '句子合併', target_grammar: '疑問句', original: ['What should I get from the supermarket?', 'Please tell me.'], prompt: 'Please tell me ___.', correct_answers: ['what I should get from the supermarket'] },
+            { num: 7, type: '句子合併', target_grammar: 'because', original: ['Amy has caught a cold.', "She doesn't feel well."], prompt: '___ because ___.', correct_answers: ["Amy doesn't feel well because she has caught a cold"] },
+            { num: 8, type: '句子合併', target_grammar: 'too... to...', original: ['The room was very dark.', "I couldn't see anything in there."], prompt: 'The room ___.', correct_answers: ['was too dark for me to see anything in there'] },
+            { num: 9, type: '句子合併', target_grammar: 'so', original: ['Mitchell was late for school today.', 'Kevin was late for school today, too.'], prompt: 'Mitchell ___, and ___ Kevin.', correct_answers: ['was late for school today, and so was Kevin'] },
+            { num: 10, type: '句子合併', target_grammar: 'It cost + 人 + 金錢 + to V', original: ['Jack bought a new wallet.', 'It cost him NT$2,000.'], prompt: 'It cost Jack ___.', correct_answers: ['NT$2,000 to buy a new wallet'] },
+            { num: 11, type: '重組', target_grammar: '感嘆句', prompt: 'What a ___!', given_words: ['he', 'singer', 'is', 'great'], correct_answers: ['great singer he is'] },
+            { num: 12, type: '重組', target_grammar: '反身代名詞', prompt: 'Ivy always ___.', given_words: ['dinner', 'has', 'herself', 'by'], correct_answers: ['has dinner by herself'] },
+            { num: 13, type: '重組', target_grammar: '介系詞片語', prompt: 'I saw ___ the bus.', given_words: ['in', 'pink', 'a woman', 'on'], correct_answers: ['a woman in pink on the bus'] },
+            { num: 14, type: '重組', target_grammar: 'There is something wrong with', prompt: 'There is ___.', given_words: ['with', 'wrong', 'my phone', 'something'], correct_answers: ['something wrong with my phone'] },
+            { num: 15, type: '重組', target_grammar: "feel like + V-ing", prompt: "Tom doesn't ___.", given_words: ['tonight', 'feel', 'out', 'like', 'going'], correct_answers: ["feel like going out tonight"] }
+        ];
+
+        // AMC-7 Questions
+        questionBank['A-7'] = [
+            { num: 1, type: '句子改寫', target_grammar: '未來式 will', original: 'The man began the project last month.', prompt: 'The man ___ next month.', correct_answers: ['will begin the project next month'] },
+            { num: 2, type: '句子改寫', target_grammar: 'neither... nor...', original: "Ronald didn't pass the test, and neither did Josh.", prompt: 'Neither ___ the test.', correct_answers: ['Ronald nor Josh passed the test'] },
+            { num: 3, type: '句子改寫', target_grammar: 'Where + 助動詞 + S + V', original: 'Dave met his wife at a local theater.', prompt: 'Where ___ his wife?', correct_answers: ['did Dave meet his wife'] },
+            { num: 4, type: '句子改寫', target_grammar: 'It is + adj. + to V', original: 'Getting around with a motorcycle is convenient.', prompt: 'It is ___ with a motorcycle.', correct_answers: ['convenient to get around with a motorcycle'] },
+            { num: 5, type: '句子改寫', target_grammar: '比較級', original: 'Kate does not run as fast as Sarah.', prompt: 'Sarah ___ than Kate.', correct_answers: ['runs faster than Kate'] },
+            { num: 6, type: '句子合併', target_grammar: 'whether/if', original: ['Are there enough chairs in the room?', "I don't know."], prompt: "I don't know ___ in the room.", correct_answers: ['whether (or not) there are enough chairs in the room', 'if there are enough chairs in the room'] },
+            { num: 7, type: '句子合併', target_grammar: 'after', original: ['Andy boiled some water.', 'Then he made himself a cup of tea.'], prompt: 'Andy ___ after he ___.', correct_answers: ['made himself a cup of tea after he boiled some water'] },
+            { num: 8, type: '句子合併', target_grammar: 'help + O + (to) V', original: ['My mom mopped the floor.', 'I helped her.'], prompt: 'I helped my mom ___.', correct_answers: ['(to) mop the floor'] },
+            { num: 9, type: '句子合併', target_grammar: '關係代名詞 who', original: ['The woman has just lost her husband.', 'She is crying.'], prompt: 'The woman who ___ her husband.', correct_answers: ['is crying has just lost her husband', 'has just lost her husband is crying'] },
+            { num: 10, type: '句子合併', target_grammar: 'so that', original: ['Mr. Chen put up a fence.', "He did it to keep his dog from running away."], prompt: 'Mr. Chen put up a fence ___.', correct_answers: ["so that his dog wouldn't run away"] },
+            { num: 11, type: '重組', target_grammar: '現在完成式', prompt: 'Have ___ a long time?', given_words: ['worked', 'for', 'you', 'here'], correct_answers: ['you worked here for a long time'] },
+            { num: 12, type: '重組', target_grammar: '被動語態', prompt: 'This bridge ___ in 2010.', given_words: ['our company', 'built', 'was', 'by'], correct_answers: ['was built by our company in 2010'] },
+            { num: 13, type: '重組', target_grammar: 'with', prompt: 'Jay has ___.', given_words: ['big balcony', 'a house', 'with', 'a'], correct_answers: ['a house with a big balcony'] },
+            { num: 14, type: '重組', target_grammar: '感官動詞 + O + V-ing', prompt: 'Paul heard ___ night.', given_words: ['playing', 'his sister', 'the guitar', 'last'], correct_answers: ['his sister playing the guitar last night'] },
+            { num: 15, type: '重組', target_grammar: 'too... to...', prompt: 'The box is ___.', given_words: ['heavy', 'for', 'too', 'her', 'to lift'], correct_answers: ['too heavy for her to lift'] }
+        ];
+
+        // AMC-8 Questions
+        questionBank['A-8'] = [
+            { num: 1, type: '句子改寫', target_grammar: '附加問句', original: "Your sister doesn't like singing.", prompt: "Your sister doesn't like singing, ___?", correct_answers: ['does she'] },
+            { num: 2, type: '句子改寫', target_grammar: 'keep + V-ing', original: 'Mandy talks about herself all the time.', prompt: 'Mandy keeps ___ herself.', correct_answers: ['talking about herself'] },
+            { num: 3, type: '句子改寫', target_grammar: 'make + O + V', original: 'Mom got Peter to tidy his bedroom.', prompt: 'Mom made ___.', correct_answers: ['Peter tidy his bedroom'] },
+            { num: 4, type: '句子改寫', target_grammar: '過去式', original: 'My aunt will buy a birthday gift for me this year.', prompt: 'My aunt ___ last year.', correct_answers: ['bought a birthday gift for me last year'] },
+            { num: 5, type: '句子改寫', target_grammar: 'too... to...', original: 'This sofa is not small enough to fit in our living room.', prompt: 'This sofa is ___ in our living room.', correct_answers: ['too big to fit in our living room'] },
+            { num: 6, type: '句子合併', target_grammar: 'Wh- 疑問句', original: ['Why is the little boy crying?', "I'm not sure."], prompt: "I'm not sure ___.", correct_answers: ['why the little boy is crying'] },
+            { num: 7, type: '句子合併', target_grammar: 'on foot', original: ['Adrian went to the supermarket.', 'He walked there.'], prompt: 'Adrian went to the supermarket ___.', correct_answers: ['on foot'] },
+            { num: 8, type: '句子合併', target_grammar: 'spend + 時間 + V-ing', original: ['Tyler built a swing set for his daughter.', 'It took five hours.'], prompt: 'Tyler spent ___ a swing set for his daughter.', correct_answers: ['five hours building a swing set for his daughter'] },
+            { num: 9, type: '句子合併', target_grammar: '關係代名詞 whose', original: ['The man felt very proud.', 'His son had just won the race.'], prompt: 'The man ___ felt very proud.', correct_answers: ['whose son had just won the race felt very proud'] },
+            { num: 10, type: '句子合併', target_grammar: 'teach + O + to + V', original: ['Eleanor teaches math.', 'Her students are young children.'], prompt: 'Eleanor ___ young children.', correct_answers: ['teaches math to young children'] },
+            { num: 11, type: '重組', target_grammar: 'Wh- 疑問句', prompt: 'Where ___?', given_words: ['you', 'this summer', 'go', 'will'], correct_answers: ['will you go this summer'] },
+            { num: 12, type: '重組', target_grammar: 'had better', prompt: 'We ___ the airport.', given_words: ['a taxi', 'to', 'had better', 'take'], correct_answers: ['had better take a taxi to the airport'] },
+            { num: 13, type: '重組', target_grammar: 'be famous for', prompt: 'Australia is ___.', given_words: ['for', 'famous', 'beautiful beaches', 'its'], correct_answers: ['famous for its beautiful beaches'] },
+            { num: 14, type: '重組', target_grammar: 'give + 人 + 物', prompt: 'The rich man ___.', given_words: ['a house', 'his children', 'gave', 'each of'], correct_answers: ['gave each of his children a house'] },
+            { num: 15, type: '重組', target_grammar: '比較級', prompt: 'Mrs. Wood ___ does.', given_words: ['than', 'earns', 'her husband', 'money', 'more'], correct_answers: ['earns more money than her husband does'] }
+        ];
 
         function updateModelDisplay() {
             selectedModel = document.getElementById('modelSelect').value;
