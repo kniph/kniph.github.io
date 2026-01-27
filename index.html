@@ -179,6 +179,14 @@
             animation-delay: 0.6s;
         }
 
+        .tool-card:nth-child(5) {
+            animation-delay: 0.8s;
+        }
+
+        .tool-card:nth-child(6) {
+            animation-delay: 1s;
+        }
+
         .tool-card:hover {
             transform: translateY(-10px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
@@ -203,6 +211,14 @@
         }
 
         .tool-card:nth-child(4) .tool-icon {
+            color: #2196F3;
+        }
+
+        .tool-card:nth-child(5) .tool-icon {
+            color: #667eea;
+        }
+
+        .tool-card:nth-child(6) .tool-icon {
             color: #f093fb;
         }
 
@@ -341,7 +357,6 @@
             <div class="site-logo">英語快寫快記站</div>
             <div class="header-icons">
                 <a href="howdy-selector.html" class="header-icon-link" title="Howdy Selector">🤠</a>
-                <a href="schedule.html" class="header-icon-link" title="Schedule">📅</a>
             </div>
         </div>
         <button id="logoutBtn" class="logout-btn">登出</button>
@@ -361,7 +376,7 @@
 
     <div class="container">
         <h1 class="main-title">學習工具集</h1>
-        <p class="subtitle">句子批改 x 作文批改 x 視覺化思維 x 高效專注</p>
+        <p class="subtitle">AI 批改 x 語音助教 x 課表管理 x 思維視覺 x 專注計時</p>
         
         <div class="tools-grid">
             <div class="tool-card">
@@ -375,6 +390,18 @@
                 <h2 class="tool-title">Essay Grader</h2>
                 <p class="tool-description">AI 助教 批改作文</p>
                 <a href="essay_grader.html" class="tool-button">開始評分</a>
+            </div>
+            <div class="tool-card">
+                <span class="tool-icon">🎙️</span>
+                <h2 class="tool-title">Silent Teacher Console</h2>
+                <p class="tool-description">AI 語音助教 課堂溝通</p>
+                <a href="stc/index.html" class="tool-button" target="_blank">開啟控制台</a>
+            </div>
+            <div class="tool-card">
+                <span class="tool-icon">📅</span>
+                <h2 class="tool-title">Class Schedule</h2>
+                <p class="tool-description">課表查詢 時間管理</p>
+                <a href="schedule.html" class="tool-button">查看課表</a>
             </div>
             <div class="tool-card">
                 <span class="tool-icon">🧠</span>
