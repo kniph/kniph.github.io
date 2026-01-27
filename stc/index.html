@@ -4,7 +4,21 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/stc/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>Silent Teacher Console</title>
+    <script>
+      // Authentication check - must be logged in via kniph.github.io
+      const loggedIn = localStorage.getItem('loggedIn');
+      const expireAt = localStorage.getItem('expireAt');
+
+      // Check if logged in and session hasn't expired
+      if (loggedIn !== 'yes' || !expireAt || Date.now() > Number(expireAt)) {
+        // Clear any stale data
+        localStorage.removeItem('loggedIn');
+        localStorage.removeItem('expireAt');
+        // Redirect to main login page
+        window.location.href = '/login.html';
+      }
+    </script>
     <script type="module" crossorigin src="/stc/assets/index-CmsYsGfa.js"></script>
     <link rel="stylesheet" crossorigin href="/stc/assets/index-DaRz3vFa.css">
   </head>
