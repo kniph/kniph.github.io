@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SK-017 朗讀練習 — GEPT 口說</title>
+  <script>
+    if (localStorage.getItem('loggedIn') !== 'yes') {
+      window.location.href = '/login.html';
+    }
+  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Microsoft JhengHei', Arial, sans-serif;
+      background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(45deg, #0d9488, #0f766e);
+      color: white;
+      text-align: center;
+      padding: 30px;
+    }
+    .header h1 { font-size: 2rem; margin-bottom: 8px; text-shadow: 1px 1px 3px rgba(0,0,0,0.3); }
+    .header p  { font-size: 1rem; opacity: 0.9; }
+
+    .nav-bar {
+      background: rgba(0,0,0,0.15);
+      padding: 10px 30px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .nav-bar a {
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.3);
+      transition: background 0.2s;
+    }
+    .nav-bar a:hover, .nav-bar a.active { background: rgba(255,255,255,0.25); color: white; }
+
+    .main { padding: 30px; }
+
+    /* ── Set / Item selector ── */
+    .controls-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .controls-row label { font-weight: 600; color: #374151; }
+    .controls-row select {
+      padding: 8px 14px;
+      border: 2px solid #d1fae5;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      color: #065f46;
+      background: #f0fdf4;
+      cursor: pointer;
+    }
+    .controls-row select:focus { outline: none; border-color: #0d9488; }
+
+    /* ── Question card ── */
+    .question-card {
+      background: #f0fdfa;
+      border: 2px solid #99f6e4;
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 24px;
+      min-height: 120px;
+    }
+    .question-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #0f766e;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .question-text {
+      font-size: 1.5rem;
+      color: #134e4a;
+      line-height: 1.7;
+      font-weight: 500;
+    }
+    .question-text.passage {
+      font-size: 1.15rem;
+    }
+
+    /* ── Phase badges ── */
+    .phase-badge {
+      display: inline-block;
+      padding: 6px 18px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+    }
+    .phase-reading { background: #fef3c7; color: #92400e; }
+    .phase-recording { background: #fee2e2; color: #991b1b; }
+    .phase-done { background: #d1fae5; color: #065f46; }
+
+    /* ── Countdown display ── */
+    .countdown-wrap {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .countdown-num {
+      font-size: 4rem;
+      font-weight: 800;
+      color: #0d9488;
+      line-height: 1;
+      transition: color 0.3s;
+    }
+    .countdown-label {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin-top: 6px;
+    }
+
+    /* ── Waveform ── */
+    .waveform-wrap { margin: 16px 0; display: none; }
+    .waveform-wrap canvas {
+      width: 100%;
+      height: 60px;
+      background: #f8fafc;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      border-radius: 999px;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-teal   { background: #0d9488; color: white; }
+    .btn-teal:hover:not(:disabled)   { background: #0f766e; transform: translateY(-1px); }
+    .btn-red    { background: #ef4444; color: white; }
+    .btn-red:hover:not(:disabled)    { background: #dc2626; }
+    .btn-gray   { background: #e5e7eb; color: #374151; }
+    .btn-gray:hover:not(:disabled)   { background: #d1d5db; }
+
+    .btn-record {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      border: none;
+      background: #ef4444;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 15px rgba(239,68,68,0.4);
+    }
+    .btn-record.pulsing {
+      animation: pulse-ring 1.2s ease-out infinite;
+    }
+    .btn-record:disabled { opacity: 0.35; cursor: not-allowed; animation: none; }
+
+    @keyframes pulse-ring {
+      0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+      70%  { box-shadow: 0 0 0 18px rgba(239,68,68,0); }
+      100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+    }
+
+    .action-row {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 22px; height: 22px;
+      border: 3px solid #d1fae5;
+      border-top-color: #0d9488;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-row { display: flex; align-items: center; gap: 10px; color: #0f766e; font-weight: 600; margin: 16px 0; }
+
+    /* ── Result card ── */
+    .result-card {
+      background: white;
+      border: 2px solid #d1fae5;
+      border-radius: 16px;
+      padding: 28px;
+      margin-top: 24px;
+    }
+    .result-card h3 {
+      color: #065f46;
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Score row */
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .score-box {
+      background: #f0fdfa;
+      border: 1px solid #99f6e4;
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+    .score-box .val {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #0d9488;
+      line-height: 1;
+    }
+    .score-box .lbl { font-size: 0.8rem; color: #6b7280; margin-top: 4px; }
+
+    /* Word diff display */
+    .diff-section { margin-top: 20px; }
+    .diff-section h4 { color: #374151; margin-bottom: 12px; font-size: 1rem; }
+    .diff-words {
+      font-size: 1.1rem;
+      line-height: 2;
+      background: #f8fafc;
+      padding: 16px;
+      border-radius: 10px;
+    }
+    .diff-words span { display: inline-block; margin: 2px 4px; padding: 2px 8px; border-radius: 6px; }
+    .word-correct     { background: #d1fae5; color: #065f46; }
+    .word-substituted { background: #fee2e2; color: #991b1b; text-decoration: line-through; }
+    .word-deleted     { background: #fef3c7; color: #92400e; font-style: italic; }
+    .word-inserted    { background: #ede9fe; color: #4c1d95; }
+
+    /* Transcript box */
+    .transcript-box {
+      background: #f1f5f9;
+      border-radius: 10px;
+      padding: 16px;
+      font-size: 1rem;
+      color: #334155;
+      line-height: 1.6;
+      margin-top: 12px;
+    }
+    .transcript-box .label { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; }
+
+    /* Feedback tips */
+    .feedback-list { list-style: none; margin-top: 16px; }
+    .feedback-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid #f0fdf4;
+      color: #374151;
+      font-size: 0.95rem;
+      display: flex;
+      gap: 8px;
+    }
+    .feedback-list li:last-child { border-bottom: none; }
+
+    /* Progress dots */
+    .item-dots {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .item-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 2px solid #99f6e4;
+      background: #f0fdfa;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #0f766e;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .item-dot.active   { background: #0d9488; color: white; border-color: #0d9488; }
+    .item-dot.done     { background: #d1fae5; border-color: #6ee7b7; }
+    .item-dot.passage  { width: 60px; border-radius: 12px; }
+
+    .hidden { display: none !important; }
+    .section-divider { border: none; border-top: 1px solid #e5e7eb; margin: 28px 0; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>🎙️ 朗讀練習</h1>
+    <p>第二部分 — 朗讀句子與短文｜GEPT 初級口說測驗</p>
+    <div class="nav-bar">
+      <a href="essay_grader.html">✍️ 寫作評分</a>
+      <a href="speaking_part1.html">🔁 複誦練習</a>
+      <a href="speaking_part2.html" class="active">📖 朗讀練習</a>
+      <a href="speaking_part3.html">💬 回答問題</a>
+      <a href="speaking_mock.html">🎯 完整模擬</a>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- Set selector -->
+    <div class="controls-row">
+      <label>試卷組：</label>
+      <select id="setSelect" onchange="loadSet()">
+        <!-- populated by JS -->
+      </select>
+      <button class="btn btn-gray" onclick="prevItem()" id="btnPrev">← 上題</button>
+      <button class="btn btn-gray" onclick="nextItem()" id="btnNext">下題 →</button>
+    </div>
+
+    <!-- Item progress dots -->
+    <div class="item-dots" id="itemDots"></div>
+
+    <!-- Phase badge -->
+    <div id="phaseBadge" class="phase-badge phase-reading">📖 閱讀準備中</div>
+
+    <!-- Question display -->
+    <div class="question-card">
+      <div class="question-label" id="questionLabel">第 1 題</div>
+      <div class="question-text" id="questionText">請選擇試卷組</div>
+    </div>
+
+    <!-- Silent reading countdown (Phase 1) -->
+    <div id="phaseReading">
+      <div class="countdown-wrap">
+        <div class="countdown-num" id="readCountdown">60</div>
+        <div class="countdown-label">秒後自動開始錄音（可提早點「準備好了」）</div>
+      </div>
+      <div class="action-row">
+        <button class="btn btn-teal" onclick="skipToRecord()" id="btnReady">✅ 準備好了，開始錄音</button>
+      </div>
+    </div>
+
+    <!-- Recording phase (Phase 2) -->
+    <div id="phaseRecording" class="hidden">
+      <div class="countdown-wrap">
+        <div class="countdown-num" id="recCountdown">60</div>
+        <div class="countdown-label">秒內朗讀完畢</div>
+      </div>
+      <div class="waveform-wrap" id="waveformWrap">
+        <canvas id="waveformCanvas" width="840" height="60"></canvas>
+      </div>
+      <div class="action-row" style="justify-content:center">
+        <button class="btn-record pulsing" id="btnStop" onclick="stopNow()">⏹</button>
+      </div>
+      <p style="text-align:center;color:#6b7280;font-size:0.9rem;margin-top:8px">點擊停止 或 等計時結束</p>
+    </div>
+
+    <!-- Processing -->
+    <div id="phaseProcessing" class="hidden">
+      <div class="loading-row"><span class="spinner"></span> 正在辨識語音，請稍候…</div>
+    </div>
+
+    <!-- Results -->
+    <div id="phaseResults" class="hidden">
+      <div class="result-card">
+        <h3>📊 朗讀分析報告</h3>
+
+        <div class="score-grid">
+          <div class="score-box">
+            <div class="val" id="scoreAccuracy">—</div>
+            <div class="lbl">字詞準確率</div>
+          </div>
+          <div class="score-box">
+            <div class="val" id="scoreWPM">—</div>
+            <div class="lbl">語速 (WPM)</div>
+          </div>
+          <div class="score-box">
+            <div class="val" id="scoreErrors">—</div>
+            <div class="lbl">錯誤字數</div>
+          </div>
+          <div class="score-box" style="border-color:#0d9488">
+            <div class="val" id="scoreA" style="color:#0f766e">—</div>
+            <div class="lbl">評分A：發音流利度 (0–5)</div>
+          </div>
+        </div>
+        <p style="font-size:0.78rem;color:#9ca3af;margin-bottom:8px">
+          ※ 官方評分A（發音、語調、流利度）由 GPT 根據 GEPT 官方標準評估
+        </p>
+
+        <div class="diff-section">
+          <h4>字詞對照（參考文本 vs 你的朗讀）</h4>
+          <div class="diff-words" id="diffWords"></div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:0.82rem;">
+            <span><span style="background:#d1fae5;padding:2px 6px;border-radius:4px;">綠色</span> 正確</span>
+            <span><span style="background:#fee2e2;padding:2px 6px;border-radius:4px;">紅色</span> 說錯/漏說</span>
+            <span><span style="background:#ede9fe;padding:2px 6px;border-radius:4px;">紫色</span> 多說</span>
+          </div>
+        </div>
+
+        <div class="transcript-box" style="margin-top:20px">
+          <div class="label">Whisper 辨識結果</div>
+          <div id="transcriptText">—</div>
+        </div>
+
+        <!-- GPT Score A feedback -->
+        <div style="margin-top:16px">
+          <h4 style="color:#0f766e;font-size:0.92rem;margin-bottom:8px">🎙️ 評分A — 發音、語調、流利度（GPT 評估）</h4>
+          <div id="feedbackA" style="background:#f0fdfa;border-radius:10px;padding:14px;font-size:0.93rem;color:#134e4a;line-height:1.6">評估中…</div>
+        </div>
+
+        <ul class="feedback-list" id="feedbackList"></ul>
+      </div>
+
+      <hr class="section-divider">
+      <div class="action-row">
+        <button class="btn btn-teal" onclick="resetItem()">🔄 重新練習本題</button>
+        <button class="btn btn-gray" onclick="nextItem()">下一題 →</button>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /container -->
+
+<script src="speaking-utils.js"></script>
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const BANK_URL = 'https://kniph.github.io/question-bank.json';
+let bank = null;
+let currentSet = null;
+let currentItems = []; // part2 items for current set
+let currentIdx = 0;
+let readStopFn = null;
+let recStopFn = null;
+let recordingPromise = null;
+let recordStartTime = 0;
+
+// ── Init ───────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    // Load from same origin (GitHub Pages serves it)
+    const resp = await fetch(BANK_URL);
+    bank = await resp.json();
+    populateSetSelect();
+    loadSet();
+  } catch (e) {
+    document.getElementById('questionText').textContent = '⚠️ 無法載入題庫：' + e.message;
+  }
+}
+
+function populateSetSelect() {
+  const sel = document.getElementById('setSelect');
+  sel.innerHTML = '';
+  bank.sets.forEach(s => {
+    const hasPart2 = s.part2 && s.part2.length > 0;
+    const opt = document.createElement('option');
+    opt.value = s.set_id;
+    opt.textContent = s.set_name + (hasPart2 ? '' : ' (尚未收錄)');
+    opt.disabled = !hasPart2;
+    sel.appendChild(opt);
+  });
+  // Select first set that has part2 data
+  const first = bank.sets.find(s => s.part2 && s.part2.length > 0);
+  if (first) sel.value = first.set_id;
+}
+
+function loadSet() {
+  const setId = document.getElementById('setSelect').value;
+  currentSet = bank.sets.find(s => s.set_id === setId);
+  currentItems = currentSet ? currentSet.part2 : [];
+  currentIdx = 0;
+  renderDots();
+  loadItem();
+}
+
+function renderDots() {
+  const container = document.getElementById('itemDots');
+  container.innerHTML = '';
+  currentItems.forEach((item, i) => {
+    const d = document.createElement('div');
+    d.className = 'item-dot' + (item.type === 'passage' ? ' passage' : '') + (i === currentIdx ? ' active' : '');
+    d.textContent = item.type === 'passage' ? '短文' : `第${i + 1}題`;
+    d.onclick = () => { currentIdx = i; loadItem(); };
+    container.appendChild(d);
+  });
+}
+
+function loadItem() {
+  resetPhase();
+  renderDots();
+
+  const item = currentItems[currentIdx];
+  if (!item) {
+    document.getElementById('questionText').textContent = '此組暫無題目';
+    return;
+  }
+
+  const label = item.type === 'passage'
+    ? `短文（第${currentIdx + 1}題，共${currentItems.length}題）`
+    : `第 ${currentIdx + 1} 題（共 ${currentItems.length} 題）`;
+  document.getElementById('questionLabel').textContent = label;
+
+  const textEl = document.getElementById('questionText');
+  textEl.textContent = item.text;
+  textEl.className = 'question-text' + (item.type === 'passage' ? ' passage' : '');
+
+  startReadingPhase();
+}
+
+// ── Phase: Silent Reading ──────────────────────────────────────────────────
+function startReadingPhase() {
+  show('phaseReading');
+  setBadge('reading');
+  const countdown = document.getElementById('readCountdown');
+  readStopFn = SpeakingUtils.startCountdown(countdown, 60, skipToRecord);
+}
+
+function skipToRecord() {
+  if (readStopFn) { readStopFn(); readStopFn = null; }
+  hide('phaseReading');
+  startRecordingPhase();
+}
+
+// ── Phase: Recording ───────────────────────────────────────────────────────
+async function startRecordingPhase() {
+  show('phaseRecording');
+  show('waveformWrap');
+  setBadge('recording');
+
+  const canvas = document.getElementById('waveformCanvas');
+  recordStartTime = Date.now();
+
+  // Start recording (60 s max for reading aloud)
+  recordingPromise = SpeakingUtils.startRecording(60, canvas);
+
+  // Start display countdown
+  const countdown = document.getElementById('recCountdown');
+  recStopFn = SpeakingUtils.startCountdown(countdown, 60, () => stopNow());
+}
+
+async function stopNow() {
+  if (recStopFn) { recStopFn(); recStopFn = null; }
+  SpeakingUtils.stopRecording();
+  hide('phaseRecording');
+  show('phaseProcessing');
+
+  try {
+    const { base64 } = await recordingPromise;
+    const durationSec = (Date.now() - recordStartTime) / 1000;
+    const item = currentItems[currentIdx];
+    const { text, words } = await SpeakingUtils.transcribe(base64, item.text.substring(0, 100));
+    showResults(text, words, durationSec, item);
+  } catch (err) {
+    hide('phaseProcessing');
+    alert('辨識失敗：' + err.message);
+    resetItem();
+  }
+}
+
+// ── Phase: Results ─────────────────────────────────────────────────────────
+function showResults(transcript, whisperWords, durationSec, item) {
+  hide('phaseProcessing');
+  show('phaseResults');
+  setBadge('done');
+
+  // Word diff
+  const diff = SpeakingUtils.wordDiff(item.text, transcript);
+  const accuracy = SpeakingUtils.calcAccuracy(diff);
+  const wordCount = transcript.split(/\s+/).filter(w => w).length;
+  const wpm = SpeakingUtils.calcWPM(wordCount, durationSec);
+  const errorCount = diff.filter(d => d.status !== 'correct' && d.status !== 'inserted').length;
+
+  document.getElementById('scoreAccuracy').textContent = accuracy + '%';
+  document.getElementById('scoreWPM').textContent = wpm;
+  document.getElementById('scoreErrors').textContent = errorCount;
+
+  // Color-code WPM
+  const wpmEl = document.getElementById('scoreWPM');
+  if (wpm < 80)       { wpmEl.style.color = '#ef4444'; }
+  else if (wpm < 100) { wpmEl.style.color = '#f59e0b'; }
+  else if (wpm <= 130){ wpmEl.style.color = '#10b981'; }
+  else                { wpmEl.style.color = '#f59e0b'; }
+
+  // Render diff
+  const diffEl = document.getElementById('diffWords');
+  diffEl.innerHTML = diff.map(d => {
+    const cls = {
+      correct: 'word-correct',
+      substituted: 'word-substituted',
+      deleted: 'word-deleted',
+      inserted: 'word-inserted'
+    }[d.status];
+    return `<span class="${cls}">${d.word}</span>`;
+  }).join('');
+
+  // Transcript
+  document.getElementById('transcriptText').textContent = transcript || '（未辨識到語音）';
+
+  // Mechanical feedback tips
+  document.getElementById('scoreA').textContent = '…';
+  const tips = [];
+  if (accuracy >= 95) tips.push('✅ 字詞準確率優秀！');
+  else if (accuracy >= 80) tips.push('👍 字詞準確率良好，繼續加油！');
+  else tips.push('⚠️ 有多個字詞發音不清晰，建議多朗讀參考文本。');
+
+  if (wpm < 80)        tips.push('🐢 語速偏慢（' + wpm + ' WPM），初級目標：100–130 WPM。');
+  else if (wpm > 130)  tips.push('🐇 語速偏快（' + wpm + ' WPM），注意清晰度，初級目標：100–130 WPM。');
+  else                 tips.push('⏱️ 語速適中（' + wpm + ' WPM），符合初級標準！');
+
+  if (item.type === 'passage' && durationSec > 60) {
+    tips.push('⏰ 朗讀時間超過 60 秒，真實考試需在時限內完成。');
+  }
+
+  if (item.key_words && item.key_words.length > 0) {
+    const transcriptLower = transcript.toLowerCase();
+    const missed = item.key_words.filter(kw => !transcriptLower.includes(kw.toLowerCase()));
+    if (missed.length > 0) {
+      tips.push(`🔑 關鍵字詞可能未說清楚：${missed.join('、')}`);
+    } else {
+      tips.push('🔑 所有關鍵字詞均有朗讀到！');
+    }
+  }
+
+  const feedbackEl = document.getElementById('feedbackList');
+  feedbackEl.innerHTML = tips.map(t => `<li>${t}</li>`).join('');
+
+  // Mark dot as done
+  const dots = document.querySelectorAll('.item-dot');
+  if (dots[currentIdx]) dots[currentIdx].classList.add('done');
+
+  // Async: call /api/evaluate for official Score A
+  const BACKEND = SpeakingUtils.BACKEND;
+  fetch(`${BACKEND}/api/evaluate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ part: 2, transcript: transcript || '', reference: item.text })
+  }).then(r => r.json()).then(ev => {
+    document.getElementById('scoreA').textContent = ev.score_a !== null ? ev.score_a : '—';
+    document.getElementById('feedbackA').textContent = ev.feedback_a || ev.overall || '—';
+    if (ev.coaching) {
+      feedbackEl.innerHTML += `<li>💡 ${ev.coaching}</li>`;
+    }
+  }).catch(() => {
+    document.getElementById('scoreA').textContent = '—';
+    document.getElementById('feedbackA').textContent = '（GPT 評估不可用）';
+  });
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+function prevItem() {
+  if (currentIdx > 0) { currentIdx--; loadItem(); }
+}
+function nextItem() {
+  if (currentIdx < currentItems.length - 1) { currentIdx++; loadItem(); }
+}
+function resetItem() {
+  loadItem();
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function resetPhase() {
+  if (readStopFn) { readStopFn(); readStopFn = null; }
+  if (recStopFn)  { recStopFn(); recStopFn = null; }
+  SpeakingUtils.stopRecording();
+  hide('phaseReading');
+  hide('phaseRecording');
+  hide('phaseProcessing');
+  hide('phaseResults');
+  hide('waveformWrap');
+}
+
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+function setBadge(phase) {
+  const el = document.getElementById('phaseBadge');
+  const map = {
+    reading:   ['phase-reading',   '📖 閱讀準備中（60秒）'],
+    recording: ['phase-recording', '🔴 錄音中'],
+    done:      ['phase-done',      '✅ 分析完成']
+  };
+  el.className = 'phase-badge ' + map[phase][0];
+  el.textContent = map[phase][1];
+}
+
+// ── Start ───────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

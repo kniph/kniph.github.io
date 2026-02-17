@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SK-016 複誦練習 — GEPT 口說</title>
+  <script>
+    if (localStorage.getItem('loggedIn') !== 'yes') {
+      window.location.href = '/login.html';
+    }
+  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔁</text></svg>">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Microsoft JhengHei', Arial, sans-serif;
+      background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(45deg, #0d9488, #0f766e);
+      color: white;
+      text-align: center;
+      padding: 30px;
+    }
+    .header h1 { font-size: 2rem; margin-bottom: 8px; text-shadow: 1px 1px 3px rgba(0,0,0,0.3); }
+    .header p  { font-size: 1rem; opacity: 0.9; }
+
+    .nav-bar {
+      background: rgba(0,0,0,0.15);
+      padding: 10px 30px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .nav-bar a {
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.3);
+      transition: background 0.2s;
+    }
+    .nav-bar a:hover, .nav-bar a.active { background: rgba(255,255,255,0.25); color: white; }
+
+    .main { padding: 30px; }
+
+    .controls-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .controls-row label { font-weight: 600; color: #374151; }
+    .controls-row select {
+      padding: 8px 14px;
+      border: 2px solid #d1fae5;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      color: #065f46;
+      background: #f0fdf4;
+      cursor: pointer;
+    }
+    .controls-row select:focus { outline: none; border-color: #0d9488; }
+
+    /* Item progress dots */
+    .item-dots { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .item-dot {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 2px solid #99f6e4;
+      background: #f0fdfa;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #0f766e;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .item-dot.active { background: #0d9488; color: white; border-color: #0d9488; }
+    .item-dot.done   { background: #d1fae5; border-color: #6ee7b7; }
+
+    /* Phase badge */
+    .phase-badge {
+      display: inline-block;
+      padding: 6px 18px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+    }
+    .phase-listening { background: #dbeafe; color: #1e3a8a; }
+    .phase-recording { background: #fee2e2; color: #991b1b; }
+    .phase-done      { background: #d1fae5; color: #065f46; }
+
+    /* Audio card — hides the question text until revealed */
+    .audio-card {
+      background: #f0fdfa;
+      border: 2px solid #99f6e4;
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      margin-bottom: 24px;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .play-icon {
+      font-size: 3.5rem;
+      animation: bounce 1s ease infinite alternate;
+    }
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-6px); }
+    }
+
+    .audio-label {
+      font-size: 1rem;
+      color: #0f766e;
+      font-weight: 600;
+    }
+
+    /* Hidden question reveal (after attempt) */
+    .question-reveal {
+      background: #ecfdf5;
+      border: 2px dashed #6ee7b7;
+      border-radius: 12px;
+      padding: 16px 24px;
+      margin-top: 16px;
+      display: none;
+    }
+    .question-reveal .ref-label { font-size: 0.78rem; font-weight: 700; color: #6b7280; text-transform: uppercase; margin-bottom: 6px; }
+    .question-reveal .ref-text  { font-size: 1.3rem; color: #134e4a; font-weight: 500; }
+    .question-reveal .intonation-tip {
+      margin-top: 8px;
+      font-size: 0.88rem;
+      color: #0f766e;
+      background: #d1fae5;
+      border-radius: 8px;
+      padding: 6px 12px;
+      display: inline-block;
+    }
+
+    /* Countdown + waveform */
+    .countdown-wrap { text-align: center; margin: 16px 0; }
+    .countdown-num {
+      font-size: 4rem;
+      font-weight: 800;
+      color: #0d9488;
+      line-height: 1;
+      transition: color 0.3s;
+    }
+    .countdown-label { font-size: 0.9rem; color: #6b7280; margin-top: 6px; }
+
+    .waveform-wrap { margin: 12px 0; }
+    .waveform-wrap canvas {
+      width: 100%;
+      height: 56px;
+      background: #f8fafc;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 26px;
+      border-radius: 999px;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-teal  { background: #0d9488; color: white; }
+    .btn-teal:hover:not(:disabled) { background: #0f766e; transform: translateY(-1px); }
+    .btn-gray  { background: #e5e7eb; color: #374151; }
+    .btn-gray:hover:not(:disabled) { background: #d1d5db; }
+
+    .btn-record {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      border: none;
+      background: #ef4444;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 15px rgba(239,68,68,0.4);
+    }
+    .btn-record.pulsing { animation: pulse-ring 1.2s ease-out infinite; }
+    .btn-record:disabled { opacity: 0.35; cursor: not-allowed; animation: none; }
+
+    @keyframes pulse-ring {
+      0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+      70%  { box-shadow: 0 0 0 18px rgba(239,68,68,0); }
+      100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+    }
+
+    .action-row {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 18px 0;
+    }
+    .center { justify-content: center; }
+
+    .spinner {
+      display: inline-block;
+      width: 22px; height: 22px;
+      border: 3px solid #d1fae5;
+      border-top-color: #0d9488;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-row { display: flex; align-items: center; gap: 10px; color: #0f766e; font-weight: 600; margin: 16px 0; }
+
+    /* Results */
+    .result-card {
+      background: white;
+      border: 2px solid #d1fae5;
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 20px;
+    }
+    .result-card h3 { color: #065f46; font-size: 1.15rem; margin-bottom: 18px; }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .score-box {
+      background: #f0fdfa;
+      border: 1px solid #99f6e4;
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+    .score-box .val { font-size: 2rem; font-weight: 800; color: #0d9488; line-height: 1; }
+    .score-box .lbl { font-size: 0.78rem; color: #6b7280; margin-top: 4px; }
+
+    /* Diff display */
+    .diff-words {
+      font-size: 1.15rem;
+      line-height: 2.2;
+      background: #f8fafc;
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    .diff-words span { display: inline-block; margin: 2px 4px; padding: 2px 8px; border-radius: 6px; }
+    .word-correct     { background: #d1fae5; color: #065f46; }
+    .word-substituted { background: #fee2e2; color: #991b1b; text-decoration: line-through; }
+    .word-deleted     { background: #fef3c7; color: #92400e; font-style: italic; }
+    .word-inserted    { background: #ede9fe; color: #4c1d95; }
+
+    .transcript-box {
+      background: #f1f5f9;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 1rem;
+      color: #334155;
+      margin-top: 12px;
+    }
+    .transcript-box .label { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; }
+
+    .feedback-list { list-style: none; margin-top: 14px; }
+    .feedback-list li {
+      padding: 7px 0;
+      border-bottom: 1px solid #f0fdf4;
+      color: #374151;
+      font-size: 0.93rem;
+      display: flex;
+      gap: 8px;
+    }
+    .feedback-list li:last-child { border-bottom: none; }
+
+    .section-divider { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>🔁 複誦練習</h1>
+    <p>第一部分 — 複誦｜GEPT 初級口說測驗</p>
+    <div class="nav-bar">
+      <a href="essay_grader.html">✍️ 寫作評分</a>
+      <a href="speaking_part1.html" class="active">🔁 複誦練習</a>
+      <a href="speaking_part2.html">📖 朗讀練習</a>
+      <a href="speaking_part3.html">💬 回答問題</a>
+      <a href="speaking_mock.html">🎯 完整模擬</a>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- Set selector -->
+    <div class="controls-row">
+      <label>試卷組：</label>
+      <select id="setSelect" onchange="loadSet()"></select>
+      <button class="btn btn-gray" onclick="prevItem()" id="btnPrev">← 上題</button>
+      <button class="btn btn-gray" onclick="nextItem()" id="btnNext">下題 →</button>
+    </div>
+
+    <!-- Item dots -->
+    <div class="item-dots" id="itemDots"></div>
+
+    <!-- Phase badge -->
+    <div id="phaseBadge" class="phase-badge phase-listening">🔊 播放中</div>
+
+    <!-- Audio card (all phases show this, question hidden until done) -->
+    <div class="audio-card" id="audioCard">
+      <div class="play-icon" id="playIcon">🔊</div>
+      <div class="audio-label" id="audioLabel">準備播放題目…</div>
+    </div>
+
+    <!-- Question reveal (shown after recording) -->
+    <div class="question-reveal" id="questionReveal">
+      <div class="ref-label">參考答案（題目原文）</div>
+      <div class="ref-text" id="refText">—</div>
+      <div class="intonation-tip" id="intonationTip">—</div>
+    </div>
+
+    <!-- Listening phase -->
+    <div id="phaseListening">
+      <div class="loading-row"><span class="spinner"></span> <span id="listenLabel">正在產生音頻…</span></div>
+    </div>
+
+    <!-- Ready to repeat -->
+    <div id="phaseReady" class="hidden">
+      <div class="action-row center">
+        <button class="btn btn-teal" onclick="startRepeat()" id="btnRepeat">🎙️ 開始複誦</button>
+      </div>
+      <p style="text-align:center;color:#6b7280;font-size:0.88rem">聽完兩遍後，點上方按鈕立即複誦</p>
+    </div>
+
+    <!-- Recording phase (countdown + waveform) -->
+    <div id="phaseRecording" class="hidden">
+      <div class="countdown-wrap">
+        <div class="countdown-num" id="recCountdown">5</div>
+        <div class="countdown-label">秒內複誦句子</div>
+      </div>
+      <div class="waveform-wrap">
+        <canvas id="waveformCanvas" width="740" height="56"></canvas>
+      </div>
+      <div class="action-row center">
+        <button class="btn-record pulsing" id="btnStop" onclick="stopNow()">⏹</button>
+      </div>
+    </div>
+
+    <!-- Processing -->
+    <div id="phaseProcessing" class="hidden">
+      <div class="loading-row"><span class="spinner"></span> 辨識語音中…</div>
+    </div>
+
+    <!-- Results -->
+    <div id="phaseResults" class="hidden">
+      <div class="result-card">
+        <h3>📊 複誦分析報告</h3>
+
+        <div class="score-grid">
+          <div class="score-box">
+            <div class="val" id="scoreAccuracy">—</div>
+            <div class="lbl">字詞準確率</div>
+          </div>
+          <div class="score-box">
+            <div class="val" id="scoreErrors">—</div>
+            <div class="lbl">錯誤字數</div>
+          </div>
+          <div class="score-box">
+            <div class="val" id="scoreIntonation">—</div>
+            <div class="lbl">語調方向</div>
+          </div>
+          <div class="score-box" style="border-color:#0d9488">
+            <div class="val" id="scoreA" style="color:#0f766e">—</div>
+            <div class="lbl">評分A：發音流利度 (0–5)</div>
+          </div>
+        </div>
+
+        <h4 style="color:#374151;margin-bottom:10px">字詞對照</h4>
+        <div class="diff-words" id="diffWords"></div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:0.82rem">
+          <span><span style="background:#d1fae5;padding:2px 6px;border-radius:4px">綠色</span> 正確</span>
+          <span><span style="background:#fee2e2;padding:2px 6px;border-radius:4px">紅色</span> 說錯</span>
+          <span><span style="background:#fef3c7;padding:2px 6px;border-radius:4px">黃色</span> 漏說</span>
+          <span><span style="background:#ede9fe;padding:2px 6px;border-radius:4px">紫色</span> 多說</span>
+        </div>
+
+        <div class="transcript-box">
+          <div class="label">你說的內容（Whisper 辨識）</div>
+          <div id="transcriptText">—</div>
+        </div>
+
+        <!-- GPT Score A feedback -->
+        <div style="margin-top:16px">
+          <h4 style="color:#0f766e;font-size:0.92rem;margin-bottom:8px">🎙️ 評分A — 發音、語調、流利度（GPT 評估）</h4>
+          <div id="feedbackA" style="background:#f0fdfa;border-radius:10px;padding:14px;font-size:0.93rem;color:#134e4a;line-height:1.6">評估中…</div>
+        </div>
+
+        <ul class="feedback-list" id="feedbackList"></ul>
+      </div>
+
+      <hr class="section-divider">
+      <div class="action-row">
+        <button class="btn btn-teal" onclick="replayAndRetry()">🔊 重聽 + 再試</button>
+        <button class="btn btn-gray" onclick="nextItem()">下一題 →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="speaking-utils.js"></script>
+<script>
+const BANK_URL = 'https://kniph.github.io/question-bank.json';
+let bank = null;
+let currentSet = null;
+let currentItems = [];
+let currentIdx = 0;
+let recStopFn = null;
+let recordingPromise = null;
+
+// ── Init ───────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const resp = await fetch(BANK_URL);
+    bank = await resp.json();
+    populateSetSelect();
+    loadSet();
+  } catch (e) {
+    document.getElementById('audioLabel').textContent = '⚠️ 無法載入題庫：' + e.message;
+  }
+}
+
+function populateSetSelect() {
+  const sel = document.getElementById('setSelect');
+  sel.innerHTML = '';
+  bank.sets.forEach(s => {
+    const has = s.part1 && s.part1.length > 0;
+    const opt = document.createElement('option');
+    opt.value = s.set_id;
+    opt.textContent = s.set_name + (has ? '' : ' (尚未收錄)');
+    opt.disabled = !has;
+    sel.appendChild(opt);
+  });
+  const first = bank.sets.find(s => s.part1 && s.part1.length > 0);
+  if (first) sel.value = first.set_id;
+}
+
+function loadSet() {
+  const setId = document.getElementById('setSelect').value;
+  currentSet = bank.sets.find(s => s.set_id === setId);
+  currentItems = currentSet ? currentSet.part1 : [];
+  currentIdx = 0;
+  renderDots();
+  loadItem();
+}
+
+function renderDots() {
+  const container = document.getElementById('itemDots');
+  container.innerHTML = '';
+  currentItems.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'item-dot' + (i === currentIdx ? ' active' : '');
+    d.textContent = i + 1;
+    d.onclick = () => { currentIdx = i; loadItem(); };
+    container.appendChild(d);
+  });
+}
+
+// ── Load & play item ───────────────────────────────────────────────────────
+async function loadItem() {
+  resetUI();
+  renderDots();
+
+  const item = currentItems[currentIdx];
+  if (!item) {
+    document.getElementById('audioLabel').textContent = '此組暫無題目';
+    return;
+  }
+
+  setBadge('listening');
+  document.getElementById('audioLabel').textContent = `第 ${currentIdx + 1} 題 / 共 ${currentItems.length} 題 — 播放中 (第 1 遍)`;
+  document.getElementById('listenLabel').textContent = '正在產生音頻…';
+  show('phaseListening');
+
+  try {
+    document.getElementById('playIcon').textContent = '🔊';
+    document.getElementById('audioLabel').textContent = `第 ${currentIdx + 1} 題 — 播放中 (第 1 遍)`;
+
+    // Play twice via SpeakingUtils (1.5 s gap handled internally)
+    // We want to show "第2遍" between plays — so call once for each
+    await SpeakingUtils.playTTS(item.text, 'nova', 1);
+    document.getElementById('audioLabel').textContent = `第 ${currentIdx + 1} 題 — 間隔中…`;
+    await new Promise(r => setTimeout(r, 1500));
+    document.getElementById('audioLabel').textContent = `第 ${currentIdx + 1} 題 — 播放中 (第 2 遍)`;
+    await SpeakingUtils.playTTS(item.text, 'nova', 1);
+
+    // Done listening
+    hide('phaseListening');
+    document.getElementById('audioLabel').textContent = `第 ${currentIdx + 1} 題 — 聽完了，請立即複誦`;
+    document.getElementById('playIcon').textContent = '🎙️';
+    show('phaseReady');
+    setBadge('ready');
+
+  } catch (err) {
+    hide('phaseListening');
+    document.getElementById('audioLabel').textContent = '⚠️ TTS 失敗：' + err.message;
+  }
+}
+
+// ── Recording ──────────────────────────────────────────────────────────────
+async function startRepeat() {
+  hide('phaseReady');
+  show('phaseRecording');
+  setBadge('recording');
+
+  const canvas = document.getElementById('waveformCanvas');
+  recordingPromise = SpeakingUtils.startRecording(5, canvas);
+
+  const countdown = document.getElementById('recCountdown');
+  recStopFn = SpeakingUtils.startCountdown(countdown, 5, () => stopNow());
+}
+
+async function stopNow() {
+  if (recStopFn) { recStopFn(); recStopFn = null; }
+  SpeakingUtils.stopRecording();
+  hide('phaseRecording');
+  show('phaseProcessing');
+
+  try {
+    const { base64 } = await recordingPromise;
+    const item = currentItems[currentIdx];
+    const { text, words } = await SpeakingUtils.transcribe(base64, item.text);
+    showResults(text, item);
+  } catch (err) {
+    hide('phaseProcessing');
+    alert('辨識失敗：' + err.message);
+    resetUI();
+    loadItem();
+  }
+}
+
+// ── Results ────────────────────────────────────────────────────────────────
+function showResults(transcript, item) {
+  hide('phaseProcessing');
+  show('phaseResults');
+  setBadge('done');
+
+  // Reveal reference text
+  const reveal = document.getElementById('questionReveal');
+  reveal.style.display = 'block';
+  document.getElementById('refText').textContent = item.text;
+
+  const intType = item.intonation || SpeakingUtils.detectIntonationType(item.text);
+  const intLabel = intType === 'rising' ? '↑ 語調上揚（Yes/No 問句）' : '↓ 語調下降（陳述句 / Wh- 問句）';
+  document.getElementById('intonationTip').textContent = '語調提示：' + intLabel;
+
+  // Diff
+  const diff = SpeakingUtils.wordDiff(item.text, transcript);
+  const accuracy = SpeakingUtils.calcAccuracy(diff);
+  const errorCount = diff.filter(d => d.status !== 'correct' && d.status !== 'inserted').length;
+
+  document.getElementById('scoreAccuracy').textContent = accuracy + '%';
+  document.getElementById('scoreErrors').textContent = errorCount;
+  document.getElementById('scoreIntonation').textContent = intType === 'rising' ? '↑' : '↓';
+  document.getElementById('scoreA').textContent = '…';
+
+  const diffEl = document.getElementById('diffWords');
+  diffEl.innerHTML = diff.map(d => {
+    const cls = {
+      correct: 'word-correct',
+      substituted: 'word-substituted',
+      deleted: 'word-deleted',
+      inserted: 'word-inserted'
+    }[d.status];
+    return `<span class="${cls}">${d.word}</span>`;
+  }).join('');
+
+  document.getElementById('transcriptText').textContent = transcript || '（未辨識到語音）';
+
+  // Mechanical feedback tips
+  const tips = [];
+  if (accuracy >= 95) tips.push('✅ 完整複誦，準確率優秀！');
+  else if (accuracy >= 80) tips.push('👍 準確率良好，注意紅色字詞的發音。');
+  else tips.push('⚠️ 準確率較低，建議多次重聽後再複誦。');
+
+  const omissions = diff.filter(d => d.status === 'deleted').length;
+  const additions = diff.filter(d => d.status === 'inserted').length;
+  if (omissions > 0) tips.push(`📌 漏說了 ${omissions} 個字詞，真實考試中漏字會扣分。`);
+  if (additions > 0) tips.push(`📌 多說了 ${additions} 個字詞，複誦只需重複原句即可。`);
+  tips.push(`🎵 本句語調：${intLabel}`);
+
+  const feedbackEl = document.getElementById('feedbackList');
+  feedbackEl.innerHTML = tips.map(t => `<li>${t}</li>`).join('');
+
+  // Mark dot done
+  const dots = document.querySelectorAll('.item-dot');
+  if (dots[currentIdx]) dots[currentIdx].classList.add('done');
+
+  // Async: call /api/evaluate for official Score A
+  const BACKEND = SpeakingUtils.BACKEND;
+  fetch(`${BACKEND}/api/evaluate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ part: 1, transcript: transcript || '', reference: item.text })
+  }).then(r => r.json()).then(ev => {
+    document.getElementById('scoreA').textContent = ev.score_a !== null ? ev.score_a : '—';
+    document.getElementById('feedbackA').textContent = ev.feedback_a || ev.overall || '—';
+    if (ev.coaching) {
+      feedbackEl.innerHTML += `<li>💡 ${ev.coaching}</li>`;
+    }
+  }).catch(() => {
+    document.getElementById('scoreA').textContent = '—';
+    document.getElementById('feedbackA').textContent = '（GPT 評估不可用）';
+  });
+}
+
+// ── Navigation & helpers ───────────────────────────────────────────────────
+async function replayAndRetry() {
+  document.getElementById('questionReveal').style.display = 'none';
+  resetUI();
+  await loadItem();
+}
+
+function prevItem() { if (currentIdx > 0) { currentIdx--; loadItem(); } }
+function nextItem() { if (currentIdx < currentItems.length - 1) { currentIdx++; loadItem(); } }
+
+function resetUI() {
+  if (recStopFn) { recStopFn(); recStopFn = null; }
+  SpeakingUtils.stopRecording();
+  document.getElementById('questionReveal').style.display = 'none';
+  hide('phaseListening');
+  hide('phaseReady');
+  hide('phaseRecording');
+  hide('phaseProcessing');
+  hide('phaseResults');
+  document.getElementById('playIcon').textContent = '🔊';
+  document.getElementById('audioLabel').textContent = '準備播放…';
+}
+
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+function setBadge(phase) {
+  const el = document.getElementById('phaseBadge');
+  const map = {
+    listening: ['phase-listening', '🔊 播放中'],
+    ready:     ['phase-listening', '🎙️ 準備複誦'],
+    recording: ['phase-recording', '🔴 錄音中'],
+    done:      ['phase-done',      '✅ 分析完成']
+  };
+  el.className = 'phase-badge ' + map[phase][0];
+  el.textContent = map[phase][1];
+}
+
+init();
+</script>
+</body>
+</html>

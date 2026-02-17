@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Speaking Grader — 題庫管理</title>
+  <script>
+    if (localStorage.getItem('loggedIn') !== 'yes') {
+      window.location.href = '/login.html';
+    }
+  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗂️</text></svg>">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Microsoft JhengHei', Arial, sans-serif;
+      background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(45deg, #0d9488, #0f766e);
+      color: white;
+      text-align: center;
+      padding: 30px;
+    }
+    .header h1 { font-size: 2rem; margin-bottom: 8px; }
+    .header p  { opacity: 0.9; font-size: 1rem; }
+
+    .nav-bar {
+      background: rgba(0,0,0,0.15);
+      padding: 10px 30px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .nav-bar a {
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.3);
+      transition: background 0.2s;
+    }
+    .nav-bar a:hover, .nav-bar a.active { background: rgba(255,255,255,0.25); color: white; }
+
+    .main { padding: 30px; }
+
+    h2 { color: #065f46; font-size: 1.2rem; margin-bottom: 16px; }
+    h3 { color: #374151; font-size: 1rem; margin-bottom: 10px; }
+
+    .card {
+      background: #f0fdfa;
+      border: 2px solid #99f6e4;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .notice {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 0.88rem;
+      color: #92400e;
+      margin-bottom: 20px;
+    }
+
+    label { font-weight: 600; color: #374151; font-size: 0.9rem; display: block; margin-bottom: 6px; }
+
+    input[type="text"], textarea, select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #d1fae5;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      color: #134e4a;
+      background: white;
+      margin-bottom: 14px;
+      font-family: inherit;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #0d9488;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+
+    .topics-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .topic-chip {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .topic-chip.selected { background: #0d9488; color: white; border-color: #0d9488; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      border-radius: 999px;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-teal   { background: #0d9488; color: white; }
+    .btn-teal:hover:not(:disabled)   { background: #0f766e; }
+    .btn-green  { background: #10b981; color: white; }
+    .btn-green:hover:not(:disabled)  { background: #059669; }
+    .btn-gray   { background: #e5e7eb; color: #374151; }
+    .btn-gray:hover:not(:disabled)   { background: #d1d5db; }
+    .btn-red    { background: #ef4444; color: white; }
+
+    .spinner {
+      display: inline-block;
+      width: 22px; height: 22px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-row { display: flex; align-items: center; gap: 10px; color: #0f766e; font-weight: 600; margin: 12px 0; }
+    .loading-row .spinner { border-color: #d1fae5; border-top-color: #0d9488; }
+
+    /* Generated set preview */
+    .preview-card {
+      background: white;
+      border: 2px solid #d1fae5;
+      border-radius: 14px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .preview-card h3 { color: #0f766e; margin-bottom: 16px; }
+
+    .part-section { margin-bottom: 18px; }
+    .part-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .q-item {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 6px;
+      font-size: 0.92rem;
+      color: #334155;
+      line-height: 1.5;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .q-num { color: #0d9488; font-weight: 700; min-width: 22px; }
+    .q-type { font-size: 0.75rem; background: #e0f2fe; color: #0369a1; border-radius: 4px; padding: 1px 6px; margin-left: 6px; }
+    .q-intonation { font-size: 0.75rem; background: #fef3c7; color: #92400e; border-radius: 4px; padding: 1px 6px; margin-left: 4px; }
+
+    /* JSON output */
+    .json-output {
+      background: #1e293b;
+      color: #e2e8f0;
+      border-radius: 10px;
+      padding: 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.82rem;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      margin-top: 16px;
+    }
+
+    /* Bank list */
+    .bank-item {
+      background: #f0fdfa;
+      border: 1px solid #99f6e4;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .bank-item-name { font-weight: 700; color: #065f46; }
+    .bank-item-meta { font-size: 0.82rem; color: #6b7280; }
+    .bank-item-actions { display: flex; gap: 8px; }
+    .btn-sm {
+      padding: 5px 14px;
+      font-size: 0.82rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .action-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+    .section-divider { border: none; border-top: 1px solid #e5e7eb; margin: 28px 0; }
+    .hidden { display: none !important; }
+    .success { background: #d1fae5; color: #065f46; border-radius: 8px; padding: 10px 14px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>🗂️ 口說題庫管理</h1>
+    <p>AI 生成練習題 · 管理題組 · 匯出 JSON</p>
+    <div class="nav-bar">
+      <a href="speaking_part1.html">🔁 複誦</a>
+      <a href="speaking_part2.html">📖 朗讀</a>
+      <a href="speaking_part3.html">💬 回答</a>
+      <a href="speaking_mock.html">🎯 模擬</a>
+      <a href="speaking_admin.html" class="active">🗂️ 題庫管理</a>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- Copyright notice -->
+    <div class="notice">
+      ⚠️ <strong>版權說明：</strong>AMC 模擬試題僅供個人練習參考使用。正式系統請使用 AI 生成題目（下方功能），以避免版權問題。
+    </div>
+
+    <!-- ── AI 生成題組 ──────────────────────────────────────────────── -->
+    <div class="card">
+      <h2>🤖 AI 生成新題組</h2>
+      <p style="color:#6b7280;font-size:0.9rem;margin-bottom:18px">使用 GPT-4o 依 GEPT 初級標準自動生成完整題組（第一、二、三部分）</p>
+
+      <label>題組名稱</label>
+      <input type="text" id="setName" value="AI生成第1組" placeholder="例：AI生成第1組">
+
+      <label>主題方向（可多選，或留空讓 AI 自由發揮）</label>
+      <div class="topics-wrap" id="topicsWrap">
+        <div class="topic-chip" data-topic="日常生活">日常生活</div>
+        <div class="topic-chip" data-topic="學校生活">學校生活</div>
+        <div class="topic-chip" data-topic="家庭">家庭</div>
+        <div class="topic-chip" data-topic="食物與飲料">食物與飲料</div>
+        <div class="topic-chip" data-topic="旅遊">旅遊</div>
+        <div class="topic-chip" data-topic="購物">購物</div>
+        <div class="topic-chip" data-topic="朋友與社交">朋友與社交</div>
+        <div class="topic-chip" data-topic="興趣嗜好">興趣嗜好</div>
+        <div class="topic-chip" data-topic="健康與運動">健康與運動</div>
+        <div class="topic-chip" data-topic="節日與慶典">節日與慶典</div>
+        <div class="topic-chip" data-topic="科技">科技</div>
+        <div class="topic-chip" data-topic="環境">環境</div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-teal" id="btnGenerate" onclick="generateSet()">✨ 生成題組</button>
+      </div>
+
+      <div id="generateLoading" class="loading-row hidden">
+        <span class="spinner"></span> GPT-4o 生成中，約需 15–30 秒…
+      </div>
+      <div id="generateError" style="color:#ef4444;margin-top:10px;display:none"></div>
+    </div>
+
+    <!-- Preview of generated set -->
+    <div id="previewSection" class="hidden">
+      <div class="preview-card">
+        <h3 id="previewTitle">—</h3>
+
+        <div class="part-section">
+          <div class="part-title">第一部分 — 複誦（5題）</div>
+          <div id="preview-p1"></div>
+        </div>
+
+        <div class="part-section">
+          <div class="part-title">第二部分 — 朗讀（5句 + 1短文）</div>
+          <div id="preview-p2"></div>
+        </div>
+
+        <div class="part-section">
+          <div class="part-title">第三部分 — 回答問題（7題）</div>
+          <div id="preview-p3"></div>
+        </div>
+
+        <hr class="section-divider">
+        <h3>📋 JSON 匯出（複製後加入 question-bank.json）</h3>
+        <div class="json-output" id="jsonOutput"></div>
+
+        <div class="action-row">
+          <button class="btn btn-green" onclick="copyJSON()">📋 複製 JSON</button>
+          <button class="btn btn-teal" onclick="saveToBank()">💾 儲存到本機題庫</button>
+          <button class="btn btn-gray" onclick="document.getElementById('previewSection').classList.add('hidden')">✕ 關閉預覽</button>
+        </div>
+        <div id="saveSuccess" class="success hidden">✅ 已儲存到本機題庫！在下方可看到新題組。</div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- ── 題庫總覽 ──────────────────────────────────────────────────── -->
+    <div>
+      <h2>📚 目前題庫</h2>
+      <div id="bankList">載入中…</div>
+      <div class="action-row" style="margin-top:16px">
+        <button class="btn btn-gray" onclick="loadBank()">🔄 重新載入</button>
+        <button class="btn btn-gray" onclick="exportFullBank()">📤 匯出完整題庫 JSON</button>
+      </div>
+      <div class="json-output hidden" id="fullBankOutput"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const BACKEND  = 'https://railway-backend-production-55cf.up.railway.app';
+const BANK_URL = 'https://kniph.github.io/question-bank.json';
+const LOCAL_KEY = 'speaking_bank_additions'; // localStorage for AI-generated sets
+
+let generatedSet = null;
+let remoteBank = null;
+
+// ── Topic chips ──────────────────────────────────────────────────────────────
+document.querySelectorAll('.topic-chip').forEach(chip => {
+  chip.addEventListener('click', () => chip.classList.toggle('selected'));
+});
+
+function getSelectedTopics() {
+  return Array.from(document.querySelectorAll('.topic-chip.selected')).map(c => c.dataset.topic);
+}
+
+// ── Generate ─────────────────────────────────────────────────────────────────
+async function generateSet() {
+  const setName = document.getElementById('setName').value.trim() || 'AI生成題組';
+  const topics  = getSelectedTopics();
+
+  document.getElementById('btnGenerate').disabled = true;
+  document.getElementById('generateLoading').classList.remove('hidden');
+  document.getElementById('generateError').style.display = 'none';
+  document.getElementById('previewSection').classList.add('hidden');
+
+  try {
+    const resp = await fetch(`${BACKEND}/api/generate-questions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ set_name: setName, seed_topics: topics })
+    });
+
+    if (!resp.ok) throw new Error(`後端錯誤 ${resp.status}`);
+    const data = await resp.json();
+    generatedSet = data.set;
+
+    renderPreview(generatedSet);
+
+  } catch (err) {
+    const errEl = document.getElementById('generateError');
+    errEl.textContent = '⚠️ 生成失敗：' + err.message;
+    errEl.style.display = 'block';
+  } finally {
+    document.getElementById('btnGenerate').disabled = false;
+    document.getElementById('generateLoading').classList.add('hidden');
+  }
+}
+
+// ── Render preview ────────────────────────────────────────────────────────────
+function renderPreview(set) {
+  document.getElementById('previewTitle').textContent = `🆕 ${set.set_name} — ${set.set_id}`;
+
+  // Part 1
+  const p1 = document.getElementById('preview-p1');
+  p1.innerHTML = (set.part1 || []).map((q, i) => `
+    <div class="q-item">
+      <span class="q-num">${i+1}</span>
+      <span>${q.text} <span class="q-type">${q.type}</span> <span class="q-intonation">${q.intonation === 'rising' ? '↑' : '↓'}</span></span>
+    </div>`).join('');
+
+  // Part 2
+  const p2 = document.getElementById('preview-p2');
+  p2.innerHTML = (set.part2 || []).map((q, i) => `
+    <div class="q-item">
+      <span class="q-num">${i+1}</span>
+      <span>${q.text} <span class="q-type">${q.type}</span></span>
+    </div>`).join('');
+
+  // Part 3
+  const p3 = document.getElementById('preview-p3');
+  p3.innerHTML = (set.part3 || []).map((q, i) => `
+    <div class="q-item">
+      <span class="q-num">${i+1}</span>
+      <div>
+        <div>${q.question} <span class="q-type">${q.type}</span>${q.is_roleplay ? ' <span class="q-type" style="background:#fef3c7;color:#92400e">角色扮演</span>' : ''}</div>
+        <div style="font-size:0.82rem;color:#6b7280;margin-top:4px">參考：${q.model_answer}</div>
+      </div>
+    </div>`).join('');
+
+  // JSON
+  document.getElementById('jsonOutput').textContent = JSON.stringify(set, null, 2);
+
+  document.getElementById('previewSection').classList.remove('hidden');
+  document.getElementById('previewSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── Copy JSON ─────────────────────────────────────────────────────────────────
+function copyJSON() {
+  const text = document.getElementById('jsonOutput').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('✅ JSON 已複製到剪貼簿！\n貼到 question-bank.json 的 "sets" 陣列中即可。');
+  });
+}
+
+// ── Save to local bank ────────────────────────────────────────────────────────
+function saveToBank() {
+  if (!generatedSet) return;
+  const stored = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
+  // Avoid duplicates
+  const idx = stored.findIndex(s => s.set_id === generatedSet.set_id);
+  if (idx >= 0) stored[idx] = generatedSet;
+  else stored.push(generatedSet);
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(stored));
+  document.getElementById('saveSuccess').classList.remove('hidden');
+  loadBank();
+}
+
+// ── Load bank overview ────────────────────────────────────────────────────────
+async function loadBank() {
+  const listEl = document.getElementById('bankList');
+  listEl.innerHTML = '<div style="color:#6b7280">載入中…</div>';
+
+  let allSets = [];
+
+  // Load remote bank
+  try {
+    const resp = await fetch(BANK_URL + '?t=' + Date.now());
+    remoteBank = await resp.json();
+    remoteBank.sets.forEach(s => allSets.push({ ...s, _source: 'remote' }));
+  } catch (e) {
+    console.warn('Remote bank load failed:', e);
+  }
+
+  // Load local AI-generated sets
+  const local = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
+  local.forEach(s => allSets.push({ ...s, _source: 'local' }));
+
+  if (allSets.length === 0) {
+    listEl.innerHTML = '<p style="color:#9ca3af">尚無題組</p>';
+    return;
+  }
+
+  listEl.innerHTML = allSets.map(s => {
+    const p1count = (s.part1 || []).length;
+    const p2count = (s.part2 || []).length;
+    const p3count = (s.part3 || []).length;
+    const hasData = p1count + p2count + p3count > 0;
+    const srcBadge = s._source === 'local'
+      ? '<span style="background:#ede9fe;color:#4c1d95;padding:2px 8px;border-radius:4px;font-size:0.75rem">本機AI生成</span>'
+      : '<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:4px;font-size:0.75rem">正式題庫</span>';
+    return `<div class="bank-item">
+      <div>
+        <div class="bank-item-name">${s.set_name} ${srcBadge}</div>
+        <div class="bank-item-meta">${s.source || ''} | 第一部分 ${p1count}題 · 第二部分 ${p2count}題 · 第三部分 ${p3count}題 ${!hasData ? '⚠️ 尚無內容' : ''}</div>
+      </div>
+      <div class="bank-item-actions">
+        ${s._source === 'local' ? `<button class="btn-sm btn-teal" onclick="previewLocal('${s.set_id}')">👁 預覽</button>
+        <button class="btn-sm btn-red" onclick="deleteLocal('${s.set_id}')">🗑 刪除</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function previewLocal(setId) {
+  const stored = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
+  const set = stored.find(s => s.set_id === setId);
+  if (set) { generatedSet = set; renderPreview(set); }
+}
+
+function deleteLocal(setId) {
+  if (!confirm('確定要刪除這個本機題組嗎？')) return;
+  const stored = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(stored.filter(s => s.set_id !== setId)));
+  loadBank();
+}
+
+function exportFullBank() {
+  const outEl = document.getElementById('fullBankOutput');
+  if (!remoteBank) { alert('請先載入題庫'); return; }
+  const local = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]');
+  const merged = {
+    ...remoteBank,
+    sets: [...remoteBank.sets, ...local],
+    meta: { ...remoteBank.meta, last_updated: new Date().toISOString().split('T')[0] }
+  };
+  outEl.textContent = JSON.stringify(merged, null, 2);
+  outEl.classList.remove('hidden');
+  outEl.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadBank();
+</script>
+</body>
+</html>
