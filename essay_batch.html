@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 批次作文評分 — GEPT Batch Essay Grading</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        /* ─── Header ─────────────────────────────────────────────────────── */
+        .header {
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 8px;
+        }
+
+        .header h3 {
+            font-size: 1rem;
+            font-weight: normal;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 15px;
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: white;
+        }
+
+        /* ─── Main Content ────────────────────────────────────────────────── */
+        .main-content {
+            padding: 40px;
+        }
+
+        /* ─── Selectors ───────────────────────────────────────────────────── */
+        .selectors-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .model-selector {
+            flex: 1;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 15px 20px;
+        }
+
+        .model-selector label {
+            display: block;
+            font-weight: bold;
+            color: #92400e;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .model-selector select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #f59e0b;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: white;
+            color: #374151;
+            cursor: pointer;
+        }
+
+        .selector-info {
+            margin-top: 6px;
+            font-size: 0.78rem;
+            color: #92400e;
+            opacity: 0.8;
+        }
+
+        /* ─── Input Mode Tabs ─────────────────────────────────────────────── */
+        .mode-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 0;
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+            border-bottom: none;
+        }
+
+        .mode-tab {
+            flex: 1;
+            padding: 14px 20px;
+            background: #f8fafc;
+            border: none;
+            cursor: pointer;
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #64748b;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .mode-tab:hover {
+            background: #f1f5f9;
+            color: #374151;
+        }
+
+        .mode-tab.active {
+            background: white;
+            color: #d97706;
+            border-bottom: 3px solid #f59e0b;
+        }
+
+        .mode-tab:not(:last-child) {
+            border-right: 1px solid #e2e8f0;
+        }
+
+        /* ─── Input Panels ────────────────────────────────────────────────── */
+        .input-panel {
+            display: none;
+            border: 2px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            background: white;
+        }
+
+        .input-panel.active {
+            display: block;
+        }
+
+        /* Text mode */
+        .format-hint {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+            color: #92400e;
+            line-height: 1.6;
+        }
+
+        .format-hint code {
+            background: #fef3c7;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.85em;
+        }
+
+        .batch-textarea {
+            width: 100%;
+            height: 220px;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            resize: vertical;
+            transition: border-color 0.2s;
+            line-height: 1.6;
+        }
+
+        .batch-textarea:focus {
+            outline: none;
+            border-color: #f59e0b;
+        }
+
+        .textarea-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        /* Photo mode */
+        .drop-zone {
+            border: 3px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: #f59e0b;
+            background: #fffbeb;
+        }
+
+        .drop-zone-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .drop-zone h3 {
+            color: #475569;
+            margin-bottom: 6px;
+        }
+
+        .drop-zone p {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .drop-zone input[type="file"] {
+            display: none;
+        }
+
+        /* Photo queue */
+        .photo-queue {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .photo-queue.has-items {
+            display: block;
+        }
+
+        .photo-queue h4 {
+            color: #374151;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
+
+        .photo-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .photo-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.88rem;
+        }
+
+        .photo-item-thumb {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .photo-item-name {
+            flex: 1;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .photo-item-student {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        .photo-item-status {
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .photo-item-status.ocr-done {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .photo-item-status.grading {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .photo-item-status.graded {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .photo-item-status.failed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .photo-item-remove {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .photo-item-remove:hover {
+            color: #ef4444;
+            background: #fee2e2;
+        }
+
+        .ocr-text-preview {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 300px;
+        }
+
+        /* ─── Buttons ─────────────────────────────────────────────────────── */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+        }
+
+        .btn-outline {
+            background: white;
+            color: #64748b;
+            border: 2px solid #e2e8f0;
+            box-shadow: none;
+        }
+
+        .btn-outline:hover:not(:disabled) {
+            border-color: #f59e0b;
+            color: #d97706;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ─── Progress / Loading ──────────────────────────────────────────── */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 2px solid #fde68a;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #f59e0b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar-wrap {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 10px;
+            margin: 12px auto;
+            max-width: 400px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            font-weight: bold;
+            color: #92400e;
+            font-size: 1rem;
+            margin-bottom: 6px;
+        }
+
+        .progress-sub {
+            font-size: 0.85rem;
+            color: #b45309;
+        }
+
+        /* ─── Results Section ─────────────────────────────────────────────── */
+        .results-section {
+            display: none;
+        }
+
+        .results-section.visible {
+            display: block;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .results-header h2 {
+            color: #374151;
+            font-size: 1.3rem;
+        }
+
+        .results-header-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Summary stats row */
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 18px 15px;
+            text-align: center;
+        }
+
+        .stat-card.highlight {
+            border-color: #f59e0b;
+            background: #fffbeb;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .stat-value.amber {
+            color: #d97706;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        /* Results table */
+        .results-table-wrap {
+            overflow-x: auto;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .results-table th {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: bold;
+            border-bottom: 2px solid #f59e0b;
+            white-space: nowrap;
+        }
+
+        .results-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        .results-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .results-table tr:hover td {
+            background: #fffbeb;
+        }
+
+        .results-table tr.failed-row td {
+            background: #fff5f5;
+            color: #9b1c1c;
+        }
+
+        /* Score badge */
+        .score-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        .score-5 { background: #d1fae5; color: #065f46; }
+        .score-4 { background: #dbeafe; color: #1e40af; }
+        .score-3 { background: #fef3c7; color: #92400e; }
+        .score-2 { background: #fee2e2; color: #991b1b; }
+        .score-1 { background: #fce7f3; color: #9d174d; }
+
+        /* Action cell */
+        .row-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .btn-tiny {
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            border-radius: 15px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-tiny-view {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .btn-tiny-view:hover {
+            background: #bfdbfe;
+        }
+
+        .btn-tiny-pdf {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .btn-tiny-pdf:hover {
+            background: #a7f3d0;
+        }
+
+        /* Error badge */
+        .err-count {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .err-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 3px;
+        }
+
+        .err-dot.critical { background: #ef4444; }
+        .err-dot.medium   { background: #f59e0b; }
+        .err-dot.minor    { background: #3b82f6; }
+
+        /* Class error summary */
+        .class-errors {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .class-error-chip {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* Expanded detail row */
+        .detail-row {
+            display: none;
+            background: #fafafa;
+        }
+
+        .detail-row.open {
+            display: table-row;
+        }
+
+        .detail-cell {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .detail-essay {
+            font-size: 0.88rem;
+            color: #374151;
+            line-height: 1.7;
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 10px;
+        }
+
+        /* ─── Common error analysis section ────────────────────────────────── */
+        .error-analysis {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+
+        .error-analysis h3 {
+            color: #374151;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .error-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .error-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+
+        .error-bar-label {
+            width: 90px;
+            color: #374151;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .error-bar-bg {
+            flex: 1;
+            background: #e2e8f0;
+            border-radius: 6px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .error-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+        }
+
+        .error-bar-count {
+            color: #64748b;
+            width: 30px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        /* ─── Responsive ──────────────────────────────────────────────────── */
+        @media (max-width: 768px) {
+            .main-content { padding: 20px; }
+            .selectors-row { flex-direction: column; }
+            .summary-stats { grid-template-columns: repeat(2, 1fr); }
+            .action-buttons { flex-direction: column; align-items: center; }
+            .results-header { flex-direction: column; }
+            .header h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <a class="back-link" href="essay_grader.html">← 返回單篇評分</a>
+        <h1>📋 批次作文評分</h1>
+        <h3>GEPT Batch Essay Grading — 一次評分全班作文</h3>
+        <p id="headerModelInfo">AI 系統：GPT-5.2 | GEPT Elementary</p>
+    </div>
+
+    <div class="main-content">
+
+        <!-- Selectors -->
+        <div class="selectors-row">
+            <div class="model-selector">
+                <label>🤖 AI 評分模型</label>
+                <select id="modelSelect" onchange="updateHeaderInfo()">
+                    <option value="gpt-5.2">GPT-5.2 (最新 - 更少幻覺)</option>
+                    <option value="gpt-5.1">GPT-5.1 (推薦 - 更快更強)</option>
+                    <option value="gpt-5-mini">GPT-5 mini (經濟實惠)</option>
+                    <option value="claude-sonnet-4.5">Claude 4.5 Sonnet (深度分析)</option>
+                    <option value="fine-tuned">Fine-tuned GPT-4o (GEPT 優化)</option>
+                </select>
+                <div class="selector-info" id="modelInfo">✨ GPT-5.2 | 最新旗艦，30% 更少幻覺</div>
+            </div>
+            <div class="model-selector">
+                <label>📚 GEPT 級別</label>
+                <select id="levelSelect" onchange="updateHeaderInfo()">
+                    <option value="elementary">Elementary (A2) — 初級 ~50字</option>
+                    <option value="intermediate">Intermediate (B1) — 中級 ~120字</option>
+                    <option value="high-intermediate">High-Intermediate (B2) — 中高級 ~150字</option>
+                </select>
+                <div class="selector-info" id="levelInfo">📝 初級 (A2) | 預期字數約 50 字</div>
+            </div>
+        </div>
+
+        <!-- Input Mode Tabs -->
+        <div class="mode-tabs">
+            <button class="mode-tab active" id="tab-text" onclick="switchTab('text')">
+                📝 貼上文字
+            </button>
+            <button class="mode-tab" id="tab-photo" onclick="switchTab('photo')">
+                📷 上傳照片
+            </button>
+        </div>
+
+        <!-- Text Mode Panel -->
+        <div class="input-panel active" id="panel-text">
+            <div class="format-hint">
+                <strong>格式說明：</strong>每位學生以 <code>---姓名---</code> 開頭，作文內容寫在下一行。可連續貼上多位學生。<br>
+                例：<code>---王小明---</code> → 換行 → 作文內容 → <code>---李小華---</code> → 換行 → 作文內容
+            </div>
+            <textarea
+                class="batch-textarea"
+                id="batchTextInput"
+                placeholder="---王小明---
+I like to play basketball. It is very fun. I play with my friends every weekend. We go to the park near my house. Basketball makes me happy.
+
+---李小華---
+My favorite hobby is reading. I read books every day after school. I like stories about animals. Reading helps me learn new words.
+
+---陳大明---
+I have a dog. His name is Lucky. He is very cute and I love him very much. Every day we walk together in the park."
+                oninput="updateTextCount()"
+            ></textarea>
+            <div class="textarea-footer">
+                <span id="textCountInfo">偵測到 0 位學生</span>
+                <span>拖曳右下角可調整高度</span>
+            </div>
+        </div>
+
+        <!-- Photo Mode Panel -->
+        <div class="input-panel" id="panel-photo">
+            <div
+                class="drop-zone"
+                id="dropZone"
+                onclick="document.getElementById('photoInput').click()"
+                ondragover="handleDragOver(event)"
+                ondragleave="handleDragLeave(event)"
+                ondrop="handleDrop(event)"
+            >
+                <div class="drop-zone-icon">📁</div>
+                <h3>拖曳照片到此處，或點擊選擇</h3>
+                <p>支援 JPG、PNG、HEIC — 每張照片代表一位學生</p>
+                <p style="margin-top:6px; font-size:0.8rem; color:#cbd5e1;">最多 50 張 | 檔案名稱將作為學生姓名</p>
+                <input type="file" id="photoInput" accept="image/*" multiple onchange="handlePhotoSelect(event)">
+            </div>
+
+            <div class="photo-queue" id="photoQueue">
+                <h4>📋 待評作文 (<span id="photoCount">0</span> 位學生)</h4>
+                <div class="photo-list" id="photoList"></div>
+                <div style="margin-top:12px; display:flex; justify-content:flex-end;">
+                    <button class="btn btn-outline" onclick="clearPhotos()" style="font-size:0.85rem; padding:8px 18px;">
+                        🗑 清除全部
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="gradeBtn" onclick="startBatchGrading()">
+                🎯 批次評分
+            </button>
+            <button class="btn btn-secondary" id="csvBtn" onclick="exportCSV()" disabled>
+                📊 匯出 CSV
+            </button>
+            <button class="btn btn-outline" onclick="clearAll()">
+                🔄 重新開始
+            </button>
+        </div>
+
+        <!-- Loading / Progress -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div class="progress-text" id="progressText">準備中...</div>
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="progressBar"></div>
+            </div>
+            <div class="progress-sub" id="progressSub"></div>
+        </div>
+
+        <!-- Results -->
+        <div class="results-section" id="resultsSection">
+
+            <!-- Summary stats -->
+            <div class="results-header">
+                <h2>📊 評分結果</h2>
+                <div class="results-header-btns">
+                    <button class="btn btn-secondary" onclick="exportCSV()" style="padding:8px 20px; font-size:0.85rem;">
+                        📊 CSV
+                    </button>
+                    <button class="btn btn-outline" onclick="printAllPDFs()" style="padding:8px 20px; font-size:0.85rem;">
+                        📄 全部 PDF
+                    </button>
+                </div>
+            </div>
+
+            <div class="summary-stats" id="summaryStats">
+                <div class="stat-card highlight">
+                    <div class="stat-value amber" id="statTotal">0</div>
+                    <div class="stat-label">評分人數</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statAvg">—</div>
+                    <div class="stat-label">班級平均分</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statHighest">—</div>
+                    <div class="stat-label">最高分</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statLowest">—</div>
+                    <div class="stat-label">最低分</div>
+                </div>
+            </div>
+
+            <!-- Results Table -->
+            <div class="results-table-wrap">
+                <table class="results-table" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>學生姓名</th>
+                            <th>分數</th>
+                            <th>字數</th>
+                            <th>嚴重錯誤</th>
+                            <th>中度錯誤</th>
+                            <th>輕微錯誤</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Common error type analysis -->
+            <div class="error-analysis" id="errorAnalysis" style="display:none;">
+                <h3>📈 全班常見錯誤分析</h3>
+                <div class="error-bars" id="errorBars"></div>
+            </div>
+
+        </div>
+        <!-- /results-section -->
+
+    </div><!-- /main-content -->
+</div><!-- /container -->
+
+<script>
+    // ─── Constants ────────────────────────────────────────────────────────────
+    const API_BASE_URL = 'https://railway-backend-production-55cf.up.railway.app';
+
+    const MODEL_INFO = {
+        'gpt-5.2':           '✨ GPT-5.2 | 最新旗艦，30% 更少幻覺',
+        'gpt-5.1':           '🚀 GPT-5.1 | 穩定可靠，更快更強',
+        'gpt-5-mini':        '💰 GPT-5 mini | 經濟實惠，快速回應',
+        'claude-sonnet-4.5': '🔵 Claude 4.5 Sonnet | 擅長深度語言分析',
+        'fine-tuned':        '🎯 Fine-tuned GPT-4o | 針對 GEPT 初級優化'
+    };
+
+    const LEVEL_INFO = {
+        'elementary':       '📝 初級 (A2) | 預期字數約 50 字',
+        'intermediate':     '📝 中級 (B1) | 預期字數約 120 字',
+        'high-intermediate':'📝 中高級 (B2) | 預期字數約 150-180 字'
+    };
+
+    // ─── State ────────────────────────────────────────────────────────────────
+    let photoFiles = [];       // Array of { file, name (student name), ocrText, status }
+    let gradingResults = [];   // Array of result objects
+    let currentTab = 'text';
+
+    // ─── UI Helpers ───────────────────────────────────────────────────────────
+    function updateHeaderInfo() {
+        const model = document.getElementById('modelSelect').value;
+        const level = document.getElementById('levelSelect').value;
+        document.getElementById('modelInfo').textContent = MODEL_INFO[model] || '';
+        document.getElementById('levelInfo').textContent = LEVEL_INFO[level] || '';
+        const levelLabel = { elementary: '初級', intermediate: '中級', 'high-intermediate': '中高級' }[level];
+        document.getElementById('headerModelInfo').textContent =
+            `AI 系統：${document.getElementById('modelSelect').options[document.getElementById('modelSelect').selectedIndex].text.split(' ')[0]} | GEPT ${levelLabel}`;
+    }
+
+    function switchTab(tab) {
+        currentTab = tab;
+        document.getElementById('tab-text').classList.toggle('active', tab === 'text');
+        document.getElementById('tab-photo').classList.toggle('active', tab === 'photo');
+        document.getElementById('panel-text').classList.toggle('active', tab === 'text');
+        document.getElementById('panel-photo').classList.toggle('active', tab === 'photo');
+    }
+
+    // ─── Text Mode ────────────────────────────────────────────────────────────
+    function parseTextInput(raw) {
+        // Parse format: ---name--- on its own line, essay text follows until next ---name---
+        const lines = raw.split('\n');
+        const students = [];
+        let current = null;
+
+        for (const line of lines) {
+            const nameMatch = line.trim().match(/^---(.+?)---$/);
+            if (nameMatch) {
+                if (current) students.push(current);
+                current = { name: nameMatch[1].trim(), essay: '' };
+            } else if (current) {
+                current.essay += (current.essay ? '\n' : '') + line;
+            }
+        }
+        if (current) students.push(current);
+
+        // Clean up essays
+        return students.map(s => ({ ...s, essay: s.essay.trim() })).filter(s => s.essay.length > 0);
+    }
+
+    function updateTextCount() {
+        const raw = document.getElementById('batchTextInput').value;
+        const students = parseTextInput(raw);
+        document.getElementById('textCountInfo').textContent =
+            students.length > 0
+                ? `偵測到 ${students.length} 位學生：${students.map(s => s.name).join('、')}`
+                : '偵測到 0 位學生（請使用 ---姓名--- 格式）';
+    }
+
+    // ─── Photo Mode ───────────────────────────────────────────────────────────
+    function handleDragOver(e) {
+        e.preventDefault();
+        document.getElementById('dropZone').classList.add('dragover');
+    }
+
+    function handleDragLeave(e) {
+        document.getElementById('dropZone').classList.remove('dragover');
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        document.getElementById('dropZone').classList.remove('dragover');
+        const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        addPhotos(files);
+    }
+
+    function handlePhotoSelect(e) {
+        const files = Array.from(e.target.files);
+        addPhotos(files);
+        e.target.value = ''; // reset so same files can be re-added
+    }
+
+    function addPhotos(files) {
+        for (const file of files) {
+            if (photoFiles.length >= 50) { alert('最多支援 50 張照片'); break; }
+            // Use filename (without extension) as student name
+            const studentName = file.name.replace(/\.[^.]+$/, '');
+            photoFiles.push({ file, name: studentName, ocrText: null, status: 'pending', sessionId: null });
+        }
+        renderPhotoList();
+    }
+
+    function clearPhotos() {
+        photoFiles = [];
+        renderPhotoList();
+    }
+
+    function removePhoto(index) {
+        photoFiles.splice(index, 1);
+        renderPhotoList();
+    }
+
+    function renderPhotoList() {
+        const list = document.getElementById('photoList');
+        const queue = document.getElementById('photoQueue');
+        document.getElementById('photoCount').textContent = photoFiles.length;
+
+        if (photoFiles.length === 0) {
+            queue.classList.remove('has-items');
+            return;
+        }
+        queue.classList.add('has-items');
+
+        list.innerHTML = photoFiles.map((p, i) => {
+            const statusLabel = {
+                pending:  '待處理',
+                ocr:      '辨識中...',
+                'ocr-done': 'OCR完成',
+                grading:  '評分中...',
+                graded:   '✅ 完成',
+                failed:   '❌ 失敗'
+            }[p.status] || p.status;
+
+            const thumbSrc = p.file ? URL.createObjectURL(p.file) : '';
+            const previewText = p.ocrText ? p.ocrText.substring(0, 60) + (p.ocrText.length > 60 ? '...' : '') : '';
+
+            return `
+                <div class="photo-item" id="photo-item-${i}">
+                    <img class="photo-item-thumb" src="${thumbSrc}" alt="">
+                    <div style="flex:1; min-width:0;">
+                        <div class="photo-item-name">${p.name}</div>
+                        ${previewText ? `<div class="ocr-text-preview">${previewText}</div>` : ''}
+                    </div>
+                    <span class="photo-item-status ${p.status === 'ocr-done' ? 'ocr-done' : p.status === 'grading' ? 'grading' : p.status === 'graded' ? 'graded' : p.status === 'failed' ? 'failed' : ''}">${statusLabel}</span>
+                    ${p.status === 'pending' ? `<button class="photo-item-remove" onclick="removePhoto(${i})" title="移除">✕</button>` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    // ─── Image Processing (from essay_grader.html) ────────────────────────────
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+
+    async function preprocessImage(imageFile) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+
+                // Grayscale
+                for (let i = 0; i < data.length; i += 4) {
+                    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                    data[i] = data[i + 1] = data[i + 2] = avg;
+                }
+                // Contrast +40%
+                const factor = (259 * (40 + 255)) / (255 * (259 - 40));
+                for (let i = 0; i < data.length; i += 4) {
+                    data[i]     = Math.min(255, Math.max(0, factor * (data[i]     - 128) + 128));
+                    data[i + 1] = Math.min(255, Math.max(0, factor * (data[i + 1] - 128) + 128));
+                    data[i + 2] = Math.min(255, Math.max(0, factor * (data[i + 2] - 128) + 128));
+                }
+                // Brightness +20
+                for (let i = 0; i < data.length; i += 4) {
+                    data[i]     = Math.min(255, data[i]     + 20);
+                    data[i + 1] = Math.min(255, data[i + 1] + 20);
+                    data[i + 2] = Math.min(255, data[i + 2] + 20);
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+                canvas.toBlob(blob => {
+                    resolve(new File([blob], 'preprocessed.png', { type: 'image/png' }));
+                }, 'image/png');
+            };
+
+            img.onerror = reject;
+            img.src = URL.createObjectURL(imageFile);
+        });
+    }
+
+    async function performOCR(imageFile) {
+        const processed = await preprocessImage(imageFile);
+        const base64Data = await fileToBase64(processed);
+        const base64Image = base64Data.split(',')[1];
+
+        const response = await fetch(`${API_BASE_URL}/OCR`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64Image })
+        });
+
+        if (!response.ok) throw new Error(`OCR 錯誤: ${response.status}`);
+        const data = await response.json();
+
+        if (!data.success || !data.text) throw new Error('未能辨識出文字');
+        return data.text;
+    }
+
+    // ─── Core Grading ─────────────────────────────────────────────────────────
+    async function gradeOneEssay(essayText, studentName, model, level) {
+        const response = await fetch(`${API_BASE_URL}/grade-fine-tuned`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ essay: essayText, model, level })
+        });
+
+        if (!response.ok) throw new Error(`評分 API 錯誤: ${response.status}`);
+        const data = await response.json();
+        if (!data.success) throw new Error(data.error || '評分失敗');
+
+        // Parse result (backend returns result as JSON string)
+        let parsed;
+        try {
+            parsed = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
+        } catch (e) {
+            throw new Error('結果解析失敗');
+        }
+
+        return parsed;
+    }
+
+    async function saveSession(result, essayText, studentName) {
+        const response = await fetch(`${API_BASE_URL}/api/save-session`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                gradingData: result,
+                originalEssay: essayText,
+                studentName: studentName || null
+            })
+        });
+
+        if (!response.ok) return null;
+        const data = await response.json();
+        return data.success ? data.sessionId : null;
+    }
+
+    // ─── Batch Grading Orchestrator ───────────────────────────────────────────
+    async function startBatchGrading() {
+        const model = document.getElementById('modelSelect').value;
+        const level = document.getElementById('levelSelect').value;
+
+        // Collect students from active tab
+        let students = [];
+
+        if (currentTab === 'text') {
+            const raw = document.getElementById('batchTextInput').value;
+            students = parseTextInput(raw);
+            if (students.length === 0) {
+                alert('未偵測到學生資料。請使用 ---姓名--- 格式，並確認作文內容不為空。');
+                return;
+            }
+        } else {
+            if (photoFiles.length === 0) {
+                alert('請先上傳學生作文照片。');
+                return;
+            }
+            students = photoFiles.map(p => ({ name: p.name, essay: p.ocrText, file: p.file }));
+        }
+
+        // Reset state
+        gradingResults = [];
+        document.getElementById('resultsSection').classList.remove('visible');
+        document.getElementById('csvBtn').disabled = true;
+        document.getElementById('gradeBtn').disabled = true;
+
+        const loadingDiv = document.getElementById('loading');
+        loadingDiv.style.display = 'block';
+
+        const total = students.length;
+
+        try {
+            for (let i = 0; i < total; i++) {
+                const student = students[i];
+                const pct = Math.round((i / total) * 100);
+
+                // Update progress
+                setProgress(pct, `正在評分 ${student.name} (${i + 1} / ${total})...`, `共 ${total} 位學生`);
+
+                // Photo mode: OCR first if not done
+                let essayText = student.essay;
+
+                if (currentTab === 'photo' && !essayText) {
+                    setProgress(pct, `OCR 辨識中：${student.name} (${i + 1} / ${total})...`, '步驟 1/2: 辨識文字');
+                    photoFiles[i].status = 'ocr';
+                    renderPhotoList();
+                    try {
+                        essayText = await performOCR(photoFiles[i].file);
+                        photoFiles[i].ocrText = essayText;
+                        photoFiles[i].status = 'ocr-done';
+                    } catch (ocrErr) {
+                        photoFiles[i].status = 'failed';
+                        renderPhotoList();
+                        gradingResults.push({ name: student.name, status: 'failed', error: 'OCR 失敗: ' + ocrErr.message });
+                        continue; // skip grading for this student
+                    }
+                    renderPhotoList();
+                    setProgress(pct, `正在評分 ${student.name} (${i + 1} / ${total})...`, '步驟 2/2: AI 評分中');
+                }
+
+                if (!essayText || essayText.trim().length < 5) {
+                    gradingResults.push({ name: student.name, status: 'failed', error: '作文內容太短或為空' });
+                    if (currentTab === 'photo') { photoFiles[i].status = 'failed'; renderPhotoList(); }
+                    continue;
+                }
+
+                // Grade
+                if (currentTab === 'photo') { photoFiles[i].status = 'grading'; renderPhotoList(); }
+
+                try {
+                    const result = await gradeOneEssay(essayText, student.name, model, level);
+                    const sessionId = await saveSession(result, essayText, student.name);
+
+                    gradingResults.push({
+                        name: student.name,
+                        essay: essayText,
+                        result,
+                        sessionId,
+                        status: 'success'
+                    });
+
+                    if (currentTab === 'photo') { photoFiles[i].status = 'graded'; renderPhotoList(); }
+
+                } catch (gradeErr) {
+                    gradingResults.push({ name: student.name, status: 'failed', error: gradeErr.message });
+                    if (currentTab === 'photo') { photoFiles[i].status = 'failed'; renderPhotoList(); }
+                }
+
+                // Rate limiting: 1s between students
+                if (i < total - 1) {
+                    await new Promise(r => setTimeout(r, 1000));
+                }
+            }
+        } finally {
+            loadingDiv.style.display = 'none';
+            document.getElementById('gradeBtn').disabled = false;
+        }
+
+        setProgress(100, '✅ 批次評分完成！', '');
+        renderResults();
+    }
+
+    function setProgress(pct, text, sub) {
+        document.getElementById('progressText').textContent = text;
+        document.getElementById('progressBar').style.width = pct + '%';
+        document.getElementById('progressSub').textContent = sub;
+    }
+
+    // ─── Render Results ───────────────────────────────────────────────────────
+    function renderResults() {
+        const successResults = gradingResults.filter(r => r.status === 'success');
+        const scores = successResults.map(r => r.result?.gept_rating?.score || 0).filter(s => s > 0);
+
+        // Summary stats
+        document.getElementById('statTotal').textContent = gradingResults.length;
+        document.getElementById('statAvg').textContent  = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : '—';
+        document.getElementById('statHighest').textContent = scores.length ? Math.max(...scores) + '/5' : '—';
+        document.getElementById('statLowest').textContent  = scores.length ? Math.min(...scores) + '/5' : '—';
+
+        // Table rows
+        const tbody = document.getElementById('resultsTableBody');
+        tbody.innerHTML = gradingResults.map((r, i) => {
+            if (r.status === 'failed') {
+                return `
+                    <tr class="failed-row">
+                        <td>${i + 1}</td>
+                        <td>${r.name}</td>
+                        <td colspan="5" style="color:#dc2626; font-size:0.85rem;">❌ ${r.error || '評分失敗'}</td>
+                        <td>—</td>
+                    </tr>
+                `;
+            }
+
+            const res = r.result;
+            const score = res?.gept_rating?.score || '—';
+            const wordCount = r.essay ? r.essay.trim().split(/\s+/).filter(w => w).length : '—';
+            const errs = res?.error_statistics || {};
+            const scoreClass = typeof score === 'number' ? `score-${score}` : '';
+
+            return `
+                <tr onclick="toggleDetail(${i})" style="cursor:pointer;">
+                    <td>${i + 1}</td>
+                    <td><strong>${r.name}</strong></td>
+                    <td><span class="score-badge ${scoreClass}">${score}${typeof score === 'number' ? '/5' : ''}</span></td>
+                    <td>${wordCount}</td>
+                    <td>${errs.critical !== undefined ? errs.critical : '—'}</td>
+                    <td>${errs.medium  !== undefined ? errs.medium  : '—'}</td>
+                    <td>${errs.minor   !== undefined ? errs.minor   : '—'}</td>
+                    <td>
+                        <div class="row-actions" onclick="event.stopPropagation()">
+                            ${r.sessionId ? `<button class="btn-tiny btn-tiny-view" onclick="viewStudent(${i})">詳情</button>` : ''}
+                            ${r.sessionId ? `<button class="btn-tiny btn-tiny-pdf" onclick="downloadStudentPDF(${i})">PDF</button>` : ''}
+                        </div>
+                    </td>
+                </tr>
+                <tr class="detail-row" id="detail-${i}">
+                    <td class="detail-cell" colspan="8">
+                        <div class="detail-essay">${r.essay || ''}</div>
+                        ${res?.gept_rating?.comment ? `<p style="font-size:0.85rem; color:#64748b; margin-top:6px;">💬 ${res.gept_rating.comment}</p>` : ''}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        // Error type analysis
+        renderErrorAnalysis(successResults);
+
+        // Show results
+        document.getElementById('resultsSection').classList.add('visible');
+        document.getElementById('csvBtn').disabled = gradingResults.length === 0;
+
+        // Scroll to results
+        document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function toggleDetail(i) {
+        const row = document.getElementById(`detail-${i}`);
+        row.classList.toggle('open');
+    }
+
+    function renderErrorAnalysis(results) {
+        if (results.length === 0) return;
+
+        // Aggregate error types across all students
+        const typeTotals = {};
+        for (const r of results) {
+            const types = r.result?.main_error_types_statistics || {};
+            for (const [type, count] of Object.entries(types)) {
+                if (typeof count === 'number') {
+                    typeTotals[type] = (typeTotals[type] || 0) + count;
+                }
+            }
+        }
+
+        if (Object.keys(typeTotals).length === 0) {
+            document.getElementById('errorAnalysis').style.display = 'none';
+            return;
+        }
+
+        const labels = {
+            grammar: '文法',
+            word_choice: '用字',
+            logic: '邏輯',
+            spelling: '拼字',
+            punctuation: '標點',
+            chinglish: '中式英文'
+        };
+
+        const max = Math.max(...Object.values(typeTotals));
+        const bars = Object.entries(typeTotals)
+            .sort((a, b) => b[1] - a[1])
+            .map(([type, count]) => `
+                <div class="error-bar-row">
+                    <span class="error-bar-label">${labels[type] || type}</span>
+                    <div class="error-bar-bg">
+                        <div class="error-bar-fill" style="width:${Math.round((count / max) * 100)}%"></div>
+                    </div>
+                    <span class="error-bar-count">${count}</span>
+                </div>
+            `).join('');
+
+        document.getElementById('errorBars').innerHTML = bars;
+        document.getElementById('errorAnalysis').style.display = 'block';
+    }
+
+    // ─── Actions ──────────────────────────────────────────────────────────────
+    function viewStudent(i) {
+        const r = gradingResults[i];
+        if (r?.sessionId) {
+            window.open(`student_review.html?session=${r.sessionId}`, '_blank');
+        }
+    }
+
+    function downloadStudentPDF(i) {
+        const r = gradingResults[i];
+        if (r?.sessionId) {
+            window.open(`printable_report.html?session=${r.sessionId}`, '_blank');
+        }
+    }
+
+    function printAllPDFs() {
+        const sessions = gradingResults.filter(r => r.sessionId);
+        if (sessions.length === 0) { alert('沒有可下載的 PDF 報告。'); return; }
+
+        if (!confirm(`即將開啟 ${sessions.length} 個 PDF 視窗，請確認瀏覽器允許彈出視窗。`)) return;
+
+        sessions.forEach((r, idx) => {
+            setTimeout(() => {
+                window.open(`printable_report.html?session=${r.sessionId}`, '_blank');
+            }, idx * 400);
+        });
+    }
+
+    function exportCSV() {
+        if (gradingResults.length === 0) return;
+
+        const rows = [
+            ['姓名', '分數', '字數', '嚴重錯誤', '中度錯誤', '輕微錯誤', '評語', '報告連結']
+        ];
+
+        for (const r of gradingResults) {
+            if (r.status === 'failed') {
+                rows.push([r.name, '失敗', '', '', '', '', r.error || '', '']);
+                continue;
+            }
+            const res = r.result;
+            const errs = res?.error_statistics || {};
+            const wordCount = r.essay ? r.essay.trim().split(/\s+/).filter(w => w).length : '';
+            const comment = res?.gept_rating?.comment?.replace(/,/g, '，') || '';
+            const link = r.sessionId ? `https://kniph.github.io/student_review.html?session=${r.sessionId}` : '';
+            rows.push([
+                r.name,
+                res?.gept_rating?.score || '',
+                wordCount,
+                errs.critical ?? '',
+                errs.medium ?? '',
+                errs.minor ?? '',
+                comment,
+                link
+            ]);
+        }
+
+        const csv = rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); // BOM for Excel
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `GEPT批次評分_${new Date().toLocaleDateString('zh-TW').replace(/\//g, '-')}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function clearAll() {
+        gradingResults = [];
+        photoFiles = [];
+        document.getElementById('batchTextInput').value = '';
+        document.getElementById('photoList').innerHTML = '';
+        document.getElementById('photoQueue').classList.remove('has-items');
+        document.getElementById('photoCount').textContent = '0';
+        document.getElementById('resultsSection').classList.remove('visible');
+        document.getElementById('csvBtn').disabled = true;
+        document.getElementById('loading').style.display = 'none';
+        updateTextCount();
+    }
+
+    // ─── Init ─────────────────────────────────────────────────────────────────
+    updateHeaderInfo();
+    updateTextCount();
+</script>
+
+</body>
+</html>
