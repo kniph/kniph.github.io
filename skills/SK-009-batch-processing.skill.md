@@ -3,8 +3,8 @@
 **Skill ID**: SK-009
 **Category**: Premium Add-on (Professional+)
 **Pricing**: +NT$3,000/month
-**Status**: 🔶 Partially Ready (sentence batch ✅, essay batch 🚧)
-**Last Updated**: 2025-02-17
+**Status**: ✅ Production Ready (sentence batch ✅, essay batch ✅)
+**Last Updated**: 2025-02-17 (v1.1 — essay_batch.html shipped)
 
 ---
 
@@ -19,7 +19,7 @@ Grade multiple students' work in one operation instead of one at a time. This is
 | What | Status | Where |
 |---|---|---|
 | **Sentence batch** (15 questions × N students) | ✅ Production Ready | `sentence_grader_teacher.html` |
-| **Essay batch** (N essays at once) | 🚧 To Be Built | Planned for `essay_grader.html` or new `essay_batch.html` |
+| **Essay batch** (N essays at once) | ✅ Production Ready | `essay_batch.html` |
 
 ---
 
@@ -459,15 +459,21 @@ for (const essay of essays) {
 - Text-based input (paste student names + answers)
 - Sequential processing with progress indicator
 
-### v1.1 — Essay Batch Text Mode (🚧 Next)
-- Paste multiple essays with `---name---` separators
-- Sequential grading with progress
-- Summary table + CSV export
+### v1.1 — Essay Batch (✅ Shipped)
+- Text mode: paste essays with `---name---` separators
+- Photo mode: drag & drop images, OCR via Google Cloud Vision
+- Sequential grading with live progress bar
+- Summary stats (avg, highest, lowest score)
+- Results table with score badges + click-to-expand detail
+- Per-student: view portal, download PDF
+- Bulk PDF open for whole class
+- CSV export (Excel-compatible with BOM)
+- Common error type bar chart across class
+- Error resilience: failed students logged, rest continue
 
-### v2.0 — Essay Batch Photo Mode
-- Multi-photo upload (drag & drop)
-- Parallel OCR → sequential grading
-- Review step before grading
+### v2.0 — Smart Batch (🚧 Next)
+- Review OCR results before grading (edit step)
+- Auto-detect student name from photo header (OCR header row)
 
 ### v2.1 — Class Reports
 - Class summary PDF

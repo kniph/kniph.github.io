@@ -34,7 +34,7 @@
 | **SK-006** | Multi-Level GEPT Support | ✅ Ready | +NT$3,500 | Intermediate + High-Intermediate |
 | **SK-007** | Camera Capture | ✅ Ready | +NT$500 | Built-in camera for taking photos |
 | **SK-008** | Session Persistence | ✅ Ready | +NT$1,500 | Save history with QR codes |
-| **SK-009** | Batch Processing | 🔶 Partial | +NT$3,000 | Sentence batch ✅, Essay batch 🚧 |
+| **SK-009** | Batch Processing | ✅ Ready | +NT$3,000 | Text + photo batch, CSV export, class analytics |
 | **SK-010** | Progress Analytics | 🚧 Dev | +NT$4,000 | Track student improvement |
 | **SK-011** | Parent Portal | 📋 Planned | +NT$2,500 | Parents view child's progress |
 | **SK-012** | Custom Branding | 📋 Planned | +NT$1,500 | White-label with school logo |
