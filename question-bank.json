@@ -1,0 +1,206 @@
+{
+  "meta": {
+    "version": "1.0",
+    "description": "GEPT Elementary Speaking Practice Question Bank",
+    "source": "AMC GEPT 初級 全真模擬試題",
+    "level": "elementary",
+    "last_updated": "2026-02-17"
+  },
+  "sets": [
+    {
+      "set_id": "AMC-S-001",
+      "set_name": "第1回",
+      "source": "AMC 初級 全真模擬試題 第1回",
+      "level": "elementary",
+      "part1": [
+        {
+          "id": "AMC-S-001-p1-1",
+          "text": "May I help you?",
+          "type": "yes-no",
+          "intonation": "rising",
+          "tip": "Yes/No 問句語調上揚 ↑"
+        },
+        {
+          "id": "AMC-S-001-p1-2",
+          "text": "What a nice movie!",
+          "type": "exclamation",
+          "intonation": "falling",
+          "tip": "感嘆句語調下降 ↓"
+        },
+        {
+          "id": "AMC-S-001-p1-3",
+          "text": "I've been here before.",
+          "type": "statement",
+          "intonation": "falling",
+          "tip": "直述句語調下降 ↓"
+        },
+        {
+          "id": "AMC-S-001-p1-4",
+          "text": "Mom is waiting for you.",
+          "type": "statement",
+          "intonation": "falling",
+          "tip": "直述句語調下降 ↓"
+        },
+        {
+          "id": "AMC-S-001-p1-5",
+          "text": "What are you doing tonight?",
+          "type": "wh-question",
+          "intonation": "falling",
+          "tip": "Wh- 問句語調下降 ↓"
+        }
+      ],
+      "part2": [
+        {
+          "id": "AMC-S-001-p2-1",
+          "text": "Did you hear a noise from downstairs?",
+          "type": "sentence",
+          "key_words": ["noise", "downstairs"]
+        },
+        {
+          "id": "AMC-S-001-p2-2",
+          "text": "Where did you spend your summer vacation?",
+          "type": "sentence",
+          "key_words": ["summer", "vacation"]
+        },
+        {
+          "id": "AMC-S-001-p2-3",
+          "text": "Many foreign visitors come here for local dishes.",
+          "type": "sentence",
+          "key_words": ["foreign", "visitors", "local", "dishes"]
+        },
+        {
+          "id": "AMC-S-001-p2-4",
+          "text": "This is probably the sweetest song I've ever heard.",
+          "type": "sentence",
+          "key_words": ["probably", "sweetest"]
+        },
+        {
+          "id": "AMC-S-001-p2-5",
+          "text": "The managers agreed to move the meeting to 4:30 p.m.",
+          "type": "sentence",
+          "key_words": ["managers", "meeting", "4:30", "p.m."]
+        },
+        {
+          "id": "AMC-S-001-p2-6",
+          "text": "Mr. Johnson recently bought his first house. He wanted a lot of space, so he chose a house in the country. It has three floors, a basement, and a balcony. He is now shopping for things that he'll need in his new home, and he can't wait to move in!",
+          "type": "passage",
+          "key_words": ["recently", "country", "basement", "balcony"]
+        }
+      ],
+      "part3": [
+        {
+          "id": "AMC-S-001-p3-1",
+          "question": "How many languages do you speak? What are they?",
+          "type": "factual",
+          "is_roleplay": false,
+          "model_answer": "I speak three languages fluently. Mandarin and Taiwanese are my mother tongues, and I've learned English for many years."
+        },
+        {
+          "id": "AMC-S-001-p3-2",
+          "question": "What is your favorite place to study? Why?",
+          "type": "opinion+reason",
+          "is_roleplay": false,
+          "model_answer": "My favorite place to study is the library. I like it because it's very quiet. There are many people working hard on their studies. Seeing them makes me want to study hard, too."
+        },
+        {
+          "id": "AMC-S-001-p3-3",
+          "question": "Have you ever stayed up all night?",
+          "type": "experience",
+          "is_roleplay": false,
+          "model_answer": "Yes, I have. I went camping with my friends, and we spent the whole night playing games and chatting. It was really fun, so we didn't feel tired at all the next day."
+        },
+        {
+          "id": "AMC-S-001-p3-4",
+          "question": "When did you last go to a department store? What did you buy?",
+          "type": "experience",
+          "is_roleplay": false,
+          "model_answer": "The last time I went to a department store was a few months ago when it had a big sale. I went there with my family, and we bought a new juice maker."
+        },
+        {
+          "id": "AMC-S-001-p3-5",
+          "question": "Do you prefer hot drinks or cold drinks? Why?",
+          "type": "preference+reason",
+          "is_roleplay": false,
+          "model_answer": "I prefer hot drinks because I think they're better for my health. Drinking too many cold drinks gives me stomachaches."
+        },
+        {
+          "id": "AMC-S-001-p3-6",
+          "question": "If you could live anywhere, where would you live?",
+          "type": "hypothetical",
+          "is_roleplay": false,
+          "model_answer": "If I could live anywhere, I'd like to live in Japan. I really like Japanese culture, and I've always wanted to experience life in Japan."
+        },
+        {
+          "id": "AMC-S-001-p3-7",
+          "question": "Your friend Linda went hiking last week. Ask her some questions about it.",
+          "type": "role-play",
+          "is_roleplay": true,
+          "model_answer": "Who did you go hiking with? How was the weather that day? Will you go there again?"
+        }
+      ]
+    },
+    {
+      "set_id": "AMC-S-002",
+      "set_name": "第2回",
+      "source": "AMC 初級 全真模擬試題 第2回",
+      "level": "elementary",
+      "part1": [],
+      "part2": [],
+      "part3": []
+    },
+    {
+      "set_id": "AMC-S-003",
+      "set_name": "第3回",
+      "source": "AMC 初級 全真模擬試題 第3回",
+      "level": "elementary",
+      "part1": [],
+      "part2": [],
+      "part3": []
+    },
+    {
+      "set_id": "AMC-S-004",
+      "set_name": "第4回",
+      "source": "AMC 初級 全真模擬試題 第4回",
+      "level": "elementary",
+      "part1": [],
+      "part2": [],
+      "part3": []
+    },
+    {
+      "set_id": "AMC-S-005",
+      "set_name": "第5回",
+      "source": "AMC 初級 全真模擬試題 第5回",
+      "level": "elementary",
+      "part1": [],
+      "part2": [],
+      "part3": []
+    },
+    {
+      "set_id": "AMC-S-006",
+      "set_name": "第6回",
+      "source": "AMC 初級 全真模擬試題 第6回",
+      "level": "elementary",
+      "part1": [],
+      "part2": [],
+      "part3": []
+    },
+    {
+      "set_id": "AMC-S-007",
+      "set_name": "第7回",
+      "source": "AMC 初級 全真模擬試題 第7回",
+      "level": "elementary",
+      "part1": [],
+      "part2": [],
+      "part3": []
+    },
+    {
+      "set_id": "AMC-S-008",
+      "set_name": "第8回",
+      "source": "AMC 初級 全真模擬試題 第8回",
+      "level": "elementary",
+      "part1": [],
+      "part2": [],
+      "part3": []
+    }
+  ]
+}
