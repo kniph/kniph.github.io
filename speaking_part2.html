@@ -29,7 +29,6 @@
       overflow: hidden;
     }
 
-    /* ── Header ── */
     .header {
       background: linear-gradient(45deg, #0d9488, #0f766e);
       color: white;
@@ -59,13 +58,13 @@
 
     .main { padding: 30px; }
 
-    /* ── Set / Item selector ── */
+    /* Set selector */
     .controls-row {
       display: flex;
       gap: 12px;
       align-items: center;
       flex-wrap: wrap;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     .controls-row label { font-weight: 600; color: #374151; }
     .controls-row select {
@@ -79,34 +78,7 @@
     }
     .controls-row select:focus { outline: none; border-color: #0d9488; }
 
-    /* ── Question card ── */
-    .question-card {
-      background: #f0fdfa;
-      border: 2px solid #99f6e4;
-      border-radius: 16px;
-      padding: 28px;
-      margin-bottom: 24px;
-      min-height: 120px;
-    }
-    .question-label {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #0f766e;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 12px;
-    }
-    .question-text {
-      font-size: 1.5rem;
-      color: #134e4a;
-      line-height: 1.7;
-      font-weight: 500;
-    }
-    .question-text.passage {
-      font-size: 1.15rem;
-    }
-
-    /* ── Phase badges ── */
+    /* Phase badge */
     .phase-badge {
       display: inline-block;
       padding: 6px 18px;
@@ -115,39 +87,92 @@
       font-size: 0.9rem;
       margin-bottom: 16px;
     }
-    .phase-reading { background: #fef3c7; color: #92400e; }
+    .phase-reading   { background: #fef3c7; color: #92400e; }
     .phase-recording { background: #fee2e2; color: #991b1b; }
-    .phase-done { background: #d1fae5; color: #065f46; }
+    .phase-done      { background: #d1fae5; color: #065f46; }
 
-    /* ── Countdown display ── */
-    .countdown-wrap {
-      text-align: center;
-      margin: 20px 0;
+    /* ── All-items display (silent reading phase) ── */
+    .all-items-card {
+      background: #f0fdfa;
+      border: 2px solid #99f6e4;
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 20px;
     }
+    .all-items-card .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #0f766e;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+    }
+    .sentence-row {
+      display: flex;
+      gap: 12px;
+      align-items: baseline;
+      padding: 8px 0;
+      border-bottom: 1px solid #ccfbf1;
+    }
+    .sentence-row:last-child { border-bottom: none; }
+    .sentence-num {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #0d9488;
+      min-width: 28px;
+    }
+    .sentence-text {
+      font-size: 1.15rem;
+      color: #134e4a;
+      line-height: 1.6;
+    }
+    .sentence-row.passage-row { flex-direction: column; gap: 4px; padding-top: 12px; }
+    .passage-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+    }
+    .passage-text {
+      font-size: 1.05rem;
+      color: #134e4a;
+      line-height: 1.8;
+    }
+
+    /* Highlight the currently-active sentence during recording phase */
+    .sentence-row.current {
+      background: #ccfbf1;
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin: 2px -12px;
+    }
+    .sentence-row.done-item .sentence-text,
+    .sentence-row.done-item .passage-text { color: #9ca3af; }
+    .sentence-row.done-item .sentence-num { color: #6ee7b7; }
+    .done-check { color: #10b981; font-size: 0.9rem; margin-left: 6px; }
+
+    /* Countdown */
+    .countdown-wrap { text-align: center; margin: 16px 0; }
     .countdown-num {
-      font-size: 4rem;
+      font-size: 4.5rem;
       font-weight: 800;
       color: #0d9488;
       line-height: 1;
       transition: color 0.3s;
     }
-    .countdown-label {
-      font-size: 0.9rem;
-      color: #6b7280;
-      margin-top: 6px;
-    }
+    .countdown-label { font-size: 0.9rem; color: #6b7280; margin-top: 6px; }
 
-    /* ── Waveform ── */
-    .waveform-wrap { margin: 16px 0; display: none; }
+    /* Waveform */
+    .waveform-wrap { margin: 12px 0; }
     .waveform-wrap canvas {
       width: 100%;
-      height: 60px;
+      height: 56px;
       background: #f8fafc;
       border-radius: 10px;
       border: 1px solid #e2e8f0;
     }
 
-    /* ── Buttons ── */
+    /* Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
@@ -161,12 +186,10 @@
       transition: all 0.2s;
     }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .btn-teal   { background: #0d9488; color: white; }
-    .btn-teal:hover:not(:disabled)   { background: #0f766e; transform: translateY(-1px); }
-    .btn-red    { background: #ef4444; color: white; }
-    .btn-red:hover:not(:disabled)    { background: #dc2626; }
-    .btn-gray   { background: #e5e7eb; color: #374151; }
-    .btn-gray:hover:not(:disabled)   { background: #d1d5db; }
+    .btn-teal  { background: #0d9488; color: white; }
+    .btn-teal:hover:not(:disabled)  { background: #0f766e; transform: translateY(-1px); }
+    .btn-gray  { background: #e5e7eb; color: #374151; }
+    .btn-gray:hover:not(:disabled)  { background: #d1d5db; }
 
     .btn-record {
       width: 80px; height: 80px;
@@ -176,64 +199,59 @@
       color: white;
       font-size: 2rem;
       cursor: pointer;
-      transition: all 0.2s;
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 4px 15px rgba(239,68,68,0.4);
-    }
-    .btn-record.pulsing {
       animation: pulse-ring 1.2s ease-out infinite;
     }
-    .btn-record:disabled { opacity: 0.35; cursor: not-allowed; animation: none; }
-
     @keyframes pulse-ring {
       0%   { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
       70%  { box-shadow: 0 0 0 18px rgba(239,68,68,0); }
       100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
     }
 
-    .action-row {
-      display: flex;
-      gap: 14px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin: 20px 0;
-    }
+    .action-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin: 18px 0; }
+    .center { justify-content: center; }
 
-    /* ── Spinner ── */
+    /* Spinner */
     .spinner {
       display: inline-block;
-      width: 22px; height: 22px;
+      width: 20px; height: 20px;
       border: 3px solid #d1fae5;
       border-top-color: #0d9488;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .loading-row { display: flex; align-items: center; gap: 10px; color: #0f766e; font-weight: 600; margin: 16px 0; }
+    .loading-row { display: flex; align-items: center; gap: 10px; color: #0f766e; font-weight: 600; margin: 12px 0; }
 
-    /* ── Result card ── */
-    .result-card {
+    /* Per-item result (shown inline below the sentence) */
+    .item-result {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 6px;
+      font-size: 0.88rem;
+    }
+    .diff-words span { display: inline-block; margin: 1px 3px; padding: 1px 6px; border-radius: 5px; font-size: 0.9rem; }
+    .word-correct     { background: #d1fae5; color: #065f46; }
+    .word-substituted { background: #fee2e2; color: #991b1b; text-decoration: line-through; }
+    .word-deleted     { background: #fef3c7; color: #92400e; font-style: italic; }
+    .word-inserted    { background: #ede9fe; color: #4c1d95; }
+
+    /* Summary card */
+    .summary-card {
       background: white;
       border: 2px solid #d1fae5;
       border-radius: 16px;
-      padding: 28px;
-      margin-top: 24px;
+      padding: 24px;
+      margin-top: 20px;
     }
-    .result-card h3 {
-      color: #065f46;
-      font-size: 1.2rem;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* Score row */
+    .summary-card h3 { color: #065f46; font-size: 1.15rem; margin-bottom: 16px; }
     .score-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
     }
     .score-box {
       background: #f0fdfa;
@@ -242,85 +260,38 @@
       padding: 14px;
       text-align: center;
     }
-    .score-box .val {
-      font-size: 2rem;
-      font-weight: 800;
-      color: #0d9488;
-      line-height: 1;
-    }
-    .score-box .lbl { font-size: 0.8rem; color: #6b7280; margin-top: 4px; }
+    .score-box .val { font-size: 1.8rem; font-weight: 800; color: #0d9488; line-height: 1; }
+    .score-box .lbl { font-size: 0.75rem; color: #6b7280; margin-top: 4px; }
 
-    /* Word diff display */
-    .diff-section { margin-top: 20px; }
-    .diff-section h4 { color: #374151; margin-bottom: 12px; font-size: 1rem; }
-    .diff-words {
-      font-size: 1.1rem;
-      line-height: 2;
-      background: #f8fafc;
-      padding: 16px;
+    .gpt-feedback-box {
+      background: #f0fdfa;
       border-radius: 10px;
-    }
-    .diff-words span { display: inline-block; margin: 2px 4px; padding: 2px 8px; border-radius: 6px; }
-    .word-correct     { background: #d1fae5; color: #065f46; }
-    .word-substituted { background: #fee2e2; color: #991b1b; text-decoration: line-through; }
-    .word-deleted     { background: #fef3c7; color: #92400e; font-style: italic; }
-    .word-inserted    { background: #ede9fe; color: #4c1d95; }
-
-    /* Transcript box */
-    .transcript-box {
-      background: #f1f5f9;
-      border-radius: 10px;
-      padding: 16px;
-      font-size: 1rem;
-      color: #334155;
+      padding: 14px;
+      font-size: 0.93rem;
+      color: #134e4a;
       line-height: 1.6;
       margin-top: 12px;
     }
-    .transcript-box .label { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; }
 
-    /* Feedback tips */
-    .feedback-list { list-style: none; margin-top: 16px; }
-    .feedback-list li {
-      padding: 8px 0;
-      border-bottom: 1px solid #f0fdf4;
-      color: #374151;
-      font-size: 0.95rem;
-      display: flex;
-      gap: 8px;
-    }
-    .feedback-list li:last-child { border-bottom: none; }
-
-    /* Progress dots */
-    .item-dots {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-    }
-    .item-dot {
-      width: 28px; height: 28px;
-      border-radius: 50%;
-      border: 2px solid #99f6e4;
-      background: #f0fdfa;
-      cursor: pointer;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #0f766e;
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.15s;
-    }
-    .item-dot.active   { background: #0d9488; color: white; border-color: #0d9488; }
-    .item-dot.done     { background: #d1fae5; border-color: #6ee7b7; }
-    .item-dot.passage  { width: 60px; border-radius: 12px; }
-
+    .section-divider { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
     .hidden { display: none !important; }
-    .section-divider { border: none; border-top: 1px solid #e5e7eb; margin: 28px 0; }
+
+    /* Recording item indicator */
+    .recording-label {
+      background: #fee2e2;
+      color: #991b1b;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
 <div class="container">
 
-  <!-- Header -->
   <div class="header">
     <h1>🎙️ 朗讀練習</h1>
     <p>第二部分 — 朗讀句子與短文｜GEPT 初級口說測驗</p>
@@ -338,140 +309,132 @@
     <!-- Set selector -->
     <div class="controls-row">
       <label>試卷組：</label>
-      <select id="setSelect" onchange="loadSet()">
-        <!-- populated by JS -->
-      </select>
-      <button class="btn btn-gray" onclick="prevItem()" id="btnPrev">← 上題</button>
-      <button class="btn btn-gray" onclick="nextItem()" id="btnNext">下題 →</button>
+      <select id="setSelect" onchange="loadSet()"></select>
+      <button class="btn btn-gray" onclick="restartSet()">🔄 重新開始本組</button>
     </div>
-
-    <!-- Item progress dots -->
-    <div class="item-dots" id="itemDots"></div>
 
     <!-- Phase badge -->
     <div id="phaseBadge" class="phase-badge phase-reading">📖 閱讀準備中</div>
 
-    <!-- Question display -->
-    <div class="question-card">
-      <div class="question-label" id="questionLabel">第 1 題</div>
-      <div class="question-text" id="questionText">請選擇試卷組</div>
-    </div>
-
-    <!-- Silent reading countdown (Phase 1) -->
+    <!-- ── Phase 1: Silent reading — all items shown at once ── -->
     <div id="phaseReading">
       <div class="countdown-wrap">
         <div class="countdown-num" id="readCountdown">60</div>
-        <div class="countdown-label">秒後自動開始錄音（可提早點「準備好了」）</div>
+        <div class="countdown-label">秒默讀時間（可提早點「準備好了」）</div>
       </div>
-      <div class="action-row">
-        <button class="btn btn-teal" onclick="skipToRecord()" id="btnReady">✅ 準備好了，開始錄音</button>
+
+      <!-- All items displayed together -->
+      <div class="all-items-card" id="allItemsCard">
+        <div class="section-label">📄 朗讀內容（請先默讀 60 秒）</div>
+        <div id="allItemsList"></div>
+      </div>
+
+      <div class="action-row center">
+        <button class="btn btn-teal" onclick="skipToRecord()">✅ 準備好了，開始逐題錄音</button>
       </div>
     </div>
 
-    <!-- Recording phase (Phase 2) -->
+    <!-- ── Phase 2: Recording — one item at a time, others dimmed ── -->
     <div id="phaseRecording" class="hidden">
-      <div class="countdown-wrap">
-        <div class="countdown-num" id="recCountdown">60</div>
-        <div class="countdown-label">秒內朗讀完畢</div>
+
+      <!-- All items still shown, current one highlighted -->
+      <div class="all-items-card" id="allItemsCardRec">
+        <div class="section-label" id="recSectionLabel">🔴 請朗讀第 1 題</div>
+        <div id="allItemsListRec"></div>
       </div>
-      <div class="waveform-wrap" id="waveformWrap">
-        <canvas id="waveformCanvas" width="840" height="60"></canvas>
+
+      <div class="recording-label" id="recItemLabel">正在錄音：第 1 題</div>
+
+      <div class="waveform-wrap">
+        <canvas id="waveformCanvas" width="840" height="56"></canvas>
       </div>
-      <div class="action-row" style="justify-content:center">
-        <button class="btn-record pulsing" id="btnStop" onclick="stopNow()">⏹</button>
+
+      <div class="action-row center">
+        <button class="btn-record" id="btnStop" onclick="stopCurrentItem()">⏹</button>
       </div>
-      <p style="text-align:center;color:#6b7280;font-size:0.9rem;margin-top:8px">點擊停止 或 等計時結束</p>
+      <p style="text-align:center;color:#6b7280;font-size:0.88rem;margin-top:8px">朗讀完畢後點擊停止，自動進入下一題</p>
     </div>
 
     <!-- Processing -->
     <div id="phaseProcessing" class="hidden">
-      <div class="loading-row"><span class="spinner"></span> 正在辨識語音，請稍候…</div>
+      <div class="loading-row"><span class="spinner"></span> <span id="processingLabel">辨識語音中…</span></div>
     </div>
 
-    <!-- Results -->
-    <div id="phaseResults" class="hidden">
-      <div class="result-card">
-        <h3>📊 朗讀分析報告</h3>
+    <!-- ── Phase 3: Full summary after all items done ── -->
+    <div id="phaseSummary" class="hidden">
+      <div class="summary-card">
+        <h3>📊 朗讀總結報告</h3>
 
         <div class="score-grid">
           <div class="score-box">
-            <div class="val" id="scoreAccuracy">—</div>
-            <div class="lbl">字詞準確率</div>
+            <div class="val" id="summaryAccuracy">—</div>
+            <div class="lbl">整體字詞準確率</div>
           </div>
           <div class="score-box">
-            <div class="val" id="scoreWPM">—</div>
-            <div class="lbl">語速 (WPM)</div>
-          </div>
-          <div class="score-box">
-            <div class="val" id="scoreErrors">—</div>
-            <div class="lbl">錯誤字數</div>
+            <div class="val" id="summaryWPM">—</div>
+            <div class="lbl">平均語速 (WPM)</div>
           </div>
           <div class="score-box" style="border-color:#0d9488">
-            <div class="val" id="scoreA" style="color:#0f766e">—</div>
+            <div class="val" id="summaryScoreA" style="color:#0f766e">—</div>
             <div class="lbl">評分A：發音流利度 (0–5)</div>
           </div>
         </div>
-        <p style="font-size:0.78rem;color:#9ca3af;margin-bottom:8px">
-          ※ 官方評分A（發音、語調、流利度）由 GPT 根據 GEPT 官方標準評估
+        <p style="font-size:0.78rem;color:#9ca3af;margin-bottom:14px">
+          ※ 評分A（發音、語調、流利度）由 GPT 根據 GEPT 官方標準評估整體表現
         </p>
 
-        <div class="diff-section">
-          <h4>字詞對照（參考文本 vs 你的朗讀）</h4>
-          <div class="diff-words" id="diffWords"></div>
-          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:0.82rem;">
-            <span><span style="background:#d1fae5;padding:2px 6px;border-radius:4px;">綠色</span> 正確</span>
-            <span><span style="background:#fee2e2;padding:2px 6px;border-radius:4px;">紅色</span> 說錯/漏說</span>
-            <span><span style="background:#ede9fe;padding:2px 6px;border-radius:4px;">紫色</span> 多說</span>
-          </div>
+        <div style="margin-bottom:10px">
+          <h4 style="color:#0f766e;font-size:0.92rem;margin-bottom:8px">🎙️ GPT 整體評估</h4>
+          <div class="gpt-feedback-box" id="summaryFeedbackA">評估中…</div>
         </div>
-
-        <div class="transcript-box" style="margin-top:20px">
-          <div class="label">Whisper 辨識結果</div>
-          <div id="transcriptText">—</div>
+        <div>
+          <h4 style="color:#0f766e;font-size:0.92rem;margin-bottom:8px">💡 改進建議</h4>
+          <div class="gpt-feedback-box" id="summaryCoaching">—</div>
         </div>
+      </div>
 
-        <!-- GPT Score A feedback -->
-        <div style="margin-top:16px">
-          <h4 style="color:#0f766e;font-size:0.92rem;margin-bottom:8px">🎙️ 評分A — 發音、語調、流利度（GPT 評估）</h4>
-          <div id="feedbackA" style="background:#f0fdfa;border-radius:10px;padding:14px;font-size:0.93rem;color:#134e4a;line-height:1.6">評估中…</div>
-        </div>
-
-        <ul class="feedback-list" id="feedbackList"></ul>
+      <!-- Per-item results shown below summary -->
+      <div style="margin-top:24px">
+        <h3 style="color:#374151;font-size:1rem;margin-bottom:14px">各題詳細結果</h3>
+        <div id="perItemResults"></div>
       </div>
 
       <hr class="section-divider">
       <div class="action-row">
-        <button class="btn btn-teal" onclick="resetItem()">🔄 重新練習本題</button>
-        <button class="btn btn-gray" onclick="nextItem()">下一題 →</button>
+        <button class="btn btn-teal" onclick="restartSet()">🔄 重新練習本組</button>
+        <button class="btn btn-gray" onclick="loadSet()">換一組</button>
       </div>
     </div>
 
-  </div><!-- /main -->
-</div><!-- /container -->
+  </div>
+</div>
 
 <script src="speaking-utils.js"></script>
 <script>
 // ── State ──────────────────────────────────────────────────────────────────
 const BANK_URL = 'https://kniph.github.io/question-bank.json';
+const BACKEND  = SpeakingUtils.BACKEND;
 let bank = null;
 let currentSet = null;
-let currentItems = []; // part2 items for current set
-let currentIdx = 0;
+let currentItems = [];  // all 6 part2 items
+let currentIdx = 0;     // which item we're recording now
 let readStopFn = null;
-let recStopFn = null;
+let recStopFn  = null;
 let recordingPromise = null;
 let recordStartTime = 0;
+
+// Per-item results accumulate here
+let itemResults = []; // [{ transcript, diff, accuracy, wpm, durationSec }]
 
 // ── Init ───────────────────────────────────────────────────────────────────
 async function init() {
   try {
-    // Load from same origin (GitHub Pages serves it)
     const resp = await fetch(BANK_URL);
     bank = await resp.json();
     populateSetSelect();
     loadSet();
   } catch (e) {
-    document.getElementById('questionText').textContent = '⚠️ 無法載入題庫：' + e.message;
+    document.getElementById('phaseBadge').textContent = '⚠️ 無法載入題庫：' + e.message;
   }
 }
 
@@ -479,238 +442,231 @@ function populateSetSelect() {
   const sel = document.getElementById('setSelect');
   sel.innerHTML = '';
   bank.sets.forEach(s => {
-    const hasPart2 = s.part2 && s.part2.length > 0;
+    const has = s.part2 && s.part2.length > 0;
     const opt = document.createElement('option');
     opt.value = s.set_id;
-    opt.textContent = s.set_name + (hasPart2 ? '' : ' (尚未收錄)');
-    opt.disabled = !hasPart2;
+    opt.textContent = s.set_name + (has ? '' : ' (尚未收錄)');
+    opt.disabled = !has;
     sel.appendChild(opt);
   });
-  // Select first set that has part2 data
   const first = bank.sets.find(s => s.part2 && s.part2.length > 0);
   if (first) sel.value = first.set_id;
 }
 
 function loadSet() {
+  if (readStopFn) { readStopFn(); readStopFn = null; }
+  if (recStopFn)  { recStopFn();  recStopFn  = null; }
+  SpeakingUtils.stopRecording();
+
   const setId = document.getElementById('setSelect').value;
-  currentSet = bank.sets.find(s => s.set_id === setId);
+  currentSet  = bank.sets.find(s => s.set_id === setId);
   currentItems = currentSet ? currentSet.part2 : [];
-  currentIdx = 0;
-  renderDots();
-  loadItem();
-}
+  currentIdx   = 0;
+  itemResults  = [];
 
-function renderDots() {
-  const container = document.getElementById('itemDots');
-  container.innerHTML = '';
-  currentItems.forEach((item, i) => {
-    const d = document.createElement('div');
-    d.className = 'item-dot' + (item.type === 'passage' ? ' passage' : '') + (i === currentIdx ? ' active' : '');
-    d.textContent = item.type === 'passage' ? '短文' : `第${i + 1}題`;
-    d.onclick = () => { currentIdx = i; loadItem(); };
-    container.appendChild(d);
-  });
-}
-
-function loadItem() {
-  resetPhase();
-  renderDots();
-
-  const item = currentItems[currentIdx];
-  if (!item) {
-    document.getElementById('questionText').textContent = '此組暫無題目';
-    return;
-  }
-
-  const label = item.type === 'passage'
-    ? `短文（第${currentIdx + 1}題，共${currentItems.length}題）`
-    : `第 ${currentIdx + 1} 題（共 ${currentItems.length} 題）`;
-  document.getElementById('questionLabel').textContent = label;
-
-  const textEl = document.getElementById('questionText');
-  textEl.textContent = item.text;
-  textEl.className = 'question-text' + (item.type === 'passage' ? ' passage' : '');
-
+  renderAllItemsList('allItemsList', -1);   // -1 = no highlight (reading phase)
   startReadingPhase();
 }
 
-// ── Phase: Silent Reading ──────────────────────────────────────────────────
+function restartSet() { loadSet(); }
+
+// ── Render all items list (used in both phases) ────────────────────────────
+// highlightIdx: index of current recording item (-1 = none, show all neutral)
+function renderAllItemsList(containerId, highlightIdx) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  container.innerHTML = currentItems.map((item, i) => {
+    const isDone    = itemResults[i] !== undefined;
+    const isCurrent = i === highlightIdx;
+    const isPast    = highlightIdx >= 0 && i < highlightIdx;
+
+    let cls = 'sentence-row';
+    if (item.type === 'passage') cls += ' passage-row';
+    if (isCurrent) cls += ' current';
+    if (isDone || isPast) cls += ' done-item';
+
+    const doneCheck = isDone
+      ? `<span class="done-check">✓ ${itemResults[i].accuracy}%</span>` : '';
+
+    if (item.type === 'passage') {
+      return `<div class="${cls}" id="row-${containerId}-${i}">
+        <div class="passage-label">短文 ${doneCheck}</div>
+        <div class="passage-text">${item.text}</div>
+      </div>`;
+    }
+    return `<div class="${cls}" id="row-${containerId}-${i}">
+      <span class="sentence-num">${i + 1}.</span>
+      <span class="sentence-text">${item.text} ${doneCheck}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Phase 1: Silent reading ────────────────────────────────────────────────
 function startReadingPhase() {
+  hide('phaseRecording');
+  hide('phaseProcessing');
+  hide('phaseSummary');
   show('phaseReading');
   setBadge('reading');
+
   const countdown = document.getElementById('readCountdown');
+  countdown.textContent = '60';
   readStopFn = SpeakingUtils.startCountdown(countdown, 60, skipToRecord);
 }
 
 function skipToRecord() {
   if (readStopFn) { readStopFn(); readStopFn = null; }
   hide('phaseReading');
-  startRecordingPhase();
+  currentIdx = 0;
+  startRecordingItem();
 }
 
-// ── Phase: Recording ───────────────────────────────────────────────────────
-async function startRecordingPhase() {
+// ── Phase 2: Record items one by one ──────────────────────────────────────
+async function startRecordingItem() {
   show('phaseRecording');
-  show('waveformWrap');
   setBadge('recording');
+
+  const item = currentItems[currentIdx];
+  const label = item.type === 'passage' ? '短文' : `第 ${currentIdx + 1} 題`;
+
+  document.getElementById('recSectionLabel').textContent = `🔴 請朗讀 ${label}`;
+  document.getElementById('recItemLabel').textContent = `正在錄音：${label}`;
+
+  renderAllItemsList('allItemsListRec', currentIdx);
+
+  // Scroll current row into view
+  setTimeout(() => {
+    const row = document.getElementById(`row-allItemsListRec-${currentIdx}`);
+    if (row) row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
 
   const canvas = document.getElementById('waveformCanvas');
   recordStartTime = Date.now();
-
-  // Start recording (60 s max for reading aloud)
-  recordingPromise = SpeakingUtils.startRecording(60, canvas);
-
-  // Start display countdown
-  const countdown = document.getElementById('recCountdown');
-  recStopFn = SpeakingUtils.startCountdown(countdown, 60, () => stopNow());
+  recordingPromise = SpeakingUtils.startRecording(90, canvas); // generous max
 }
 
-async function stopNow() {
-  if (recStopFn) { recStopFn(); recStopFn = null; }
+async function stopCurrentItem() {
   SpeakingUtils.stopRecording();
   hide('phaseRecording');
   show('phaseProcessing');
 
+  const item = currentItems[currentIdx];
+  document.getElementById('processingLabel').textContent =
+    `辨識語音中… (${item.type === 'passage' ? '短文' : `第 ${currentIdx + 1} 題`})`;
+
   try {
     const { base64 } = await recordingPromise;
     const durationSec = (Date.now() - recordStartTime) / 1000;
-    const item = currentItems[currentIdx];
-    const { text, words } = await SpeakingUtils.transcribe(base64, item.text.substring(0, 100));
-    showResults(text, words, durationSec, item);
+    const { text } = await SpeakingUtils.transcribe(base64, item.text.substring(0, 120));
+
+    const diff     = SpeakingUtils.wordDiff(item.text, text);
+    const accuracy = SpeakingUtils.calcAccuracy(diff);
+    const wordCount = (text || '').split(/\s+/).filter(w => w).length;
+    const wpm      = SpeakingUtils.calcWPM(wordCount, durationSec);
+
+    itemResults[currentIdx] = { transcript: text, diff, accuracy, wpm, durationSec };
+
+    hide('phaseProcessing');
+    currentIdx++;
+
+    if (currentIdx < currentItems.length) {
+      // More items to record
+      show('phaseRecording');
+      startRecordingItem();
+    } else {
+      // All done → show summary
+      showSummary();
+    }
+
   } catch (err) {
     hide('phaseProcessing');
-    alert('辨識失敗：' + err.message);
-    resetItem();
+    alert('辨識失敗：' + err.message + '\n請重新練習本題');
+    show('phaseRecording');
+    startRecordingItem(); // retry same item
   }
 }
 
-// ── Phase: Results ─────────────────────────────────────────────────────────
-function showResults(transcript, whisperWords, durationSec, item) {
-  hide('phaseProcessing');
-  show('phaseResults');
+// ── Phase 3: Summary ───────────────────────────────────────────────────────
+function showSummary() {
+  show('phaseSummary');
   setBadge('done');
 
-  // Word diff
-  const diff = SpeakingUtils.wordDiff(item.text, transcript);
-  const accuracy = SpeakingUtils.calcAccuracy(diff);
-  const wordCount = transcript.split(/\s+/).filter(w => w).length;
-  const wpm = SpeakingUtils.calcWPM(wordCount, durationSec);
-  const errorCount = diff.filter(d => d.status !== 'correct' && d.status !== 'inserted').length;
+  // Aggregate stats
+  const accuracies = itemResults.map(r => r.accuracy);
+  const wpms       = itemResults.filter(r => r.wpm > 0).map(r => r.wpm);
+  const avgAccuracy = Math.round(accuracies.reduce((a, b) => a + b, 0) / accuracies.length);
+  const avgWPM      = wpms.length ? Math.round(wpms.reduce((a, b) => a + b, 0) / wpms.length) : 0;
 
-  document.getElementById('scoreAccuracy').textContent = accuracy + '%';
-  document.getElementById('scoreWPM').textContent = wpm;
-  document.getElementById('scoreErrors').textContent = errorCount;
+  document.getElementById('summaryAccuracy').textContent = avgAccuracy + '%';
+  document.getElementById('summaryWPM').textContent = avgWPM;
+  document.getElementById('summaryScoreA').textContent = '…';
 
-  // Color-code WPM
-  const wpmEl = document.getElementById('scoreWPM');
-  if (wpm < 80)       { wpmEl.style.color = '#ef4444'; }
-  else if (wpm < 100) { wpmEl.style.color = '#f59e0b'; }
-  else if (wpm <= 130){ wpmEl.style.color = '#10b981'; }
-  else                { wpmEl.style.color = '#f59e0b'; }
+  // Build all transcripts for GPT holistic evaluation
+  const combined = currentItems.map((item, i) => {
+    const r = itemResults[i];
+    return `${i + 1}. [參考] ${item.text}\n   [朗讀] ${r ? r.transcript || '（未辨識）' : '（未錄音）'}`;
+  }).join('\n');
 
-  // Render diff
-  const diffEl = document.getElementById('diffWords');
-  diffEl.innerHTML = diff.map(d => {
-    const cls = {
-      correct: 'word-correct',
-      substituted: 'word-substituted',
-      deleted: 'word-deleted',
-      inserted: 'word-inserted'
-    }[d.status];
-    return `<span class="${cls}">${d.word}</span>`;
+  // Per-item results display
+  const perEl = document.getElementById('perItemResults');
+  perEl.innerHTML = currentItems.map((item, i) => {
+    const r = itemResults[i];
+    if (!r) return '';
+    const diffHtml = r.diff.map(d => {
+      const cls = { correct:'word-correct', substituted:'word-substituted', deleted:'word-deleted', inserted:'word-inserted' }[d.status];
+      return `<span class="${cls}">${d.word}</span>`;
+    }).join('');
+
+    const label = item.type === 'passage' ? '短文' : `第 ${i + 1} 題`;
+    const wpmNote = r.wpm > 0 ? ` · ${r.wpm} WPM` : '';
+    return `<div style="background:#f8fafc;border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid #e2e8f0">
+      <div style="font-size:0.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;margin-bottom:8px">
+        ${label} — 準確率 ${r.accuracy}%${wpmNote}
+      </div>
+      <div style="font-size:0.88rem;color:#6b7280;margin-bottom:4px">參考：<em>${item.text}</em></div>
+      <div class="diff-words" style="margin-top:6px">${diffHtml}</div>
+      <div style="font-size:0.85rem;color:#64748b;margin-top:6px;font-style:italic">
+        辨識結果：${r.transcript || '（未辨識到語音）'}
+      </div>
+    </div>`;
   }).join('');
 
-  // Transcript
-  document.getElementById('transcriptText').textContent = transcript || '（未辨識到語音）';
-
-  // Mechanical feedback tips
-  document.getElementById('scoreA').textContent = '…';
-  const tips = [];
-  if (accuracy >= 95) tips.push('✅ 字詞準確率優秀！');
-  else if (accuracy >= 80) tips.push('👍 字詞準確率良好，繼續加油！');
-  else tips.push('⚠️ 有多個字詞發音不清晰，建議多朗讀參考文本。');
-
-  if (wpm < 80)        tips.push('🐢 語速偏慢（' + wpm + ' WPM），初級目標：100–130 WPM。');
-  else if (wpm > 130)  tips.push('🐇 語速偏快（' + wpm + ' WPM），注意清晰度，初級目標：100–130 WPM。');
-  else                 tips.push('⏱️ 語速適中（' + wpm + ' WPM），符合初級標準！');
-
-  if (item.type === 'passage' && durationSec > 60) {
-    tips.push('⏰ 朗讀時間超過 60 秒，真實考試需在時限內完成。');
-  }
-
-  if (item.key_words && item.key_words.length > 0) {
-    const transcriptLower = transcript.toLowerCase();
-    const missed = item.key_words.filter(kw => !transcriptLower.includes(kw.toLowerCase()));
-    if (missed.length > 0) {
-      tips.push(`🔑 關鍵字詞可能未說清楚：${missed.join('、')}`);
-    } else {
-      tips.push('🔑 所有關鍵字詞均有朗讀到！');
-    }
-  }
-
-  const feedbackEl = document.getElementById('feedbackList');
-  feedbackEl.innerHTML = tips.map(t => `<li>${t}</li>`).join('');
-
-  // Mark dot as done
-  const dots = document.querySelectorAll('.item-dot');
-  if (dots[currentIdx]) dots[currentIdx].classList.add('done');
-
-  // Async: call /api/evaluate for official Score A
-  const BACKEND = SpeakingUtils.BACKEND;
+  // Async GPT holistic Score A evaluation of all items together
   fetch(`${BACKEND}/api/evaluate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ part: 2, transcript: transcript || '', reference: item.text })
+    body: JSON.stringify({
+      part: 2,
+      transcript: combined,
+      reference: '（以下為本次朗讀練習中所有句子的對照，請整體評估發音、語調、流利度）'
+    })
   }).then(r => r.json()).then(ev => {
-    document.getElementById('scoreA').textContent = ev.score_a !== null ? ev.score_a : '—';
-    document.getElementById('feedbackA').textContent = ev.feedback_a || ev.overall || '—';
-    if (ev.coaching) {
-      feedbackEl.innerHTML += `<li>💡 ${ev.coaching}</li>`;
-    }
+    document.getElementById('summaryScoreA').textContent = ev.score_a !== null ? ev.score_a : '—';
+    document.getElementById('summaryFeedbackA').textContent = ev.feedback_a || ev.overall || '—';
+    document.getElementById('summaryCoaching').textContent = ev.coaching || '—';
   }).catch(() => {
-    document.getElementById('scoreA').textContent = '—';
-    document.getElementById('feedbackA').textContent = '（GPT 評估不可用）';
+    document.getElementById('summaryScoreA').textContent = '—';
+    document.getElementById('summaryFeedbackA').textContent = '（GPT 評估不可用）';
+    document.getElementById('summaryCoaching').textContent = '—';
   });
 }
 
-// ── Navigation ─────────────────────────────────────────────────────────────
-function prevItem() {
-  if (currentIdx > 0) { currentIdx--; loadItem(); }
-}
-function nextItem() {
-  if (currentIdx < currentItems.length - 1) { currentIdx++; loadItem(); }
-}
-function resetItem() {
-  loadItem();
-}
-
 // ── Helpers ────────────────────────────────────────────────────────────────
-function resetPhase() {
-  if (readStopFn) { readStopFn(); readStopFn = null; }
-  if (recStopFn)  { recStopFn(); recStopFn = null; }
-  SpeakingUtils.stopRecording();
-  hide('phaseReading');
-  hide('phaseRecording');
-  hide('phaseProcessing');
-  hide('phaseResults');
-  hide('waveformWrap');
-}
-
 function show(id) { document.getElementById(id).classList.remove('hidden'); }
 function hide(id) { document.getElementById(id).classList.add('hidden'); }
 
 function setBadge(phase) {
   const el = document.getElementById('phaseBadge');
   const map = {
-    reading:   ['phase-reading',   '📖 閱讀準備中（60秒）'],
+    reading:   ['phase-reading',   '📖 默讀準備中（60秒）'],
     recording: ['phase-recording', '🔴 錄音中'],
-    done:      ['phase-done',      '✅ 分析完成']
+    done:      ['phase-done',      '✅ 練習完成']
   };
   el.className = 'phase-badge ' + map[phase][0];
   el.textContent = map[phase][1];
 }
 
-// ── Start ───────────────────────────────────────────────────────────────────
 init();
 </script>
 </body>
