@@ -556,9 +556,9 @@ async function stopCurrentItem() {
     `辨識語音中… (${item.type === 'passage' ? '短文' : `第 ${currentIdx + 1} 題`})`;
 
   try {
-    const { base64 } = await recordingPromise;
+    const { base64, mimeType } = await recordingPromise;
     const durationSec = (Date.now() - recordStartTime) / 1000;
-    const { text } = await SpeakingUtils.transcribe(base64, item.text.substring(0, 120));
+    const { text } = await SpeakingUtils.transcribe(base64, item.text.substring(0, 120), mimeType);
 
     const diff     = SpeakingUtils.wordDiff(item.text, text);
     const accuracy = SpeakingUtils.calcAccuracy(diff);

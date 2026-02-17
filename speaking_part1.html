@@ -557,9 +557,9 @@ async function stopNow() {
   show('phaseProcessing');
 
   try {
-    const { base64 } = await recordingPromise;
+    const { base64, mimeType } = await recordingPromise;
     const item = currentItems[currentIdx];
-    const { text, words } = await SpeakingUtils.transcribe(base64, item.text);
+    const { text, words } = await SpeakingUtils.transcribe(base64, item.text, mimeType);
     showResults(text, item);
   } catch (err) {
     hide('phaseProcessing');

@@ -79,14 +79,16 @@ const SpeakingUtils = (() => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-        // Pick best supported MIME
+        // Pick best supported MIME (iOS/Safari needs audio/mp4)
         const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
           ? 'audio/webm;codecs=opus'
           : MediaRecorder.isTypeSupported('audio/webm')
             ? 'audio/webm'
-            : 'audio/ogg';
+            : MediaRecorder.isTypeSupported('audio/mp4')
+              ? 'audio/mp4'
+              : '';
 
-        _mediaRecorder = new MediaRecorder(stream, { mimeType });
+        _mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
         _recordingChunks = [];
 
         _mediaRecorder.ondataavailable = e => {
@@ -98,9 +100,11 @@ const SpeakingUtils = (() => {
           stream.getTracks().forEach(t => t.stop());
           if (_waveformStopFn) { _waveformStopFn(); _waveformStopFn = null; }
 
-          const blob = new Blob(_recordingChunks, { type: mimeType });
+          // Use actual recorder mimeType (may differ from requested on some browsers)
+          const actualMime = _mediaRecorder.mimeType || mimeType || 'audio/webm';
+          const blob = new Blob(_recordingChunks, { type: actualMime });
           const base64 = await _blobToBase64(blob);
-          resolve({ blob, base64 });
+          resolve({ blob, base64, mimeType: actualMime });
         };
 
         _mediaRecorder.onerror = e => reject(e.error);
@@ -155,11 +159,11 @@ const SpeakingUtils = (() => {
    * @param {string} [prompt=''] - optional Whisper prompt for context
    * @returns {Promise<{ text: string, words: Array<{word,start,end}> }>}
    */
-  async function transcribe(base64, prompt = '') {
+  async function transcribe(base64, prompt = '', mimeType = 'audio/webm') {
     const resp = await fetch(`${BACKEND}/api/transcribe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ audio: base64, prompt, language: 'en' })
+      body: JSON.stringify({ audio: base64, prompt, language: 'en', mimeType })
     });
     if (!resp.ok) throw new Error(`Transcribe 請求失敗: ${resp.status}`);
     const data = await resp.json();

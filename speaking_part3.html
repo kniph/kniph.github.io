@@ -586,11 +586,11 @@ async function stopNow() {
   show('phaseProcessing');
 
   try {
-    const { base64 } = await recordingPromise;
+    const { base64, mimeType } = await recordingPromise;
     const item = currentItems[currentIdx];
 
     // Step 1: Whisper
-    const { text } = await SpeakingUtils.transcribe(base64, '');
+    const { text } = await SpeakingUtils.transcribe(base64, '', mimeType);
     hide('phaseProcessing');
     show('phaseGrading');
 
