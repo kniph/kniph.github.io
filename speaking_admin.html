@@ -364,7 +364,7 @@ async function generateSet() {
   document.getElementById('previewSection').classList.add('hidden');
 
   try {
-    const resp = await fetch(`${BACKEND}/api/generate-questions`, {
+    const resp = await fetch(`${BACKEND}/api/speaking/generate-questions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ set_name: setName, seed_topics: topics })
