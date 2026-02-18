@@ -340,6 +340,8 @@
     <div class="audio-card" id="audioCard">
       <div class="play-icon" id="playIcon">🔊</div>
       <div class="audio-label" id="audioLabel">準備播放題目…</div>
+      <!-- Start button: shown before first play; hidden after user clicks -->
+      <button class="btn btn-teal" id="btnStart" onclick="startItem()" style="margin-top:8px">▶ 播放題目</button>
     </div>
 
     <!-- Question reveal (shown after recording) -->
@@ -496,19 +498,33 @@ function renderDots() {
   });
 }
 
-// ── Load & play item ───────────────────────────────────────────────────────
-async function loadItem() {
+// ── Load item (no auto-play — wait for user click) ─────────────────────────
+function loadItem() {
   resetUI();
   renderDots();
 
   const item = currentItems[currentIdx];
   if (!item) {
     document.getElementById('audioLabel').textContent = '此組暫無題目';
+    document.getElementById('btnStart').style.display = 'none';
     return;
   }
 
+  // Show start button; user must click to trigger audio (browser autoplay policy)
+  document.getElementById('playIcon').textContent = '🔊';
+  document.getElementById('audioLabel').textContent = `第 ${currentIdx + 1} 題 / 共 ${currentItems.length} 題`;
+  document.getElementById('btnStart').style.display = '';
   setBadge('listening');
-  document.getElementById('audioLabel').textContent = `第 ${currentIdx + 1} 題 / 共 ${currentItems.length} 題 — 播放中 (第 1 遍)`;
+}
+
+// ── Play item (called by user clicking ▶ 播放題目) ─────────────────────────
+async function startItem() {
+  const item = currentItems[currentIdx];
+  if (!item) return;
+
+  // Hide start button immediately so user can't double-click
+  document.getElementById('btnStart').style.display = 'none';
+
   document.getElementById('listenLabel').textContent = '正在產生音頻…';
   show('phaseListening');
 
@@ -516,8 +532,6 @@ async function loadItem() {
     document.getElementById('playIcon').textContent = '🔊';
     document.getElementById('audioLabel').textContent = `第 ${currentIdx + 1} 題 — 播放中 (第 1 遍)`;
 
-    // Play twice via SpeakingUtils (1.5 s gap handled internally)
-    // We want to show "第2遍" between plays — so call once for each
     await SpeakingUtils.playTTS(item.text, 'nova', 1);
     document.getElementById('audioLabel').textContent = `第 ${currentIdx + 1} 題 — 間隔中…`;
     await new Promise(r => setTimeout(r, 1500));
@@ -534,6 +548,9 @@ async function loadItem() {
   } catch (err) {
     hide('phaseListening');
     document.getElementById('audioLabel').textContent = '⚠️ TTS 失敗：' + err.message;
+    // Re-show start button so user can retry
+    document.getElementById('btnStart').style.display = '';
+    document.getElementById('btnStart').textContent = '🔄 重試播放';
   }
 }
 
@@ -648,7 +665,9 @@ function showResults(transcript, item) {
 async function replayAndRetry() {
   document.getElementById('questionReveal').style.display = 'none';
   resetUI();
-  await loadItem();
+  loadItem();
+  // User is already interacting (clicked 重聽+再試), so go straight to play
+  await startItem();
 }
 
 function prevItem() { if (currentIdx > 0) { currentIdx--; loadItem(); } }
@@ -665,6 +684,8 @@ function resetUI() {
   hide('phaseResults');
   document.getElementById('playIcon').textContent = '🔊';
   document.getElementById('audioLabel').textContent = '準備播放…';
+  document.getElementById('btnStart').style.display = 'none';
+  document.getElementById('btnStart').textContent = '▶ 播放題目';
 }
 
 function show(id) { document.getElementById(id).classList.remove('hidden'); }

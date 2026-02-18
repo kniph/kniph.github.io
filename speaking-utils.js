@@ -165,7 +165,11 @@ const SpeakingUtils = (() => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ audio: base64, prompt, language: 'en', mimeType })
     });
-    if (!resp.ok) throw new Error(`Transcribe 請求失敗: ${resp.status}`);
+    if (!resp.ok) {
+      let msg = `Transcribe 請求失敗: ${resp.status}`;
+      try { const d = await resp.json(); if (d.error) msg = d.error; } catch {}
+      throw new Error(msg);
+    }
     const data = await resp.json();
     return { text: data.text || '', words: data.words || [] };
   }
