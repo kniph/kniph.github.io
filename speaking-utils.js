@@ -103,6 +103,11 @@ const SpeakingUtils = (() => {
           // Use actual recorder mimeType (may differ from requested on some browsers)
           const actualMime = _mediaRecorder.mimeType || mimeType || 'audio/webm';
           const blob = new Blob(_recordingChunks, { type: actualMime });
+          console.log(`[SpeakingUtils] Recording done: chunks=${_recordingChunks.length}, blobSize=${blob.size}b, mime=${actualMime}`);
+          if (blob.size === 0) {
+            reject(new Error('錄音檔案為空 (0 bytes)，請確認麥克風權限並重試'));
+            return;
+          }
           const base64 = await _blobToBase64(blob);
           resolve({ blob, base64, mimeType: actualMime });
         };
