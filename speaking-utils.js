@@ -114,7 +114,7 @@ const SpeakingUtils = (() => {
 
         _mediaRecorder.onerror = e => reject(e.error);
 
-        _mediaRecorder.start(100); // collect every 100 ms
+        _mediaRecorder.start(250); // collect every 250 ms (more reliable than 100ms on some browsers)
 
         // Start waveform if canvas provided
         if (waveformCanvas) {
@@ -138,7 +138,9 @@ const SpeakingUtils = (() => {
       clearTimeout(_recordingStopTimer);
       _recordingStopTimer = null;
     }
-    if (_mediaRecorder && _mediaRecorder.state !== 'inactive') {
+    if (_mediaRecorder && _mediaRecorder.state === 'recording') {
+      // requestData() flushes any buffered audio before stopping
+      _mediaRecorder.requestData();
       _mediaRecorder.stop();
     }
   }
