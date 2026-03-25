@@ -4,7 +4,7 @@
 **Category**: Premium Add-on
 **Pricing**: +NT$2,000/month
 **Status**: ✅ Production Ready
-**Last Updated**: 2025-02-17 (v1.0)
+**Last Updated**: 2026-03-26 (v1.1)
 
 ---
 
@@ -32,7 +32,7 @@ GEPT Second Stage — Writing Module
 - ✅ Pre-loaded question sets (AMC mock tests + official GEPT samples)
 - ✅ AI-generated question sets (on demand)
 - ✅ Two grading modes: single-student and batch (class-wide)
-- ✅ Multi-model AI (Claude 4.5 Sonnet / GPT-5.2)
+- ✅ Multi-model AI (Claude Sonnet 4.6 / GPT-5.2)
 - ✅ Per-question detailed feedback
 - ✅ Session saving + PDF report (SK-003 / SK-008)
 - ✅ Teacher mode and student mode (separate UIs)
@@ -97,7 +97,7 @@ GEPT Second Stage — Writing Module
     "target_grammar": "so...that clause"
   },
   "answer": "The bag is so heavy that I can't carry it.",
-  "model": "claude-sonnet-4.5"
+  "model": "claude-sonnet-4-6"
 }
 ```
 
@@ -107,7 +107,7 @@ GEPT Second Stage — Writing Module
 {
   "questions": [ /* array of question objects */ ],
   "answers": [ /* array of student answer strings */ ],
-  "model": "claude-sonnet-4.5",
+  "model": "claude-sonnet-4-6",
   "studentName": "王小明"
 }
 ```
@@ -208,7 +208,7 @@ QR code in report links student to their results
 
 ```html
 <select id="modelSelect" onchange="updateModelDisplay()">
-  <option value="claude-sonnet-4.5">Claude Sonnet 4.5</option>
+  <option value="claude-sonnet-4-6">Claude Sonnet 4.6</option>
   <option value="gpt-5.2">GPT 5.2</option>
 </select>
 ```
@@ -277,11 +277,17 @@ Per customer you can:
 
 ## Changelog
 
+### v1.1 — 2026-03-26
+- Upgraded grading model: Claude Sonnet 4.5 → Claude Sonnet 4.6
+- Grading prompt fix: its/it's confusion now treated as minor error (not grammar error)
+- Test suite re-validated: 115/116 → 116/116 expected after prompt fix
+- GPT path: gpt-5.2 retained (gpt-5.4 returns 503, not yet accessible)
+
 ### v1.0 — Initial Release
 - 3 sentence task types (改寫 / 合併 / 重組)
 - 9 pre-loaded question sets (A-1 to A-8 + G-1)
 - AI-generated question mode
 - Single and batch grading modes
-- Claude 4.5 and GPT-5.2 model support
+- Claude Sonnet 4.5 and GPT-5.2 model support
 - Session saving + printable PDF report
 - Teacher and student role separation
