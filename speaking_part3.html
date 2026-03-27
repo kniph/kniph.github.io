@@ -505,6 +505,8 @@ function loadSet() {
   currentSet = bank.sets.find(s => s.set_id === setId);
   currentItems = currentSet ? currentSet.part3 : [];
   currentIdx = 0;
+  // Pre-warm TTS cache for all questions in background — instant playback when student starts
+  SpeakingUtils.prefetchTTS(currentItems.map(i => i.question), 'nova');
   renderDots();
   loadItem();
 }

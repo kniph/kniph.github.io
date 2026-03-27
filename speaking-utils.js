@@ -4,6 +4,7 @@
  *
  * Exports (as global SpeakingUtils object):
  *   - playTTS(text, voice?)             → Promise<void>
+ *   - prefetchTTS(texts, voice?)        → Promise<void>  (pre-warms TTS cache)
  *   - startRecording(maxSeconds?)       → Promise<{ blob, base64 }>
  *   - stopRecording()                   → void
  *   - transcribe(base64, prompt?)       → Promise<{ text, words }>
@@ -20,8 +21,61 @@ const SpeakingUtils = (() => {
 
   // ─── TTS ──────────────────────────────────────────────────────────────────
 
+  // In-memory cache: "text||voice" → "data:audio/mp3;base64,..."
+  // Session-only — never persisted. Avoids redundant network calls.
+  const _ttsCache = new Map();
+  // In-flight promise cache: prevents duplicate parallel fetches for the same key
+  const _ttsPending = new Map();
+
   /**
-   * Call backend /api/tts, play the returned MP3 base64 as audio.
+   * Fetch TTS audio src for `text`, using cache if available.
+   * @returns {Promise<string>} data-URI src
+   */
+  async function _fetchTTSSrc(text, voice) {
+    const key = `${text}||${voice}`;
+    if (_ttsCache.has(key)) return _ttsCache.get(key);
+
+    // Deduplicate in-flight requests for the same key
+    if (_ttsPending.has(key)) return _ttsPending.get(key);
+
+    const promise = (async () => {
+      const resp = await fetch(`${BACKEND}/api/tts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voice })
+      });
+      if (!resp.ok) throw new Error(`TTS 請求失敗: ${resp.status}`);
+      const { audio } = await resp.json();
+      if (!audio) throw new Error('TTS 回應缺少 audio 欄位');
+      const src = `data:audio/mp3;base64,${audio}`;
+      _ttsCache.set(key, src);
+      _ttsPending.delete(key);
+      return src;
+    })();
+
+    _ttsPending.set(key, promise);
+    return promise;
+  }
+
+  /**
+   * Pre-warm the TTS cache for a list of texts.
+   * Fire all requests in parallel in the background — call this right after
+   * questions load so audio is ready before the student hits play.
+   * Nothing is persisted; cache lives only for this session.
+   * @param {string[]} texts
+   * @param {string}   [voice='nova']
+   * @returns {Promise<void>} resolves when all fetches complete (or fail silently)
+   */
+  async function prefetchTTS(texts, voice = 'nova') {
+    await Promise.allSettled(
+      texts
+        .filter(t => t && t.trim())
+        .map(t => _fetchTTSSrc(t.trim(), voice))
+    );
+  }
+
+  /**
+   * Call backend /api/tts (or use cache), play the returned MP3 as audio.
    * Plays twice with a 1.5 s gap (as in the real GEPT exam for Parts 1 & 3).
    * @param {string} text
    * @param {string} [voice='nova']
@@ -29,16 +83,7 @@ const SpeakingUtils = (() => {
    * @returns {Promise<void>} resolves after all plays complete
    */
   async function playTTS(text, voice = 'nova', playCount = 2) {
-    const resp = await fetch(`${BACKEND}/api/tts`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voice })
-    });
-    if (!resp.ok) throw new Error(`TTS 請求失敗: ${resp.status}`);
-    const { audio } = await resp.json();
-    if (!audio) throw new Error('TTS 回應缺少 audio 欄位');
-
-    const src = `data:audio/mp3;base64,${audio}`;
+    const src = await _fetchTTSSrc(text, voice);
 
     for (let i = 0; i < playCount; i++) {
       await _playAudioSrc(src);
@@ -387,6 +432,7 @@ const SpeakingUtils = (() => {
 
   return {
     playTTS,
+    prefetchTTS,
     startRecording,
     stopRecording,
     transcribe,

@@ -35,8 +35,8 @@ Detailed skill specs live in `skills/SKILL-INVENTORY.md`.
 
 **Pending**: Set `JWT_SECRET` env var in railway-backend Railway environment.
 
-### Speaking Grader — Bug Fixes
-Recent commits fixing stability issues on iOS/Safari and Whisper API errors:
+### Speaking Grader — Bug Fixes & TTS Performance
+Recent commits fixing stability issues on iOS/Safari, Whisper API errors, and TTS latency:
 - ✅ Fixed Whisper 400: flush audio buffer before stop, increase chunk interval
 - ✅ Fixed Whisper 400: guard empty recordings
 - ✅ Fixed iOS/Safari 502: pass mimeType through recording → transcribe pipeline
@@ -44,6 +44,7 @@ Recent commits fixing stability issues on iOS/Safari and Whisper API errors:
 - ✅ Fixed speaking admin: generate-questions endpoint path
 - ✅ Redesigned Part 2 to match real GEPT exam flow
 - ✅ Question bank: Set 1 populated, Sets 2–8 scaffolded
+- ✅ TTS pre-fetch cache: all questions fetched in parallel at session start → instant playback (Parts 1 & 3). Session-only, nothing persisted.
 
 **Next steps**: Confirm Whisper fixes stable on iOS Safari, fill Sets 2–8 question bank.
 
