@@ -374,6 +374,7 @@
 
         .result-answer {
             background: #f8fafc;
+            color: #1f2937;
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 12px;
@@ -435,6 +436,7 @@
         .stat-label {
             font-size: 0.95rem;
             margin-top: 5px;
+            color: #4b5563;
         }
 
         .stat-card.green .stat-number { color: #059669; }
@@ -1545,12 +1547,44 @@
         }
 
         function generateResultCard(r) {
+            const q = currentQuestions.find(q => q.num === r.questionNum);
+
+            // Build question context block
+            let questionContext = '';
+            if (q) {
+                if (q.type === '重組') {
+                    questionContext = `
+                        <div style="background:#eff6ff;border-left:3px solid #3b82f6;padding:10px 14px;border-radius:0 8px 8px 0;margin-bottom:10px;font-size:0.92rem;color:#1e40af;">
+                            <div style="font-weight:600;margin-bottom:4px;">📝 題目：</div>
+                            <div style="margin-bottom:4px;">${q.prompt}</div>
+                            <div style="color:#6b7280;">字詞：${(q.given_words || []).join(' / ')}</div>
+                        </div>`;
+                } else if (q.type === '句子合併') {
+                    const origArr = Array.isArray(q.original) ? q.original : [q.original];
+                    questionContext = `
+                        <div style="background:#eff6ff;border-left:3px solid #3b82f6;padding:10px 14px;border-radius:0 8px 8px 0;margin-bottom:10px;font-size:0.92rem;color:#1e40af;">
+                            <div style="font-weight:600;margin-bottom:4px;">📝 題目：</div>
+                            <div style="margin-bottom:4px;">${origArr.join('<br>')}</div>
+                            <div style="color:#6b7280;">提示：${q.prompt}</div>
+                        </div>`;
+                } else {
+                    // 句子改寫
+                    questionContext = `
+                        <div style="background:#eff6ff;border-left:3px solid #3b82f6;padding:10px 14px;border-radius:0 8px 8px 0;margin-bottom:10px;font-size:0.92rem;color:#1e40af;">
+                            <div style="font-weight:600;margin-bottom:4px;">📝 題目：</div>
+                            <div style="margin-bottom:4px;">${q.original}</div>
+                            <div style="color:#6b7280;">提示：${q.prompt}${q.instruction ? ' (' + q.instruction + ')' : ''}</div>
+                        </div>`;
+                }
+            }
+
             return `
             <div class="result-card">
                 <div class="result-header">
                     <span class="question-title">第 ${r.questionNum} 題 - ${r.questionType}</span>
                     <span class="score-badge score-${r.score}">${r.score} 分</span>
                 </div>
+                ${questionContext}
                 <div class="result-answer">${r.answer}</div>
                 <div class="result-feedback">
                     ${r.grammar_errors && r.grammar_errors.length > 0 ? `
